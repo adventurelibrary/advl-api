@@ -1,0 +1,7 @@
+assets/upload:
+  handler: src/api/assets/upload.upload
+  events: 
+    - http:
+        method: post
+        path: /assets/upload
+        cors: true
