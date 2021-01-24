@@ -7,7 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "source-map-support": "^0.5.10"
+    "node-fetch": "^2.6.1",
+    "serverless-dynamodb-local": "^0.2.39",
+    "serverless-offline": "^6.8.0",
+    "source-map-support": "^0.5.10",
+    "transloadit": "^3.0.0-rc.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.17",
