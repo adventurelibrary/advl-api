@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 
-export const upload: APIGatewayProxyHandler = async (_event, _context) => {
+export const template: APIGatewayProxyHandler = async (_event, _context) => {
   let response = {
     statusCode: 500,
     headers: {
@@ -15,7 +15,7 @@ export const upload: APIGatewayProxyHandler = async (_event, _context) => {
     return response;
 
   } catch (E){
-    console.error(`UPLOAD ERROR | \n Event: ${_event} \n Error: ${E}` );
+    console.error(`ERROR | \n Event: ${_event} \n Error: ${E}` );
     return response;
   }
 }

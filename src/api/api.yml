@@ -1,7 +1,7 @@
-assets/upload:
-  handler: src/api/assets/upload.upload
-  events: 
+assets/get_signature:
+  handler: src/api/assets/transloadit.get_signature
+  events:
     - http:
-        method: post
-        path: /assets/upload
+        method: get
+        path: /assets/get_signature
         cors: true
