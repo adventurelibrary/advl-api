@@ -10,3 +10,6 @@ jspm_packages
 
 # Offline Directories
 .dynamodb
+
+# Environment File
+src/.env.yml

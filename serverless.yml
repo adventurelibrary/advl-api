@@ -20,7 +20,8 @@ provider:
   apiGateway:
     minimumCompressionSize: 1024
   environment:
-    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    - AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    - ${file(src/.env.yml)}
   iamRoleStatements:
     - Effect: Allow
       Action:
