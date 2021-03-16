@@ -20,8 +20,7 @@ provider:
   apiGateway:
     minimumCompressionSize: 1024
   environment:
-    - AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
-    - ${file(src/.env.yml)}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -34,4 +33,4 @@ functions:
 
 resources:
   Resources:
-  - ${file(src/resources/dynamodb.yml)}
+    ${file(src/resources/dynamodb.yml)}

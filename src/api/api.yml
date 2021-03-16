@@ -1,7 +1,9 @@
-assets/get_signature:
+get_upload_signature:
   handler: src/api/assets/transloadit.get_signature
   events:
     - http:
-        method: get
+        method: post
         path: /assets/get_signature
         cors: true
+  environment:
+    ${file(src/.env/transloadit.yml)}

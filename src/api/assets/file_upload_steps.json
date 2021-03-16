@@ -55,8 +55,8 @@
         "resize_image"
       ],
       "robot": "/backblaze/store",
-      "credentials": "YOUR_BACKBLAZE_CREDENTIALS",
-      "path": "path/for/storing/${file.url_name}"
+      "credentials": "ADVL Test Uploads",
+      "path": "advl-test/${file.url_name}"
     }
   }
 }

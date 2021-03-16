@@ -6,7 +6,9 @@
     "test": "ts-node tests/test.ts"
   },
   "dependencies": {
+    "@types/form-data": "^2.5.0",
     "aws-sdk": "^2.831.0",
+    "form-data": "^4.0.0",
     "node-fetch": "^2.6.1",
     "serverless-dynamodb-local": "^0.2.39",
     "serverless-offline": "^6.8.0",

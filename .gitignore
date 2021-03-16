@@ -12,4 +12,4 @@ jspm_packages
 .dynamodb
 
 # Environment File
-src/.env.yml
+src/.env/
