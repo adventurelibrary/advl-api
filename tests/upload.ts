@@ -2,9 +2,8 @@
 import fetch from 'node-fetch';
 import { REQ_Get_Signature } from '../src/interfaces/IAsset';
 import {testURL} from './test'
-//import * as fs from 'fs';
-//import * as fd from 'form-data';
-import * as Transloadit from 'transloadit';
+import * as fs from 'fs';
+import * as FormData from 'form-data';
 
 export async function test_fetch_preflight() {
   try{
@@ -28,28 +27,19 @@ export async function test_fetch_preflight() {
 
     console.log("Response: \n", response)
 
-    const tldt = new Transloadit({
-      authKey: '1726eb010ff140ee9a60e7578892a8fc'
-    })
-
-
-    /*
-    let form = new fd();
+    let form = new FormData();
     form.append('file', fs.createReadStream('tests/files/Mountain_Dig_Site.png'));
     form.append('params', response.params),
     form.append('signature', response.signature)
 
+    
     let transloadit_response = await (await fetch('https://api2.transloadit.com/assemblies', {
       method: 'post',
-      headers: {
-        'content-type':'multipart/form-data'
-      },
+      headers: form.getHeaders(),
       body: form
     })).json()
     console.log(transloadit_response);
-    */
-
-
+    
     console.log("\x1b[32m%s\x1b[0m", "PASSING: Test Fetch Preflight")
   } catch (E) {
     console.error(E);

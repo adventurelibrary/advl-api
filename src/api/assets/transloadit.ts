@@ -59,7 +59,7 @@ async function getParams(req:REQ_Get_Signature): Promise<string> {
       key: authKey,
       expires: expires
     }, 
-    steps: require("./file_upload_steps.json")
+    steps: require("./file_upload_steps.json").steps
   })
   
   return params;

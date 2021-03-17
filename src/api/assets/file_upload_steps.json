@@ -15,13 +15,8 @@
       ],
       "error_on_decline": true
     },
-    "viruscheck": {
-      "use": "filter",
-      "robot": "/file/virusscan",
-      "error_on_decline": true
-    },
     "convert_image_webp": {
-      "use": "viruscheck",
+      "use": "filter",
       "robot": "/image/resize",
       "format": "webp",
       "imagemagick_stack": "v2.0.7"
@@ -47,16 +42,37 @@
       "height": 100,
       "imagemagick_stack": "v2.0.7"
     },
-    "export": {
+    "export_original": {
       "use": [
-        "convert_image_webp",
-        "compress_image",
-        "watermark",
+        "filter"
+      ],
+      "robot": "/backblaze/store",
+      "credentials": "ADVL Test Uploads",
+      "path": "advl-test/${file.basename}-${assembly.id}/original.${file.ext}"
+    },
+    "export_compressed_image": {
+      "use": [
+        "compress_image"
+      ],
+      "robot": "/backblaze/store",
+      "credentials": "ADVL Test Uploads",
+      "path": "advl-test/${file.basename}-${assembly.id}/compress_image.webp"
+    },
+    "export_watermark": {
+      "use": [
+        "watermark"
+      ],
+      "robot": "/backblaze/store",
+      "credentials": "ADVL Test Uploads",
+      "path": "advl-test/${file.basename}-${assembly.id}/watermark.webp"
+    },
+    "export_thumb": {
+      "use": [
         "resize_image"
       ],
       "robot": "/backblaze/store",
       "credentials": "ADVL Test Uploads",
-      "path": "advl-test/${file.url_name}"
+      "path": "advl-test/${file.basename}-${assembly.id}/thumb.webp"
     }
   }
 }
