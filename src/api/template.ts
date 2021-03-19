@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 
-export const template: APIGatewayProxyHandler = async (_event, _context) => {
+export const template: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = {
     statusCode: 500,
     headers: {
@@ -15,7 +15,7 @@ export const template: APIGatewayProxyHandler = async (_event, _context) => {
     return response;
 
   } catch (E){
-    console.error(`ERROR | \n Event: ${_event} \n Error: ${E}` );
+    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
     return response;
   }
 }

@@ -7,3 +7,13 @@ get_upload_signature:
         cors: true
   environment:
     ${file(src/.env/transloadit.yml)}
+
+transloadit_notify:
+  handler: src/api/assets/transloadit.transloadit_notify
+  events:
+    - http: 
+        method: post
+        path: /assets/transloadit
+        cors: true
+  environment:
+    ${file(src/.env/transloadit.yml)}

@@ -12,9 +12,13 @@ export async function test_fetch_preflight() {
     //console.log(map);
 
     let uploadReq:REQ_Get_Signature = {
-      "userName": "test-user-01",
-      "fileName": "Mountain_Dig_Site.png",
-      "assetData": {},
+      name: "Mountain Dig Site",
+      description: "Dig site on the side of a mountain",
+      collectionID: "001",
+      categoryID: "001",
+      tagIDs: {},
+      unlockPrice: 0, 
+      revenueShare: {}
     }
 
     let response = (await (await fetch(testURL+'assets/get_signature', {

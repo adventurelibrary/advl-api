@@ -3,15 +3,19 @@
   "version": "1.0.0",
   "description": "Serverless webpack example using Typescript",
   "scripts": {
-    "test": "ts-node tests/test.ts"
+    "test": "ts-node tests/test.ts",
+    "dynamo": "serverless dynamodb start -d dynamo/"
   },
   "dependencies": {
     "@types/form-data": "^2.5.0",
+    "@types/nanoid": "^2.1.0",
     "aws-sdk": "^2.831.0",
     "form-data": "^4.0.0",
+    "nanoid": "^3.1.22",
     "node-fetch": "^2.6.1",
     "serverless-dynamodb-local": "^0.2.39",
     "serverless-offline": "^6.8.0",
+    "slugify": "^1.4.7",
     "source-map-support": "^0.5.10",
     "transloadit": "^3.0.0-rc.2"
   },

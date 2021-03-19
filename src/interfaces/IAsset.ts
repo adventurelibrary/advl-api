@@ -18,8 +18,8 @@ export interface Asset extends UserDefinedAssetInfo{
   id: string, 
   slug: string,
   size: number,
-  uploaded: Date,
-  status: "PENDING" | "HIDDEN" | "PUBLIC",
+  uploaded: string, //ISO String
+  visibility: "PENDING" | "HIDDEN" | "PUBLIC",
   fileType: "IMAGE" | "PDF" | "ZIP",
   creatorID: string,
   unlockCount: number,
