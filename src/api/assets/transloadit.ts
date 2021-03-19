@@ -6,20 +6,17 @@ export const get_signature: APIGatewayProxyHandler = async (_event, _context) =>
   let response = {
     statusCode: 500,
     headers: {
-      'content-type': "application/json",
+      'content-type': 'application/json',
+      'Access-Control-Allow-Origin': "*",
+      'Access-Control-Allow-Credential': true
     },
     body: JSON.stringify({error:"Something went wrong!"})
   }
 
   try{
-    console.log(_event.body)
-    response.statusCode = 200;
-    response.body = JSON.stringify({success: "Hello World!"});
     let FileRequest:REQ_Get_Signature = JSON.parse(_event.body);
     let params = await getParams(FileRequest);
     let signature = await calcSignature(params);
-    console.debug("Params: ", params);
-    console.debug("Signature: ", signature);
 
     let _res:RES_Get_Signature = {
       params: params, 
@@ -29,7 +26,9 @@ export const get_signature: APIGatewayProxyHandler = async (_event, _context) =>
     response = {
       statusCode: 200,
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'Access-Control-Allow-Origin': "*",
+        'Access-Control-Allow-Credential': true
       },
       body: JSON.stringify(_res)
     }
