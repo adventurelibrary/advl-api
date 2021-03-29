@@ -1,9 +1,11 @@
 //import * as fs from 'fs';
 import fetch from 'node-fetch';
 import { REQ_Get_Signature } from '../src/interfaces/IAsset';
-import {testURL} from './test'
+import {testURL} from './constants'
 import * as fs from 'fs';
 import * as FormData from 'form-data';
+
+test_fetch_preflight();
 
 export async function test_fetch_preflight() {
   try{
@@ -12,10 +14,10 @@ export async function test_fetch_preflight() {
     //console.log(map);
 
     let uploadReq:REQ_Get_Signature = {
-      name: "Mountain Dig Site",
+      name: "Mountain Dig Site 3",
       description: "Dig site on the side of a mountain",
-      collectionID: "001",
-      categoryID: "001",
+      collectionID: "003",
+      categoryID: "003",
       tagIDs: {},
       unlockPrice: 0, 
       revenueShare: {}
@@ -44,7 +46,7 @@ export async function test_fetch_preflight() {
     })).json()
     console.log(transloadit_response);
     
-    console.log("\x1b[32m%s\x1b[0m", "PASSING: Test Fetch Preflight")
+    console.log("\x1b[32m%s\x1b[0m", "RAN: Test Fetch Preflight")
   } catch (E) {
     console.error(E);
   }

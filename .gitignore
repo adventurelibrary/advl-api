@@ -13,3 +13,4 @@ jspm_packages
 
 # Environment File
 src/.env/
+src/.env.yml

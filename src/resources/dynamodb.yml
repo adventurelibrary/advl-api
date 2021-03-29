@@ -1,12 +1,52 @@
 Resources:
-  Assets:
+  AssetsDB:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: Assets
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
-          AttributeType: S 
+          AttributeType: S
+        - AttributeName: uploaded
+          AttributeType: S
+        - AttributeName: creatorID
+          AttributeType: S
+        - AttributeName: collectionID
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+        - AttributeName: uploaded
+          KeyType: RANGE
+      LocalSecondaryIndexes:
+        - IndexName: CreatorIndex
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+            - AttributeName: creatorID
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: CollectionsIndex
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+            - AttributeName: collectionID
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+  CategorizationDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Categorization
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: type
+          AttributeType: S
+        - AttributeName: name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: type
+          KeyType: HASH
+        - AttributeName: name
+          KeyType: RANGE

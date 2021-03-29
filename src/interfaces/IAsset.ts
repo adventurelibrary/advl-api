@@ -17,7 +17,7 @@ interface UserDefinedAssetInfo {
 export interface Asset extends UserDefinedAssetInfo{
   id: string, 
   slug: string,
-  size: number,
+  sizeInBytes: number,
   uploaded: string, //ISO String
   visibility: "PENDING" | "HIDDEN" | "PUBLIC",
   fileType: "IMAGE" | "PDF" | "ZIP",

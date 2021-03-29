@@ -29,8 +29,8 @@
     "watermark": {
       "use": "compress_image",
       "robot": "/image/resize",
-      "watermark_url": "https://demos.transloadit.com/inputs/transloadit-padded.png",
-      "watermark_size": "25%",
+      "watermark_url": "https://f000.backblazeb2.com/file/advl-public-assets/watermark_logo.png",
+      "watermark_size": "100%",
       "watermark_position": "center",
       "imagemagick_stack": "v2.0.7"
     },
@@ -38,8 +38,8 @@
       "use": "watermark",
       "robot": "/image/resize",
       "resize_strategy": "fit",
-      "width": 100,
-      "height": 100,
+      "width": 250,
+      "height": 250,
       "imagemagick_stack": "v2.0.7"
     },
     "export_original": {

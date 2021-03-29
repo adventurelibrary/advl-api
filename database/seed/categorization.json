@@ -1,0 +1,26 @@
+[
+  {
+    "name": "map",
+    "type": "category"
+  }, 
+  {
+    "name": "token",
+    "type": "category"
+  },
+  {
+    "name": "character-art",
+    "type": "category"
+  },
+  {
+    "name": "science-fiction",
+    "type": "tag"
+  }, 
+  {
+    "name": "fantasy",
+    "type": "tag"
+  },
+  {
+    "name": "horror",
+    "type": "tag"
+  }
+]

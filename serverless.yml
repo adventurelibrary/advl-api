@@ -20,6 +20,10 @@ custom:
         sources:
           - table: Assets
             sources: ["./database/seed/assets.json"]
+      tags:
+        sources:
+          - table: Categorization
+            sources: ['./database/seed/categorization.json']
 
 plugins:
   - serverless-webpack
@@ -34,7 +38,7 @@ provider:
   apiGateway:
     minimumCompressionSize: 1024
   environment:
-    ${file(src/.env/common.yml)}
+    ${file(src/.env.yml):common}
     
   iamRoleStatements:
     - Effect: Allow

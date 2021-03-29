@@ -5,6 +5,7 @@ import slugify from 'slugify';
 import { dyn } from '../common/database';
 import * as qs from 'querystring';
 import {idgen} from '../common/nanoid';
+import { search } from '../common/elastic';
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = {
@@ -51,8 +52,8 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
 async function createNewAsset(_creatorID: string, req:REQ_Get_Signature): Promise<Asset> {
   let newAsset: Asset = {
     id: idgen(),
-    slug: slugify(req.name),
-    size: 0,
+    slug: slugify(req.name).toLowerCase(),
+    sizeInBytes: 0,
     uploaded: (new Date()).toISOString(),
     visibility: "PENDING",
     fileType: "IMAGE",
@@ -71,8 +72,9 @@ async function createNewAsset(_creatorID: string, req:REQ_Get_Signature): Promis
   await dyn.put({
     TableName: process.env.NAME_ASSETDB, 
     Item: newAsset
-  }).promise()
+  }).promise();
 
+  console.log(`PENDING ASSET CREATED\n`, newAsset);
   return newAsset;
 }
 
@@ -91,12 +93,15 @@ async function getParams(asset: Asset): Promise<string> {
 
   let _steps = require("./file_upload_steps.json").steps;
 
-  _steps.export_original.path = `originals/${asset.creatorID}/${asset.id}.`+'${file.ext}';
-  _steps.export_compressed_image.path = `optimized/${asset.creatorID}/${asset.id}.webp`;
+  _steps.export_original.credentials = "ADVL Originals"
+  _steps.export_original.path = `${asset.creatorID}/${asset.id}.`+'${file.ext}';
+  _steps.export_compressed_image.credentials = "ADVL WEBP"
+  _steps.export_compressed_image.path = `${asset.creatorID}/${asset.id}.webp`;
 
-  //TODO: Change the credentials for preview and thumbs to a different bucket that's publically accessible and doesn't need a presigned url
-  _steps.export_watermark.path = `preview/${asset.creatorID}/${asset.id}.webp`;
-  _steps.export_thumb.path = `thumb/${asset.creatorID}/${asset.id}.webp`;
+  _steps.export_watermark.credentials = "ADVL Watermarked"
+  _steps.export_watermark.path = `${asset.creatorID}/${asset.id}.webp`;
+  _steps.export_thumb.credentials = "ADVL Thumbs"
+  _steps.export_thumb.path = `${asset.creatorID}/${asset.id}.webp`;
 
   const params = JSON.stringify({
     auth: {
@@ -104,7 +109,7 @@ async function getParams(asset: Asset): Promise<string> {
       expires: expires
     }, 
     steps: _steps,
-    notify_url: process.env.TRANSLOADIT_NOTIFY_URL,
+    notify_url: process.env.IS_OFFLINE == "true" ? process.env.TRANSLOADIT_OFFLINE_NOTIFY_URL : process.env.TRANSLOADIT_NOTIFY_URL,
     fields: {
       creatorID: asset.creatorID,
       assetID: asset.id
@@ -152,18 +157,30 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
           Key: {
             id: asset.id
           },
-          UpdateExpression: "set size = :sz, visibility = :updatedStatus",
+          UpdateExpression: "set sizeInBytes = :sz, visibility = :updatedStatus",
           ExpressionAttributeValues: {
             ':sz': notification.bytes_received,
             ':updatedStatus': "HIDDEN"
           }
         }).promise();
+
+        asset.sizeInBytes = notification.bytes_received;
+        asset.visibility = "HIDDEN";
+
+        //Add the asset to the Elasticsearch DB
+        await search.index({
+          index: process.env.INDEX_ASSETDB,
+          id: asset.id,
+          body: asset
+        });
+
+        console.log(`${asset.id} moved from PENDING to HIDDEN.`);
       }
     }
     response.statusCode = 200;
     return response;
   } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
+    console.error(`ERROR | \n Event: ${JSON.stringify(_evt)} \n Error: ${E}` );
     return response;
   }
 }
