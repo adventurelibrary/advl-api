@@ -140,22 +140,29 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
 
   try{
     let notification = JSON.parse(<string>qs.parse(_evt.body).transloadit);
-    console.log(notification);
+    console.log("TRANSLOADIT NOTIFICATION: \n", notification);
 
     if(notification.error){
       throw new Error(JSON.stringify(notification))
     } else if(notification.ok == "ASSEMBLY_COMPLETED"){
       let params = JSON.parse(notification.params);
-      let asset = <Asset> (await dyn.get({
+      let asset = <Asset> (await dyn.query({
         TableName: process.env.NAME_ASSETDB,
-        Key: {id: params.fields.assetID}
-      }).promise()).Item
+        KeyConditionExpression: "#id = :id",
+        ExpressionAttributeNames: {
+          "#id": "id"
+        }, 
+        ExpressionAttributeValues: {
+          ":id": params.fields.assetID
+        }
+      }).promise()).Items[0]
 
       if(asset && asset.visibility == "PENDING"){
         await dyn.update({
           TableName: process.env.NAME_ASSETDB,
           Key: {
-            id: asset.id
+            id: asset.id,
+            uploaded: asset.uploaded
           },
           UpdateExpression: "set sizeInBytes = :sz, visibility = :updatedStatus",
           ExpressionAttributeValues: {
