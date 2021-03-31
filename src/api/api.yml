@@ -18,6 +18,16 @@ transloadit_notify:
   environment:
     ${file(src/dynamic-environment.js):transloadit}
 
+query_assets:
+  handler: src/api/assets/asset.query_assets
+  events:
+    - http:
+        method: get
+        path: /assets
+        cors: true 
+  environment: 
+    ${file(src/.env.yml):elastic}
+
 get_tags:
   handler: src/api/assets/categorization.get_tags
   events: 

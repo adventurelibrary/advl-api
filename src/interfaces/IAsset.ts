@@ -8,8 +8,8 @@ interface UserDefinedAssetInfo {
   name: string,
   description: string,
   collectionID: string,
-  categoryID: string,
-  tagIDs: Tags,
+  category: string,
+  tags: Tags,
   unlockPrice: number, 
   revenueShare: RevenueShare
 }
@@ -23,6 +23,9 @@ export interface Asset extends UserDefinedAssetInfo{
   fileType: "IMAGE" | "PDF" | "ZIP",
   creatorID: string,
   unlockCount: number,
+  creatorName?: string, //Used when returning it to Front End
+  previewLink?: string, //Used when returning to Front End
+  thumbnail?: string //Used when returning to Front End
 }
 
 interface Tags {
@@ -31,4 +34,9 @@ interface Tags {
 
 interface RevenueShare {
   [creatorID: string]: number // Number of coins per sale to go to this creator
+}
+
+export interface REQ_Query_Assets{
+  id?: string,
+  query?: string
 }
