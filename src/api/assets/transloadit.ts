@@ -63,8 +63,8 @@ async function createNewAsset(_creatorID: string, req:REQ_Get_Signature): Promis
     name: req.name,
     description: req.description,
     collectionID: req.collectionID,
-    categoryID: req.categoryID,
-    tagIDs: req.tagIDs,
+    category: req.category,
+    tags: req.tags,
     unlockPrice: req.unlockPrice,
     revenueShare: req.revenueShare
   }

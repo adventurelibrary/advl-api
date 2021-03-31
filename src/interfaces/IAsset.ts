@@ -40,3 +40,19 @@ export interface REQ_Query_Assets{
   id?: string,
   query?: string
 }
+
+export interface REQ_Query {
+  id?:string,
+  sort?: "uploaded" | "unlockCount" | "unlockPrice" | "_score" | "name"
+  sort_type?: "asc" | "desc",
+  from?: number,
+  size?: number
+
+  text?: string, // will search name & description
+  visibility?: "PENDING" | "HIDDEN" | "PUBLIC"
+  fileType?: "IMAGE" | "PDF" | "ZIP",
+  creatorName?: string,
+  collectionID?: string,
+  tags?: string[],
+  category?: string,
+}

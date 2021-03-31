@@ -17,3 +17,6 @@ POST /assets/categories
 
 POST /assets/get_signature
   - Send a pending asset to return a signature to use to upload the asset to Transloadit  
+
+GET /assets
+ - Query Paramters of attributes in interface Assest accepted. Will search and return assets based on those query paramaters
