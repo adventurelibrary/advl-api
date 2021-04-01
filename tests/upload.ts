@@ -6,6 +6,15 @@ import * as fs from 'fs';
 import FormData from 'form-data';
 
 test_fetch_preflight();
+test_fetch_preflight();
+test_fetch_preflight();
+test_fetch_preflight();
+test_fetch_preflight();
+test_fetch_preflight();
+test_fetch_preflight();
+test_fetch_preflight();
+test_fetch_preflight();
+
 
 export async function test_fetch_preflight() {
   try{
@@ -14,8 +23,8 @@ export async function test_fetch_preflight() {
     //console.log(map);
 
     let uploadReq:REQ_Get_Signature = {
-      name: "GrassToSnow-1",
-      description: "Dice Grimorium's GrassToSnow variant 1",
+      name: "Mountain Dig Site",
+      description: "Frag Maps Mountain Dig Site",
       collectionID: "001",
       category: "map",
       tags: {},
@@ -34,7 +43,7 @@ export async function test_fetch_preflight() {
     console.log("Response: \n", response)
 
     let form = new FormData();
-    form.append('file', fs.createReadStream('tests/files/GrassToSnow-1.jpg'));
+    form.append('file', fs.createReadStream('tests/files/Mountain_Dig_Site.png'));
     form.append('params', response.params),
     form.append('signature', response.signature)
 

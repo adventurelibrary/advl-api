@@ -146,7 +146,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       doc._source.thumbnail = b2.GetURL('thumbnail', doc._source);
       return doc._source
     })
-    response.body = JSON.stringify(FrontEndAssets);
+    response.body = JSON.stringify({assets: FrontEndAssets, total: searchResults.body.hits.total.value});
     response.statusCode = 200;
     return response;
   } catch (E){
