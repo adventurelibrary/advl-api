@@ -86,7 +86,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       if(!exclude_attributes.includes(key)){
         queries.push({
           "match": {
-            key: val
+            [key]: val
           }
         })
       } else if(key == 'text'){
@@ -103,18 +103,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }
     }
 
-    if(_query.dis_max.queries.length == 0){
-      throw new Error("Query string was empty");
-    }
 
-    if (queries.length) {
-      _query.dis_max = {
-        queries: queries,
-        "tie_breaker": 0.7
-      }
-    }
-
-    const body = {
+    const body : any = {
       from: queryObj['from'] ? queryObj['from'] : 0,
       size: queryObj['size'] ? queryObj['size'] : 10,
       sort: queryObj['sort'] ? [{
@@ -122,15 +112,38 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }] : [{
         "_score": "desc"
       }],
-      query: _query
     }
-    console.log('body', body)
+
+    if (queries.length) {
+      _query.dis_max = {
+        queries: queries,
+        "tie_breaker": 0.7
+      }
+      body.query = _query
+    } else {
+      //throw new Error("Query string was empty");
+    }
 
     // Query doesn't include ID
     let searchResults = await search.search({
       index: process.env.INDEX_ASSETDB,
       body: body
     })
+
+    console.log('body', JSON.stringify(body))
+
+    let totalAssets = 0
+
+    const countQuery : any = {
+      index: process.env.INDEX_ASSETDB,
+    }
+    if (queries.length) {
+      countQuery.body = {
+        query: _query
+      }
+    }
+    const count = await search.count(countQuery)
+    totalAssets = count.body.count
 
     let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
       /*
@@ -144,7 +157,11 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       doc._source = transformAsset(doc._source)
       return doc._source
     })
-    response.body = JSON.stringify(FrontEndAssets);
+    console.log('num found in this page', FrontEndAssets.length)
+    response.body = JSON.stringify({
+      results: FrontEndAssets,
+      total: totalAssets
+    });
     response.statusCode = 200;
     return response;
   } catch (E){

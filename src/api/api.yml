@@ -7,11 +7,11 @@ get_upload_signature:
         cors: true
   environment:
     ${file(src/dynamic-environment.js):transloadit}
-    
+
 transloadit_notify:
   handler: src/api/assets/transloadit.transloadit_notify
   events:
-    - http: 
+    - http:
         method: post
         path: /assets/transloadit
         cors: true
@@ -24,9 +24,9 @@ query_assets:
     - http:
         method: get
         path: /assets
-        cors: true 
-  environment: 
-    ${file(src/.env.yml):elastic}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):asset_download_link}
 
 asset_download_link:
   handler: src/api/assets/asset.asset_download_link
@@ -34,8 +34,8 @@ asset_download_link:
     - http:
         method: get
         path: /assets/download
-        cors: true 
-  environment: 
+        cors: true
+  environment:
     ${file(src/dynamic-environment.js):asset_download_link}
 
 update_asset:
@@ -50,7 +50,7 @@ update_asset:
 
 get_tags:
   handler: src/api/assets/categorization.get_tags
-  events: 
+  events:
     - http:
         method: get
         path: /assets/tags
@@ -58,7 +58,7 @@ get_tags:
 
 get_categories:
   handler: src/api/assets/categorization.get_categories
-  events: 
+  events:
     - http:
         method: get
         path: /assets/categories
@@ -66,7 +66,7 @@ get_categories:
 
 add_tags:
   handler: src/api/assets/categorization.add_tags
-  events: 
+  events:
     - http:
         method: post
         path: /assets/tags
@@ -74,7 +74,7 @@ add_tags:
 
 add_categories:
   handler: src/api/assets/categorization.add_categories
-  events: 
+  events:
     - http:
         method: post
         path: /assets/categories
