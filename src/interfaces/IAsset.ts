@@ -15,7 +15,7 @@ interface UserDefinedAssetInfo {
   revenueShare: RevenueShare
 }
 
-export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC"
+export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC" | "all"
 
 export interface Asset extends UserDefinedAssetInfo{
   id: string, 
@@ -66,3 +66,15 @@ export interface REQ_DownloadLink {
   type?: image_file_resolutions // not used for PDF or ZIP files
 }
 export type image_file_resolutions = "original" | "optimized" | "watermarked" | "thumbnail" 
+
+export interface REQ_Update {
+  id: string,
+  visibility?: visibility_types,
+  name: string,
+  description: string,
+  collectionID: string,
+  category: string,
+  tags: Tags,
+  unlockPrice: number,
+  revenueShare: RevenueShare
+}

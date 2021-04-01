@@ -9,5 +9,9 @@ module.exports = {
   asset_download_link: {
     ...env.elastic,
     ...env.backblaze
+  },
+  query_assets: {
+    ...env.elastic,
+    ...env.backblaze
   }
 }

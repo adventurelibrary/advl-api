@@ -26,7 +26,7 @@ query_assets:
         path: /assets
         cors: true 
   environment: 
-    ${file(src/.env.yml):elastic}
+    ${file(src/dynamic-environment.js):query_assets}
 
 asset_download_link:
   handler: src/api/assets/asset.asset_download_link

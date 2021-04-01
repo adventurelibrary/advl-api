@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { search } from '../common/elastic';
-import { Asset, image_file_resolutions, REQ_Query, visibility_types } from '../../interfaces/IAsset';
+import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import { dyn } from '../common/database';
 //import { dyn } from '../common/database';
@@ -19,11 +19,14 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
   try{
     let queryObj:REQ_Query = {};
-    // Create lists from comma deliminted query string parameters
-    for(let key of Object.keys(_evt.queryStringParameters)){
-      let val = _evt.queryStringParameters[key].split(",")
-      queryObj[key] = val.length == 1 ? val[0] : val 
-    }
+
+    if(_evt.queryStringParameters){
+      // Create lists from comma deliminted query string parameters   
+      for(let key of Object.keys(_evt.queryStringParameters)){
+        let val = _evt.queryStringParameters[key].split(",")
+        queryObj[key] = val.length == 1 ? val[0] : val 
+      }
+    } // null means that we just use an empty queryObj
 
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj['id']){
@@ -58,27 +61,45 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     }
 
     let _query = {
-      "dis_max": {
-        "queries": [],
-        "tie_breaker": 0.7
+      "bool": {
+        "must": [
+          {
+            "dis_max": {
+              "tie_breaker": 0.7,
+              "queries": []
+            }
+          }
+        ],
+        "filter": [
+          {
+            "match": {
+              "visibility" : "PUBLIC"
+            }
+          }
+        ]
       }
     }
+    
+    if(queryObj['visibility'] == 'all'){
+      _query.bool.filter = []; 
+    }
+
     for(let key of Object.keys(queryObj)){
       //id key is already taken care of in the above code block
-      let exclude_attributes = ['sort', 'sort_type', 'from', 'size', 'text']
+      let exclude_attributes = ['sort', 'sort_type', 'from', 'size', 'text', 'visibility']
       if(!exclude_attributes.includes(key)){
-        _query.dis_max.queries.push({
+        _query.bool.must[0].dis_max.queries.push({
           "match": {
             key: queryObj[key]
           }
         })
       } else if(key == 'text'){
-        _query.dis_max.queries.push({
+        _query.bool.must[0].dis_max.queries.push({
           "match": {
             'name': queryObj[key]
           }
         })
-        _query.dis_max.queries.push({
+        _query.bool.must[0].dis_max.queries.push({
           "match": {
             'description': queryObj[key]
           }
@@ -86,12 +107,17 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }
     }
     
-    if(_query.dis_max.queries.length == 0){
-      throw new Error("Query string was empty");
+    
+    if(_query.bool.must[0].dis_max.queries.length == 0){
+      //empty query string so match all
+      _query.bool.must[0].dis_max.queries.push({
+        "match_all": {}
+      })
     }
-
+    
+    
     // Query doesn't include ID
-    let searchResults = await search.search({
+    let params = {
       index: process.env.INDEX_ASSETDB,
       body: {
         from: queryObj['from'] ? queryObj['from'] : 0,
@@ -103,7 +129,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         }],
         query: _query
       }
-    })
+    }
+    let searchResults = await search.search(params)
 
     let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
       /*
@@ -117,8 +144,6 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       doc._source.creatorName = doc._source.creatorID; //TODO change to above code when we have users
       doc._source.previewLink = b2.GetURL('watermarked', doc._source);
       doc._source.thumbnail = b2.GetURL('thumbnail', doc._source);
-      //doc._source.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${doc._source.creatorID}/${doc._source.id}.webp`
-      //doc._source.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${doc._source.creatorID}/${doc._source.id}.webp`    
       return doc._source
     })
     response.body = JSON.stringify(FrontEndAssets);
