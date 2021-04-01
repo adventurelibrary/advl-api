@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import { REQ_Get_Signature } from '../src/interfaces/IAsset';
 import {testURL} from './constants'
 import * as fs from 'fs';
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 
 test_fetch_preflight();
 
@@ -14,11 +14,11 @@ export async function test_fetch_preflight() {
     //console.log(map);
 
     let uploadReq:REQ_Get_Signature = {
-      name: "Mountain Dig Site 3",
-      description: "Dig site on the side of a mountain",
-      collectionID: "003",
-      categoryID: "003",
-      tagIDs: {},
+      name: "GrassToSnow-1",
+      description: "Dice Grimorium's GrassToSnow variant 1",
+      collectionID: "001",
+      category: "map",
+      tags: {},
       unlockPrice: 0, 
       revenueShare: {}
     }
@@ -34,7 +34,7 @@ export async function test_fetch_preflight() {
     console.log("Response: \n", response)
 
     let form = new FormData();
-    form.append('file', fs.createReadStream('tests/files/Mountain_Dig_Site.png'));
+    form.append('file', fs.createReadStream('tests/files/GrassToSnow-1.jpg'));
     form.append('params', response.params),
     form.append('signature', response.signature)
 

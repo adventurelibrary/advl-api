@@ -22,14 +22,15 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
     let FileRequest:REQ_Get_Signature = JSON.parse(_evt.body);
     // TODO: Fetch UserID from the Cognito Authorizer
     let creatorID = "admin-test"
-    let newAsset = await createNewAsset(creatorID, FileRequest);
+    let newAsset:Asset = await createNewAsset(creatorID, FileRequest);
 
     let params = await getParams(newAsset);
     let signature = await calcSignature(params);
 
     let _res:RES_Get_Signature = {
       params: params, 
-      signature: signature
+      signature: signature,
+      assetID: newAsset.id
     }
 
     response = {
@@ -56,10 +57,10 @@ async function createNewAsset(_creatorID: string, req:REQ_Get_Signature): Promis
     sizeInBytes: 0,
     uploaded: (new Date()).toISOString(),
     visibility: "PENDING",
+    originalFileExt: 'UNKOWN',
     fileType: "IMAGE",
     creatorID: _creatorID,
     unlockCount: 0,
-
     name: req.name,
     description: req.description,
     collectionID: req.collectionID,
@@ -173,7 +174,10 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
 
         asset.sizeInBytes = notification.bytes_received;
         asset.visibility = "HIDDEN";
-
+        if(notification.uploads.length > 1){
+          throw new Error("Transloadit got multiple file uploads!");
+        }
+        asset.originalFileExt = notification.uploads[0].ext;
         //Add the asset to the Elasticsearch DB
         await search.index({
           index: process.env.INDEX_ASSETDB,

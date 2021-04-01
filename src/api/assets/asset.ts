@@ -1,6 +1,7 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { search } from '../common/elastic';
-import { Asset, REQ_Query } from '../../interfaces/IAsset';
+import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
+import * as b2 from '../common/backblaze';
 //import { dyn } from '../common/database';
 //import { User } from '../../interfaces/IUser';
 
@@ -46,8 +47,10 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }).promise()).Item).name;
       */
       FrontEndAsset.creatorName = FrontEndAsset.creatorID; //TODO change to above code when we have users
-      FrontEndAsset.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
-      FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`    
+      FrontEndAsset.previewLink = await b2.GetURL('watermarked', FrontEndAsset);
+      FrontEndAsset.thumbnail = await b2.GetURL('thumbnail', FrontEndAsset);
+      //FrontEndAsset.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
+      //FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`    
       response.body = JSON.stringify(FrontEndAsset);
       response.statusCode = 200;
       return response;  
@@ -81,6 +84,10 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         })
       }
     }
+    
+    if(_query.dis_max.queries.length == 0){
+      throw new Error("Query string was empty");
+    }
 
     // Query doesn't include ID
     let searchResults = await search.search({
@@ -97,7 +104,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }
     })
 
-    let FrontEndAssets = searchResults.body.hits.hits.map((doc) => {
+    let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
       /*
       doc._source.creatorName = (<User>(await dyn.get({
         TableName: process.env.NAME_USERSDB,
@@ -107,8 +114,10 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }).promise()).Item).name;
       */
       doc._source.creatorName = doc._source.creatorID; //TODO change to above code when we have users
-      doc._source.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${doc._source.creatorID}/${doc._source.id}.webp`
-      doc._source.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${doc._source.creatorID}/${doc._source.id}.webp`    
+      doc._source.previewLink = b2.GetURL('watermarked', doc._source);
+      doc._source.thumbnail = b2.GetURL('thumbnail', doc._source);
+      //doc._source.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${doc._source.creatorID}/${doc._source.id}.webp`
+      //doc._source.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${doc._source.creatorID}/${doc._source.id}.webp`    
       return doc._source
     })
     response.body = JSON.stringify(FrontEndAssets);
@@ -120,3 +129,35 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
   }
 }
 
+export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) => {
+  let response = {
+    statusCode: 500,
+    headers: {
+      'content-type': "application/json",
+    },
+    body: JSON.stringify({error:"Something went wrong!"})
+  }
+
+  try{
+    let doc;
+    try{ 
+      doc = await search.get({
+        index: process.env.INDEX_ASSETDB,
+        id: _evt.queryStringParameters.id
+      })
+    } catch (e){
+      response.body = JSON.stringify({error:`Asset ${_evt.queryStringParameters.id} not found`})
+      throw new Error(`Asset ${_evt.queryStringParameters.id} not found`)
+    }
+    let asset:Asset = doc.body._source;
+    let link = 'ERROR_FETCHING_LINK';
+    if(asset.fileType == "IMAGE"){
+      link = b2.GetURL(<image_file_resolutions>_evt.queryStringParameters.type, asset);
+      response.body=JSON.stringify({url: link});
+    }
+    return response;
+  } catch (E){
+    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
+    return response;
+  }
+}

@@ -28,6 +28,16 @@ query_assets:
   environment: 
     ${file(src/.env.yml):elastic}
 
+asset_download_link:
+  handler: src/api/assets/asset.asset_download_link
+  events:
+    - http:
+        method: get
+        path: /assets/download
+        cors: true 
+  environment: 
+    ${file(src/dynamic-environment.js):asset_download_link}
+
 get_tags:
   handler: src/api/assets/categorization.get_tags
   events: 

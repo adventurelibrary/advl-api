@@ -1,7 +1,8 @@
 export interface REQ_Get_Signature extends UserDefinedAssetInfo{}
 export interface RES_Get_Signature{
   params: string, //JSON string that is used in the signature
-  signature: string
+  signature: string,
+  assetID: string
 }
 
 interface UserDefinedAssetInfo {
@@ -20,9 +21,10 @@ export interface Asset extends UserDefinedAssetInfo{
   sizeInBytes: number,
   uploaded: string, //ISO String
   visibility: "PENDING" | "HIDDEN" | "PUBLIC",
-  fileType: "IMAGE" | "PDF" | "ZIP",
   creatorID: string,
   unlockCount: number,
+  fileType: "IMAGE" | "PDF" | "ZIP",
+  originalFileExt: string,
   creatorName?: string, //Used when returning it to Front End
   previewLink?: string, //Used when returning to Front End
   thumbnail?: string //Used when returning to Front End
@@ -50,9 +52,15 @@ export interface REQ_Query {
 
   text?: string, // will search name & description
   visibility?: "PENDING" | "HIDDEN" | "PUBLIC"
-  fileType?: "IMAGE" | "PDF" | "ZIP",
+  originalFileExt?: string,
   creatorName?: string,
   collectionID?: string,
   tags?: string[],
   category?: string,
 }
+
+export interface REQ_DownloadLink {
+  id: string,
+  type?: image_file_resolutions // not used for PDF or ZIP files
+}
+export type image_file_resolutions = "original" | "optimized" | "watermarked" | "thumbnail" 
