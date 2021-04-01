@@ -26,7 +26,6 @@ export function GetURL(type:image_file_resolutions, asset:Asset){
       break;
   }
 
-
   let signedUrl = b2.getSignedUrl('getObject', {
     Bucket: bucket,
     Key: `${asset.creatorID}/${asset.id}.${ext}`,

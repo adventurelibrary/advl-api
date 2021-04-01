@@ -15,12 +15,14 @@ interface UserDefinedAssetInfo {
   revenueShare: RevenueShare
 }
 
+export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC"
+
 export interface Asset extends UserDefinedAssetInfo{
   id: string, 
   slug: string,
   sizeInBytes: number,
   uploaded: string, //ISO String
-  visibility: "PENDING" | "HIDDEN" | "PUBLIC",
+  visibility: visibility_types,
   creatorID: string,
   unlockCount: number,
   fileType: "IMAGE" | "PDF" | "ZIP",
@@ -51,7 +53,7 @@ export interface REQ_Query {
   size?: number
 
   text?: string, // will search name & description
-  visibility?: "PENDING" | "HIDDEN" | "PUBLIC"
+  visibility?: visibility_types
   originalFileExt?: string,
   creatorName?: string,
   collectionID?: string,

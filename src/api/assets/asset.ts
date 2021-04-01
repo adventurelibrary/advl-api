@@ -1,7 +1,8 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { search } from '../common/elastic';
-import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
+import { Asset, image_file_resolutions, REQ_Query, visibility_types } from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
+import { dyn } from '../common/database';
 //import { dyn } from '../common/database';
 //import { User } from '../../interfaces/IUser';
 
@@ -47,8 +48,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }).promise()).Item).name;
       */
       FrontEndAsset.creatorName = FrontEndAsset.creatorID; //TODO change to above code when we have users
-      FrontEndAsset.previewLink = await b2.GetURL('watermarked', FrontEndAsset);
-      FrontEndAsset.thumbnail = await b2.GetURL('thumbnail', FrontEndAsset);
+      FrontEndAsset.previewLink = b2.GetURL('watermarked', FrontEndAsset);
+      FrontEndAsset.thumbnail =  b2.GetURL('thumbnail', FrontEndAsset);
       //FrontEndAsset.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
       //FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`    
       response.body = JSON.stringify(FrontEndAsset);
@@ -134,6 +135,8 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
     statusCode: 500,
     headers: {
       'content-type': "application/json",
+      'Access-Control-Allow-Origin': "*",
+      'Access-Control-Allow-Credential': true
     },
     body: JSON.stringify({error:"Something went wrong!"})
   }
@@ -155,6 +158,91 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
       link = b2.GetURL(<image_file_resolutions>_evt.queryStringParameters.type, asset);
       response.body=JSON.stringify({url: link});
     }
+    return response;
+  } catch (E){
+    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
+    return response;
+  }
+}
+
+export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
+  let response = {
+    statusCode: 500,
+    headers: {
+      'content-type': "application/json",
+      'Access-Control-Allow-Origin': "*",
+      'Access-Control-Allow-Credential': true
+    },
+    body: JSON.stringify({error:"Something went wrong!"})
+  }
+  try{
+
+    //Specifically ANY so only the relevant keys are passed in
+    let reqAsset:any = JSON.parse(_evt.body);
+    let doc:any;
+    try{
+      doc = await search.get({
+        index: process.env.INDEX_ASSETDB,
+        id: reqAsset['id']
+      })  
+    } catch (e) {
+      // Doc doesn't exist
+      response.body = JSON.stringify({error: `${reqAsset['id']} doesn't exist in Index`});
+      throw new Error(`${reqAsset['id']} doesn't exist in Index`);
+    }
+    let original:Asset = doc.body._source;
+
+    //validate stuff
+    //TODO Validate Tags actually exist
+    //TODO Validate that RevenueShare creatorIDs actually exist
+    //TODO Validate Category actually exists
+    //TODO Validate Visibility exists
+    //TODO Validate Collection ID
+    //TODO Validate unlockPrice is positive
+
+    original.visibility = reqAsset.visibility ? reqAsset.visibility : original.visibility;
+    original.name = reqAsset.name ? reqAsset.name : original.name;
+    original.description = reqAsset.description ? reqAsset.description : original.description;
+    original.collectionID = reqAsset.collectionID ? reqAsset.collectionID : original.collectionID;
+    original.category = reqAsset.category ? reqAsset.category : original.category;
+    original.tags = reqAsset.tags ? reqAsset.tags : original.tags;
+    original.unlockPrice = reqAsset.unlockPrice ? reqAsset.unlockPrice : original.unlockPrice;
+    original.revenueShare = reqAsset.revenueShare ? reqAsset.revenueShare : original.revenueShare;
+
+    console.log("Updated Asset: ", original)
+    // Update Dyn
+    await dyn.update({
+      TableName: process.env.NAME_ASSETDB,
+      Key: {
+        id: original.id,
+        uploaded: original.uploaded
+      },
+      UpdateExpression: "set visibility = :v, #name = :n, description = :d, collectionID = :cID, category = :cat, tags = :t, unlockPrice = :uP",
+      ExpressionAttributeNames: {
+        "#name": "name"
+      },
+      ExpressionAttributeValues: {
+        ":v": original.visibility,
+        ":n": original.name,
+        ":d": original.description,
+        ":cID": original.collectionID,
+        ":cat": original.category,
+        ":t": original.tags,
+        ":uP": original.unlockPrice
+      }
+    }).promise();
+
+    // Update ES
+    await search.update({
+      index: process.env.INDEX_ASSETDB,
+      id: original.id,
+      body: {
+        doc: original
+      }
+    });
+
+    response.statusCode = 200;
+    response.body = JSON.stringify({success: "Asset Updated"})
     return response;
   } catch (E){
     console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );

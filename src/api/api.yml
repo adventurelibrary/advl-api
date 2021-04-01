@@ -38,6 +38,16 @@ asset_download_link:
   environment: 
     ${file(src/dynamic-environment.js):asset_download_link}
 
+update_asset:
+  handler: src/api/assets/asset.update_asset
+  events:
+    - http:
+        method: put
+        path: /assets/update
+        cors: true
+  environment:
+    ${file(src/.env.yml):elastic}
+
 get_tags:
   handler: src/api/assets/categorization.get_tags
   events: 
