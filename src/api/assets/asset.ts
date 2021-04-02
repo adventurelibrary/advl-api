@@ -131,16 +131,6 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     }
     let searchResults = await search.search(params)
 
-    let totalAssets = 0
-    const countQuery : any = {
-      index: process.env.INDEX_ASSETDB,
-      body: {
-        query: params.body.query
-      }
-    }
-    const count = await search.count(countQuery)
-    totalAssets = count.body.count
-
     let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
       /*
       doc._source.creatorName = (<User>(await dyn.get({
@@ -156,7 +146,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     response.body = JSON.stringify({
       assets: FrontEndAssets,
-      total: totalAssets,
+      total: searchResults.body.hits.total.value,
     });
     response.statusCode = 200;
     return response;
