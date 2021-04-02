@@ -2,17 +2,10 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { REQ_Add_Categories, REQ_Add_Tags } from '../../interfaces/ICategorization';
 import { dyn } from '../common/database';
+import {newResponse} from "../common/response";
 
 export const get_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let tags = await dyn.query({
@@ -36,15 +29,7 @@ export const get_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
 }
 
 export const get_categories: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let tags = await dyn.query({
@@ -68,15 +53,7 @@ export const get_categories: APIGatewayProxyHandler = async (_evt, _ctx) => {
 }
 
 export const add_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let req:REQ_Add_Tags = JSON.parse(_evt.body);
@@ -85,12 +62,12 @@ export const add_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
         "PutRequest": {
           "Item": {
             "name": tag,
-            "type": "tag"  
+            "type": "tag"
           }
         }
       }
     })
-      
+
     let params = {
       RequestItems: {
         [process.env.NAME_CATEGORIZATIONDB] : newItems
@@ -109,15 +86,7 @@ export const add_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
 }
 
 export const add_categories: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let req:REQ_Add_Categories = JSON.parse(_evt.body);
@@ -126,12 +95,12 @@ export const add_categories: APIGatewayProxyHandler = async (_evt, _ctx) => {
         "PutRequest": {
           "Item": {
             "name": cat,
-            "type": "category"  
+            "type": "category"
           }
         }
       }
     })
-      
+
     let params = {
       RequestItems: {
         [process.env.NAME_CATEGORIZATIONDB] : newItems

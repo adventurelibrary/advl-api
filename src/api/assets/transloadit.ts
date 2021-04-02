@@ -6,17 +6,10 @@ import { dyn } from '../common/database';
 import * as qs from 'querystring';
 import {idgen} from '../common/nanoid';
 import { search } from '../common/elastic';
+import {newResponse} from "../common/response";
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': 'application/json',
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let FileRequest:REQ_Get_Signature = JSON.parse(_evt.body);
@@ -28,20 +21,13 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
     let signature = await calcSignature(params);
 
     let _res:RES_Get_Signature = {
-      params: params, 
+      params: params,
       signature: signature,
       assetID: newAsset.id
     }
 
-    response = {
-      statusCode: 200,
-      headers: {
-        'content-type': 'application/json',
-        'Access-Control-Allow-Origin': "*",
-        'Access-Control-Allow-Credential': true
-      },
-      body: JSON.stringify(_res)
-    }
+    response.statusCode = 200
+    response.body = JSON.stringify(_res)
 
     return response;
   } catch (E){
@@ -71,7 +57,7 @@ async function createNewAsset(_creatorID: string, req:REQ_Get_Signature): Promis
   }
 
   await dyn.put({
-    TableName: process.env.NAME_ASSETDB, 
+    TableName: process.env.NAME_ASSETDB,
     Item: newAsset
   }).promise();
 
@@ -85,7 +71,7 @@ async function getParams(asset: Asset): Promise<string> {
     .toISOString()
     .replace(/-/g, '/')
     .replace(/T/, " ")
-    .replace(/\.\d+\Z$/, '+00:00')   
+    .replace(/\.\d+\Z$/, '+00:00')
   }
 
   // expire 30 minutes from now (this must be milliseconds)
@@ -108,7 +94,7 @@ async function getParams(asset: Asset): Promise<string> {
     auth: {
       key: authKey,
       expires: expires
-    }, 
+    },
     steps: _steps,
     notify_url: process.env.IS_OFFLINE == "true" ? process.env.TRANSLOADIT_OFFLINE_NOTIFY_URL : process.env.TRANSLOADIT_NOTIFY_URL,
     fields: {
@@ -116,7 +102,7 @@ async function getParams(asset: Asset): Promise<string> {
       assetID: asset.id
     }
   })
-  
+
   return params;
 }
 
@@ -128,7 +114,7 @@ async function calcSignature(params: string): Promise<string>{
                     .digest('hex')
 
   return signature
-} 
+}
 
 export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = {
@@ -152,7 +138,7 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
         KeyConditionExpression: "#id = :id",
         ExpressionAttributeNames: {
           "#id": "id"
-        }, 
+        },
         ExpressionAttributeValues: {
           ":id": params.fields.assetID
         }

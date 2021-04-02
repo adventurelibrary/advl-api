@@ -84,22 +84,23 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     let exclude_attributes = ['sort', 'sort_type', 'from', 'size', 'text', 'visibility']
     for(let key of Object.keys(queryObj)){
+      const val = queryObj[key]
       //id key is already taken care of in the above code block
       if(!exclude_attributes.includes(key)){
         _query.bool.must[0].dis_max.queries.push({
           "match": {
-            key: queryObj[key]
+            key: val
           }
         })
       } else if(key == 'text'){
         _query.bool.must[0].dis_max.queries.push({
           "match": {
-            'name': queryObj[key]
+            'name': val
           }
         })
         _query.bool.must[0].dis_max.queries.push({
           "match": {
-            'description': queryObj[key]
+            'description': val
           }
         })
       }
@@ -155,7 +156,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     response.body = JSON.stringify({
       assets: FrontEndAssets,
-      total: totalAssets
+      total: totalAssets,
     });
     response.statusCode = 200;
     return response;
@@ -166,15 +167,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 }
 
 export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let doc;
@@ -201,15 +194,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
 }
 
 export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
   try{
 
     //Specifically ANY so only the relevant keys are passed in
