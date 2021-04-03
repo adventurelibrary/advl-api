@@ -3,7 +3,7 @@ import { Asset, image_file_resolutions } from '../../interfaces/IAsset';
 
 const linkExpiryInSeconds = 60*60 //1 hr
 const b2 = new S3({
-  endpoint: process.env.B2_ENDPOINT,
+  endpoint: new Endpoint(process.env.B2_ENDPOINT),
   credentials: new Credentials({accessKeyId: process.env.B2_KEYID, secretAccessKey:process.env.B2_KEY}),
   signatureVersion: "v4"
 })
