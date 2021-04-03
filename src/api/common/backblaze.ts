@@ -1,14 +1,15 @@
-import {config, S3, Endpoint} from 'aws-sdk';
+import {Credentials, S3, Endpoint} from 'aws-sdk';
 import { Asset, image_file_resolutions } from '../../interfaces/IAsset';
 
 const linkExpiryInSeconds = 60*60 //1 hr
+const b2 = new S3({
+  endpoint: process.env.B2_ENDPOINT,
+  credentials: new Credentials({accessKeyId: process.env.B2_KEYID, secretAccessKey:process.env.B2_KEY}),
+  signatureVersion: "v4"
+})
+
 
 export function GetURL(type:image_file_resolutions, asset:Asset){
-  const backupConfig = config.credentials;
-  //Temp set the AWS credentials to B2 to access B2 with S3 API
-  config.credentials.accessKeyId = process.env.B2_KEYID
-  config.credentials.secretAccessKey = process.env.B2_KEY
-  const b2 = new S3({endpoint: new Endpoint(process.env.B2_ENDPOINT)})
   let ext = type == 'original' ? asset.originalFileExt : 'webp'
   let bucket = '';
   switch(type){
@@ -33,6 +34,5 @@ export function GetURL(type:image_file_resolutions, asset:Asset){
   })
 
   //Reset AWS Credentials back to AWS for use with Dynamo/others
-  config.credentials = backupConfig;
   return signedUrl;
 }
