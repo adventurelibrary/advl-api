@@ -3,28 +3,28 @@ import { search } from '../common/elastic';
 import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import { dyn } from '../common/database';
+import {newResponse} from "../common/response";
 //import { dyn } from '../common/database';
 //import { User } from '../../interfaces/IUser';
 
+function transformAsset (asset : Asset) : Asset {
+  asset.creatorName = asset.creatorID; //TODO change to above code when we have users
+  asset.previewLink = b2.GetURL('watermarked', asset);
+  asset.thumbnail =  b2.GetURL('thumbnail', asset);
+  return asset
+}
+
 export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let queryObj:REQ_Query = {};
 
     if(_evt.queryStringParameters){
-      // Create lists from comma deliminted query string parameters   
+      // Create lists from comma deliminted query string parameters
       for(let key of Object.keys(_evt.queryStringParameters)){
         let val = _evt.queryStringParameters[key].split(",")
-        queryObj[key] = val.length == 1 ? val[0] : val 
+        queryObj[key] = val.length == 1 ? val[0] : val
       }
     } // null means that we just use an empty queryObj
 
@@ -35,7 +35,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         doc = await search.get({
           index: process.env.INDEX_ASSETDB,
           id: queryObj['id']
-        })  
+        })
       } catch (e) {
         // Doc doesn't exist
         response.body = JSON.stringify({error: `${queryObj['id']} doesn't exist in Index`});
@@ -50,14 +50,12 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         }
       }).promise()).Item).name;
       */
-      FrontEndAsset.creatorName = FrontEndAsset.creatorID; //TODO change to above code when we have users
-      FrontEndAsset.previewLink = b2.GetURL('watermarked', FrontEndAsset);
-      FrontEndAsset.thumbnail =  b2.GetURL('thumbnail', FrontEndAsset);
+      FrontEndAsset = transformAsset(FrontEndAsset)
       //FrontEndAsset.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
-      //FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`    
+      //FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
       response.body = JSON.stringify(FrontEndAsset);
       response.statusCode = 200;
-      return response;  
+      return response;
     }
 
     let _query = {
@@ -79,43 +77,44 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         ]
       }
     }
-    
+
     if(queryObj['visibility'] == 'all'){
-      _query.bool.filter = []; 
+      _query.bool.filter = [];
     }
 
+    let exclude_attributes = ['sort', 'sort_type', 'from', 'size', 'text', 'visibility']
     for(let key of Object.keys(queryObj)){
+      const val = queryObj[key]
       //id key is already taken care of in the above code block
-      let exclude_attributes = ['sort', 'sort_type', 'from', 'size', 'text', 'visibility']
       if(!exclude_attributes.includes(key)){
         _query.bool.must[0].dis_max.queries.push({
           "match": {
-            key: queryObj[key]
+            key: val
           }
         })
       } else if(key == 'text'){
         _query.bool.must[0].dis_max.queries.push({
           "match": {
-            'name': queryObj[key]
+            'name': val
           }
         })
         _query.bool.must[0].dis_max.queries.push({
           "match": {
-            'description': queryObj[key]
+            'description': val
           }
         })
       }
     }
-    
-    
+
+
     if(_query.bool.must[0].dis_max.queries.length == 0){
       //empty query string so match all
       _query.bool.must[0].dis_max.queries.push({
         "match_all": {}
       })
     }
-    
-    
+
+
     // Query doesn't include ID
     let params = {
       index: process.env.INDEX_ASSETDB,
@@ -141,12 +140,14 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         }
       }).promise()).Item).name;
       */
-      doc._source.creatorName = doc._source.creatorID; //TODO change to above code when we have users
-      doc._source.previewLink = b2.GetURL('watermarked', doc._source);
-      doc._source.thumbnail = b2.GetURL('thumbnail', doc._source);
+      doc._source = transformAsset(doc._source)
       return doc._source
     })
-    response.body = JSON.stringify({assets: FrontEndAssets, total: searchResults.body.hits.total.value});
+
+    response.body = JSON.stringify({
+      assets: FrontEndAssets,
+      total: searchResults.body.hits.total.value,
+    });
     response.statusCode = 200;
     return response;
   } catch (E){
@@ -156,19 +157,11 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 }
 
 export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
 
   try{
     let doc;
-    try{ 
+    try{
       doc = await search.get({
         index: process.env.INDEX_ASSETDB,
         id: _evt.queryStringParameters.id
@@ -191,15 +184,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
 }
 
 export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = {
-    statusCode: 500,
-    headers: {
-      'content-type': "application/json",
-      'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
-    },
-    body: JSON.stringify({error:"Something went wrong!"})
-  }
+  let response = newResponse()
   try{
 
     //Specifically ANY so only the relevant keys are passed in
@@ -209,7 +194,7 @@ export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
       doc = await search.get({
         index: process.env.INDEX_ASSETDB,
         id: reqAsset['id']
-      })  
+      })
     } catch (e) {
       // Doc doesn't exist
       response.body = JSON.stringify({error: `${reqAsset['id']} doesn't exist in Index`});
