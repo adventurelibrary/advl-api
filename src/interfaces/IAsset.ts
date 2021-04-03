@@ -10,7 +10,7 @@ interface UserDefinedAssetInfo {
   description: string,
   collectionID: string,
   category: string,
-  tags: Tags,
+  tags: string[],
   unlockPrice: number, 
   revenueShare: RevenueShare
 }
@@ -30,10 +30,6 @@ export interface Asset extends UserDefinedAssetInfo{
   creatorName?: string, //Used when returning it to Front End
   previewLink?: string, //Used when returning to Front End
   thumbnail?: string //Used when returning to Front End
-}
-
-interface Tags {
-  [tag: string]: number // Weight, heigher is more important
 }
 
 interface RevenueShare {
@@ -74,7 +70,7 @@ export interface REQ_Update {
   description: string,
   collectionID: string,
   category: string,
-  tags: Tags,
+  tags: string[],
   unlockPrice: number,
   revenueShare: RevenueShare
 }

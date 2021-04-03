@@ -12,7 +12,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     headers: {
       'content-type': "application/json",
       'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
+      'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({error:"Something went wrong!"})
   }
@@ -90,7 +90,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       if(!exclude_attributes.includes(key)){
         _query.bool.must[0].dis_max.queries.push({
           "match": {
-            key: queryObj[key]
+            [key]: queryObj[key]
           }
         })
       } else if(key == 'text'){
@@ -122,9 +122,12 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       body: {
         from: queryObj['from'] ? queryObj['from'] : 0,
         size: queryObj['size'] ? queryObj['size'] : 10,
-        sort: queryObj['sort'] ? [{
+        sort: queryObj['sort'] ?
+        [{
           [queryObj['sort']] : queryObj['sort_type']
-        }] : [{
+        }] 
+        : 
+        [{
           "_score": "desc"
         }],
         query: _query
@@ -161,7 +164,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
     headers: {
       'content-type': "application/json",
       'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
+      'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({error:"Something went wrong!"})
   }
@@ -183,6 +186,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
       link = b2.GetURL(<image_file_resolutions>_evt.queryStringParameters.type, asset);
       response.body=JSON.stringify({url: link});
     }
+    response.statusCode = 200;
     return response;
   } catch (E){
     console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
@@ -196,7 +200,7 @@ export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
     headers: {
       'content-type': "application/json",
       'Access-Control-Allow-Origin': "*",
-      'Access-Control-Allow-Credential': true
+      'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({error:"Something went wrong!"})
   }

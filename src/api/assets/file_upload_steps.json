@@ -30,7 +30,7 @@
       "use": "compress_image",
       "robot": "/image/resize",
       "watermark_url": "https://f000.backblazeb2.com/file/advl-public-assets/watermark_logo.png",
-      "watermark_size": "100%",
+      "watermark_size": "75%",
       "watermark_position": "center",
       "imagemagick_stack": "v2.0.7"
     },

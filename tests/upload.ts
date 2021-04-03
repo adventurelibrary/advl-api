@@ -6,16 +6,8 @@ import * as fs from 'fs';
 import FormData from 'form-data';
 
 test_fetch_preflight();
-test_fetch_preflight();
-test_fetch_preflight();
-test_fetch_preflight();
-test_fetch_preflight();
-test_fetch_preflight();
-test_fetch_preflight();
-test_fetch_preflight();
-test_fetch_preflight();
 
-
+const productionURL = 'https://api.adventurelibrary.art/'
 export async function test_fetch_preflight() {
   try{
     //File paths are relative to
@@ -26,13 +18,13 @@ export async function test_fetch_preflight() {
       name: "Mountain Dig Site",
       description: "Frag Maps Mountain Dig Site",
       collectionID: "001",
-      category: "map",
-      tags: {},
+      category: "token",
+      tags: [],
       unlockPrice: 0, 
       revenueShare: {}
     }
 
-    let response = (await (await fetch(testURL+'assets/get_signature', {
+    let response = (await (await fetch(productionURL+'assets/get_signature', {
       method: "POST",
       headers: {
         "content-type": "application/json"
