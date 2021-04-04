@@ -2,7 +2,7 @@ import {search} from "../api/common/elastic";
 import {Asset} from "../interfaces/IAsset";
 import {dyn} from "../api/common/database";
 
-export async function searchAsset (id: string) : Promise<Asset> {
+export async function getAsset (id: string) : Promise<Asset> {
 	try{
 		const doc = await search.get({
 			index: process.env.INDEX_ASSETDB,
@@ -15,7 +15,7 @@ export async function searchAsset (id: string) : Promise<Asset> {
 }
 
 export async function updateAsset (id: string, updates: any) {
-	const original:Asset = await searchAsset(id)
+	const original:Asset = await getAsset(id)
 
 	//validate stuff
 	//TODO Validate Tags actually exist

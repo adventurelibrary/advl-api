@@ -4,7 +4,7 @@ import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsse
 import * as b2 from '../common/backblaze';
 import { dyn } from '../common/database';
 import {newResponse} from "../common/response";
-import {indexAssetSearch, searchAsset, updateAsset, updateAssetSearch} from "../../lib/assets";
+import {indexAssetSearch, getAsset, updateAsset} from "../../lib/assets";
 //import { dyn } from '../common/database';
 //import { User } from '../../interfaces/IUser';
 
@@ -67,7 +67,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj['id']){
-      let FrontEndAsset:Asset = await searchAsset(_evt.queryStringParameters.id)
+      let FrontEndAsset:Asset = await getAsset(_evt.queryStringParameters.id)
       FrontEndAsset = transformAsset(FrontEndAsset)
       //FrontEndAsset.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
       //FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
@@ -142,8 +142,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         sort: queryObj['sort'] ?
         [{
           [queryObj['sort']] : queryObj['sort_type']
-        }] 
-        : 
+        }]
+        :
         [{
           "_score": "desc"
         }],
@@ -182,7 +182,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
   let response = newResponse()
 
   try{
-    let asset:Asset = await searchAsset(_evt.queryStringParameters.id)
+    let asset:Asset = await getAsset(_evt.queryStringParameters.id)
     let link = 'ERROR_FETCHING_LINK';
     if(asset.fileType == "IMAGE"){
       link = b2.GetURL(<image_file_resolutions>_evt.queryStringParameters.type, asset);
