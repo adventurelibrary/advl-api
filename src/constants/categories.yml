@@ -1,0 +1,8 @@
+- name: map
+  description: something
+- name: token
+  description: something
+- name: scene
+  description: something
+- name: character_art
+  description: something

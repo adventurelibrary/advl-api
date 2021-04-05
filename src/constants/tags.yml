@@ -1,0 +1,9 @@
+- name: science_fiction
+  aliases:
+    - Science Fiction
+- name: fantasy
+  aliases: 
+    - Fantasy
+- name: cyberpunk
+  aliases: 
+    - Cyberpunk
