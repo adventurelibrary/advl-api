@@ -1,9 +1,9 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {APIGatewayProxyEventQueryStringParameters, APIGatewayProxyHandler} from 'aws-lambda';
 import { search } from '../common/elastic';
 import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import { dyn } from '../common/database';
-import {newResponse} from "../common/response";
+import {errorResponse, newResponse} from "../common/response";
 import {indexAssetSearch, getAsset, updateAsset} from "../../lib/assets";
 //import { dyn } from '../common/database';
 //import { User } from '../../interfaces/IUser';
@@ -13,6 +13,13 @@ function transformAsset (asset : Asset) : Asset {
   asset.previewLink = b2.GetURL('watermarked', asset);
   asset.thumbnail =  b2.GetURL('thumbnail', asset);
   return asset
+}
+
+function getCSVParam (params: APIGatewayProxyEventQueryStringParameters, key: string) : string[] {
+  if (params && params[key]) {
+    return params[key].indexOf(',') > 0 ? params[key].split(',') : [params[key]]
+  }
+  return []
 }
 
 export const sync_assets : APIGatewayProxyHandler = async (_evt, _ctx) => {
@@ -53,7 +60,7 @@ export const sync_assets : APIGatewayProxyHandler = async (_evt, _ctx) => {
 
 export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
-
+  let params
   try{
     let queryObj:REQ_Query = {};
 
@@ -66,8 +73,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     } // null means that we just use an empty queryObj
 
     // If ID then just do a GET on the ID, search params don't matter
-    if(queryObj['id']){
-      let FrontEndAsset:Asset = await getAsset(_evt.queryStringParameters.id)
+    if(queryObj.id) {
+      let FrontEndAsset:Asset = await getAsset(queryObj.id)
       FrontEndAsset = transformAsset(FrontEndAsset)
       //FrontEndAsset.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
       //FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
@@ -76,16 +83,13 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       return response;
     }
 
-    let _query = {
+    queryObj.tags = getCSVParam(_evt.queryStringParameters, 'tags')
+    queryObj.categories = getCSVParam(_evt.queryStringParameters, 'categories')
+    const text = queryObj.text
+
+    let _query : any = {
       "bool": {
-        "must": [
-          {
-            "dis_max": {
-              "tie_breaker": 0.7,
-              "queries": []
-            }
-          }
-        ],
+        "must": [        ],
         "filter": [
           {
             "match": {
@@ -100,41 +104,53 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       _query.bool.filter = [];
     }
 
-    let exclude_attributes = ['sort', 'sort_type', 'from', 'size', 'text', 'visibility']
-    for(let key of Object.keys(queryObj)){
-      const val = queryObj[key]
-      //id key is already taken care of in the above code block
-      if(!exclude_attributes.includes(key)){
-        _query.bool.must[0].dis_max.queries.push({
-          "match": {
-            [key]: val
-          }
-        })
-      } else if(key == 'text'){
-        _query.bool.must[0].dis_max.queries.push({
-          "match": {
-            'name': val
-          }
-        })
-        _query.bool.must[0].dis_max.queries.push({
-          "match": {
-            'description': val
-          }
-        })
-      }
+    // Performs a text search on 'name' and 'description' and sorts by score
+    // Fuzzy search means that "froze" will match "Frozen" and "kings" will match "King"
+    if (text) {
+      _query.bool.must.push({
+        "dis_max": {
+          "tie_breaker": 0.7,
+          "queries": [
+            {
+              "fuzzy": {
+                'name': text
+              }
+            },
+            {
+              "fuzzy": {
+                'description': text
+              }
+            }
+          ]
+        }
+      })
     }
 
+    // Asset must match ALL provided tags
+    // This the equivalent of ' AND 'Archer' IN asset.tags AND 'Barbarian' IN asset.tags
+    if (queryObj.tags.length) {
+      queryObj.tags.forEach((tag) => {
+        _query.bool.must.push({
+          "match": {
+            "tags": tag
+          }
+        })
+      })
+    }
 
-    if(_query.bool.must[0].dis_max.queries.length == 0){
-      //empty query string so match all
-      _query.bool.must[0].dis_max.queries.push({
-        "match_all": {}
+    // Asset must match ONE of the provided categories
+    // This is the equivalent of " AND category IN ('maps', 'scenes')"
+    if (queryObj.categories.length) {
+      _query.bool.must.push({
+        "terms": {
+          "category": queryObj.categories
+        }
       })
     }
 
 
     // Query doesn't include ID
-    let params = {
+    params = {
       index: process.env.INDEX_ASSETDB,
       body: {
         from: queryObj['from'] ? queryObj['from'] : 0,
@@ -173,8 +189,12 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.statusCode = 200;
     return response;
   } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+    const response = errorResponse(_evt, E)
+    response.body = JSON.stringify({
+      error: E,
+      params: params
+    })
+    return response
   }
 }
 
@@ -191,8 +211,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
     response.statusCode = 200;
     return response;
   } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+    return errorResponse(_evt, E)
   }
 }
 
@@ -214,7 +233,6 @@ export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.body = JSON.stringify({success: "Assets Updated"})
     return response;
   } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+    return errorResponse(_evt, E)
   }
 }

@@ -2,7 +2,7 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { REQ_Add_Categories, REQ_Add_Tags } from '../../interfaces/ICategorization';
 import { dyn } from '../common/database';
-import {newResponse} from "../common/response";
+import {errorResponse, newResponse} from "../common/response";
 
 export const get_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
@@ -22,9 +22,8 @@ export const get_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.body = JSON.stringify(tags.Items)
     return response;
 
-  } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+  }catch (E){
+    return errorResponse(_evt, E)
   }
 }
 
@@ -46,9 +45,8 @@ export const get_categories: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.body = JSON.stringify(tags.Items)
     return response;
 
-  } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+  }catch (E){
+    return errorResponse(_evt, E)
   }
 }
 
@@ -79,9 +77,8 @@ export const add_tags: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.body = JSON.stringify({"success": true})
     return response;
 
-  } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+  }catch (E){
+    return errorResponse(_evt, E)
   }
 }
 
@@ -112,8 +109,7 @@ export const add_categories: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.body = JSON.stringify({"success": true})
     return response;
 
-  } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+  }catch (E){
+    return errorResponse(_evt, E)
   }
 }
