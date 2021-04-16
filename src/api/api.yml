@@ -89,3 +89,11 @@ add_categories:
         method: post
         path: /assets/categories
         cors: true
+
+get_my_bundles:
+  handler: src/api/bundles/bundle.get_my_bundles
+  events:
+    - http:
+        method: get
+        path: /my-bundles
+        cors: true

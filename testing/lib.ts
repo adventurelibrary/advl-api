@@ -1,14 +1,37 @@
 const fetch = require('node-fetch')
 import {testURL} from "../tests/constants";
 
+async function _fetch (url: string, opts : any = {}) {
+	opts.headers = opts.headers || {}
+	opts = Object.assign({
+		'Content-Type': 'application/json'
+	}, opts)
+	return fetch(testURL + url, opts)
+}
+
+export async function fetchAsUser (url: string, userId: string) {
+	const jwt = userId
+	const opts = {
+		headers: {
+			'Auth': jwt
+		}
+	}
+	return _fetch(url, opts)
+}
+
 export async function get (url: string)  {
-	return fetch(testURL + url)
+	return _fetch(url)
 }
 
 export async function getJSON (url: string) {
 	const res = await get(url)
 	const json = await res.json()
 	return json
+}
+
+export async function getJSONAsUser(url: string, userId: string) {
+	const res = await fetchAsUser(url, userId)
+	return res.json()
 }
 
 export async function testResStatus (res: any, status : number) : Promise<string | null> {

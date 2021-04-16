@@ -1,7 +1,5 @@
-//import * as fs from 'fs';
 import fetch from 'node-fetch';
 import { REQ_Get_Signature } from '../src/interfaces/IAsset';
-import {testURL} from './constants'
 import * as fs from 'fs';
 import FormData from 'form-data';
 
@@ -20,7 +18,7 @@ export async function test_fetch_preflight() {
       collectionID: "001",
       category: "token",
       tags: [],
-      unlockPrice: 0, 
+      unlockPrice: 0,
       revenueShare: {}
     }
 
@@ -39,14 +37,14 @@ export async function test_fetch_preflight() {
     form.append('params', response.params),
     form.append('signature', response.signature)
 
-    
+
     let transloadit_response = await (await fetch('https://api2.transloadit.com/assemblies', {
       method: 'post',
       headers: form.getHeaders(),
       body: form
     })).json()
     console.log(transloadit_response);
-    
+
     console.log("\x1b[32m%s\x1b[0m", "RAN: Test Fetch Preflight")
   } catch (E) {
     console.error(E);
