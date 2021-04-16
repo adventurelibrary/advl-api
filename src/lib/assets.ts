@@ -1,6 +1,24 @@
 import {search} from "../api/common/elastic";
-import {Asset} from "../interfaces/IAsset";
+import {Asset, REQ_Query} from "../interfaces/IAsset";
 import {dyn} from "../api/common/database";
+import {GetTag} from "../constants/categorization";
+
+export function validateTags(tags : string[]) {
+	if (!tags) {
+		return
+	}
+	for(let i = 0; i < tags.length; i++) {
+		const given = tags[i]
+		const tag = GetTag(given)
+		if (!tag) {
+			throw new Error(`Could not find tag or tag alias "${given}`)
+		}
+	}
+}
+
+export function validateAssetQuery(req : REQ_Query) {
+	validateTags(req.tags)
+}
 
 export async function getAsset (id: string) : Promise<Asset> {
 	try{

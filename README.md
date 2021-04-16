@@ -33,3 +33,8 @@ GET /assets
 - Run severless offline start
 - dynamodb-admin
 - ngrok for transloadit notify
+
+# Ava Tests
+Run `npx ava` to run the tests. The sls offline server must be up and running.
+
+Tests are added to the `tests` folder, but this can be changed in the `ava` prop of package.json
