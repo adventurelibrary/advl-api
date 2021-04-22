@@ -6,7 +6,7 @@ import { dyn } from '../common/database';
 import * as qs from 'querystring';
 import {idgen} from '../common/nanoid';
 import { search } from '../common/elastic';
-import {newResponse} from "../common/response";
+import {errorResponse, newResponse} from "../common/response";
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
@@ -30,9 +30,8 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.body = JSON.stringify(_res)
 
     return response;
-  } catch (E){
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    return response;
+  }catch (E){
+    return errorResponse(_evt, E)
   }
 }
 
