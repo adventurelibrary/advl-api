@@ -1,9 +1,12 @@
-- name: science_fiction
+- name: Archer
+- name: Barbarian
   aliases:
-    - Science Fiction
-- name: fantasy
-  aliases: 
-    - Fantasy
-- name: cyberpunk
-  aliases: 
-    - Cyberpunk
+    - Barb
+- name: Science Fiction
+  aliases:
+    - Science_Fiction
+    - Science-Fiction
+- name: Fantasy
+- name: Cyberpunk
+  aliases:
+    - Cyber Punk

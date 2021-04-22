@@ -4,7 +4,7 @@ import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsse
 import * as b2 from '../common/backblaze';
 import { dyn } from '../common/database';
 import {errorResponse, newResponse} from "../common/response";
-import {indexAssetSearch, getAsset, updateAsset} from "../../lib/assets";
+import {indexAssetSearch, getAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
 //import { dyn } from '../common/database';
 //import { User } from '../../interfaces/IUser';
 
@@ -85,6 +85,14 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     queryObj.tags = getCSVParam(_evt.queryStringParameters, 'tags')
     queryObj.categories = getCSVParam(_evt.queryStringParameters, 'categories')
+
+    // Will check for things like invalid tags or negative limits
+    try {
+      validateAssetQuery(queryObj)
+    } catch (ex) {
+      return errorResponse(_evt, ex)
+    }
+
     const text = queryObj.text
 
     let _query : any = {

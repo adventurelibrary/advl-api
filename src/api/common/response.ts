@@ -16,7 +16,8 @@ export function errorResponse (_evt, error) {
 	// TODO: Change this to like an environment variable, or a user check or something
 	if (true) {
 		response.body = JSON.stringify({
-			error: JSON.stringify(error)
+			error: error.toString(),
+			details: JSON.stringify(error)
 		})
 	}
 	return response;
