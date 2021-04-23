@@ -59,8 +59,8 @@ export const sync_assets : APIGatewayProxyHandler = async (_evt, _ctx) => {
 }
 
 export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse()
-  let params
+  let response = newResponse();
+  let params;
   try{
     let queryObj:REQ_Query = {};
 
@@ -68,17 +68,18 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       // Create lists from comma deliminted query string parameters
       for(let key of Object.keys(_evt.queryStringParameters)){
         let val = _evt.queryStringParameters[key].split(",")
-        queryObj[key] = val.length == 1 ? val[0] : val
+        queryObj[key] = val //val.length == 1 ? val[0] : val //leave everything as lists
       }
     } // null means that we just use an empty queryObj
 
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj.id) {
-      let FrontEndAsset:Asset = await getAsset(queryObj.id)
-      FrontEndAsset = transformAsset(FrontEndAsset)
-      //FrontEndAsset.previewLink = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
-      //FrontEndAsset.thumbnail = `https://f000.backblazeb2.com/file/advl-watermarked/${FrontEndAsset.creatorID}/${FrontEndAsset.id}.webp`
-      response.body = JSON.stringify(FrontEndAsset);
+      let FEAssets:Asset[] = [];
+      for(let id of queryObj.id){
+        let FrontEndAsset:Asset = await getAsset(id);
+        FEAssets.push(transformAsset(FrontEndAsset));  
+      }
+      response.body = JSON.stringify(FEAssets);
       response.statusCode = 200;
       return response;
     }
