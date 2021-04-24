@@ -40,7 +40,18 @@ test('assets: get assets by two tags', async (t) => {
 	t.pass()
 })
 
-// TODO: get asset by id
-// TODO: get asset by ids
+test('assets: get asset by id', async (t) => {
+	const body = await getJSON('assets?id=6L13wQqQbRfkVHkbPirNKQP0rQWTafRq')
+	t.is(body.id, '6L13wQqQbRfkVHkbPirNKQP0rQWTafRq')
+	t.pass()
+})
+
+test('assets: get assets by ids', async (t) => {
+	const body = await getJSON('assets?ids=6L13wQqQbRfkVHkbPirNKQP0rQWTafRq,FILCEmPky8w3JOpH9kT9vPMulzAmaX3h')
+	t.is(body[0].id, '6L13wQqQbRfkVHkbPirNKQP0rQWTafRq')
+	t.is(body[1].id, 'FILCEmPky8w3JOpH9kT9vPMulzAmaX3h')
+	t.pass()
+})
+
 // TODO: search for assets with text
 // TODO: get assets by category

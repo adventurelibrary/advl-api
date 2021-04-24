@@ -35,6 +35,7 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
   // Certain fields are comma delimited, which we override here
   queryObj.tags = getCSVParam(eventParams, 'tags')
   queryObj.categories = getCSVParam(eventParams, 'categories')
+  queryObj.ids = getCSVParam(eventParams, 'ids')
   return queryObj
 }
 
@@ -66,8 +67,16 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj.id) {
+      let FrontEndAsset:Asset = await getAsset(queryObj.id);
+      response.body = JSON.stringify(transformAsset(FrontEndAsset));
+      response.statusCode = 200;
+      return response;
+    }
+
+    // Multiple ids
+    if(queryObj.ids && queryObj.ids.length) {
       let FEAssets:Asset[] = [];
-      for(let id of queryObj.id){
+      for(let id of queryObj.ids){
         let FrontEndAsset:Asset = await getAsset(id);
         FEAssets.push(transformAsset(FrontEndAsset));
       }
