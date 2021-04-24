@@ -20,10 +20,10 @@ export async function user(){
     console.log(jwt);
     
     //send to ADVL server
-    await fetch(testURL+'user', {
+    await fetch(testURL+'users', {
       method: 'get',
       headers: {
-        "Authentication": <string>jwt
+        "Authorization": "JWT " + jwt
       }
     })
 
@@ -32,7 +32,7 @@ export async function user(){
   }
 }
 
-async function signinuser(user: CognitoUser){
+async function signinuser(user: CognitoUser):Promise<string>{
   return new Promise((resolve, reject) => {
     const AuthData = new AuthenticationDetails({
       //Username: user.getUsername(),

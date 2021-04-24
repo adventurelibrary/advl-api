@@ -9,3 +9,15 @@ export function newResponse ()  {
 		body: JSON.stringify({error:"Something went wrong!"})
 	}
 }
+
+export function errorResponse (_evt, error) {
+	const response = newResponse()
+	console.error(`ERROR | \n Event: ${_evt} \n Error: ${error}`);
+	// TODO: Change this to like an environment variable, or a user check or something
+	if (true) {
+		response.body = JSON.stringify({
+			error: JSON.stringify(error)
+		})
+	}
+	return response;
+}

@@ -6,6 +6,8 @@ user:
         method: get
         path: /users
         cors: true
+  environment:
+    ${file(src/dynamic-environment.js):user}
 ################## ASSETS #########################
 get_upload_signature:
   handler: src/api/assets/transloadit.get_signature
@@ -66,35 +68,3 @@ update_asset:
         cors: true
   environment:
     ${file(src/.env.yml):elastic}
-
-get_tags:
-  handler: src/api/assets/categorization.get_tags
-  events:
-    - http:
-        method: get
-        path: /assets/tags
-        cors: true
-
-get_categories:
-  handler: src/api/assets/categorization.get_categories
-  events:
-    - http:
-        method: get
-        path: /assets/categories
-        cors: true
-
-add_tags:
-  handler: src/api/assets/categorization.add_tags
-  events:
-    - http:
-        method: post
-        path: /assets/tags
-        cors: true
-
-add_categories:
-  handler: src/api/assets/categorization.add_categories
-  events:
-    - http:
-        method: post
-        path: /assets/categories
-        cors: true

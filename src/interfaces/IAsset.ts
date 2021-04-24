@@ -11,14 +11,14 @@ interface UserDefinedAssetInfo {
   collectionID: string,
   category: string,
   tags: string[],
-  unlockPrice: number, 
+  unlockPrice: number,
   revenueShare: RevenueShare
 }
 
 export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC" | "all"
 
 export interface Asset extends UserDefinedAssetInfo{
-  id: string, 
+  id: string,
   slug: string,
   sizeInBytes: number,
   uploaded: string, //ISO String
@@ -54,14 +54,14 @@ export interface REQ_Query {
   creatorName?: string,
   collectionID?: string,
   tags?: string[],
-  category?: string,
+  categories?: string[],
 }
 
 export interface REQ_DownloadLink {
   id: string,
   type?: image_file_resolutions // not used for PDF or ZIP files
 }
-export type image_file_resolutions = "original" | "optimized" | "watermarked" | "thumbnail" 
+export type image_file_resolutions = "original" | "optimized" | "watermarked" | "thumbnail"
 
 export interface REQ_Update {
   id: string,
