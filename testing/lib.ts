@@ -1,5 +1,6 @@
 const fetch = require('node-fetch')
-import {testURL} from "../tests/constants";
+
+const testURL = process.env.TEST_URL || 'http://localhost:3000/v1/'
 
 export async function get (url: string)  {
 	return fetch(testURL + url)

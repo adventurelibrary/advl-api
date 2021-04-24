@@ -2,9 +2,8 @@ import {APIGatewayProxyEventQueryStringParameters, APIGatewayProxyHandler} from 
 import { search } from '../common/elastic';
 import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
-import { dyn } from '../common/database';
 import {errorResponse, newResponse} from "../common/response";
-import {indexAssetSearch, getAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
+import {getAsset, updateAsset, validateAssetQuery, syncAllAssets} from "../../lib/assets";
 //import { dyn } from '../common/database';
 //import { User } from '../../interfaces/IUser';
 
@@ -22,32 +21,33 @@ function getCSVParam (params: APIGatewayProxyEventQueryStringParameters, key: st
   return []
 }
 
+// Converts the query string parameters that serverless has, into our custom type
+// that we use to query assets
+function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : REQ_Query {
+  const queryObj:REQ_Query = {};
+
+  if(eventParams){
+    for(let key of Object.keys(eventParams)){
+      queryObj[key] = eventParams[key]
+    }
+  } // null means that we just use an empty queryObj
+
+  // Certain fields are comma delimited, which we override here
+  queryObj.tags = getCSVParam(eventParams, 'tags')
+  queryObj.categories = getCSVParam(eventParams, 'categories')
+  return queryObj
+}
+
+// This will sync our assets from the local dynamo DB with elastic search. It will update elastic search.
+// This route is useful in development. If you visit in your browser before running your tests it will reset elasticsearch
 export const sync_assets : APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
-  let params : any = {
-    TableName: process.env.NAME_ASSETDB
-  };
-
-  let scanResults = [];
-  let items;
-
+  let scanResults : any[] = []
   try {
-    do {
-      items = await dyn.scan(params).promise();
-      items.Items.forEach((item) => scanResults.push(item));
-      params.ExclusiveStartKey = items.LastEvaluatedKey;
-    } while (typeof items.LastEvaluatedKey != "undefined");
-  } catch (E) {
-    console.error(`ERROR | \n Event: ${_evt} \n Error: ${E}` );
-    response.body = JSON.stringify({
-      error: E.toString()
-    })
-    return response;
-  }
-
-  for (let i = 0; i < scanResults.length; i++) {
-    console.log('Syncing', scanResults[i].id, scanResults[i])
-    await indexAssetSearch(scanResults[i])
+    scanResults = await syncAllAssets()
+  } catch (ex) {
+    const response = errorResponse(_evt, ex)
+    return response
   }
 
   response.statusCode = 200
@@ -62,30 +62,19 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse();
   let params;
   try{
-    let queryObj:REQ_Query = {};
-
-    if(_evt.queryStringParameters){
-      // Create lists from comma deliminted query string parameters
-      for(let key of Object.keys(_evt.queryStringParameters)){
-        let val = _evt.queryStringParameters[key].split(",")
-        queryObj[key] = val //val.length == 1 ? val[0] : val //leave everything as lists
-      }
-    } // null means that we just use an empty queryObj
+    const queryObj = getEvtQuery(_evt.queryStringParameters)
 
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj.id) {
       let FEAssets:Asset[] = [];
       for(let id of queryObj.id){
         let FrontEndAsset:Asset = await getAsset(id);
-        FEAssets.push(transformAsset(FrontEndAsset));  
+        FEAssets.push(transformAsset(FrontEndAsset));
       }
       response.body = JSON.stringify(FEAssets);
       response.statusCode = 200;
       return response;
     }
-
-    queryObj.tags = getCSVParam(_evt.queryStringParameters, 'tags')
-    queryObj.categories = getCSVParam(_evt.queryStringParameters, 'categories')
 
     // Will check for things like invalid tags or negative limits
     try {

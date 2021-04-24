@@ -41,7 +41,7 @@
   "author": "Dev Bharel",
   "license": "All Rights Reserved",
   "ava": {
-    "files": ["./testing/*.ts", "!./testing/lib.ts"],
+    "files": ["./testing/*.ts", "!./testing/lib.ts", "!./testing/files/*"],
     "extensions": [
       "ts"
     ],

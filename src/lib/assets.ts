@@ -97,3 +97,47 @@ export async function indexAssetSearch (asset: Asset) {
 		body: asset
 	});
 }
+
+// This bulk update is based on the example here:
+// https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/bulk_examples.html
+export async function indexAssetsSearch (assets: Asset[]) {
+	const body = assets.flatMap((doc) => {
+		return [{
+			index: {
+				_index: process.env.INDEX_ASSETDB
+			}
+		}, doc]
+	})
+
+
+	await search.bulk({
+		refresh: true,
+		body
+	})
+}
+
+// This will search our dynamo db for ALL assets and sync each one
+// to elastic search
+// This is useful for development to reset elastic search before running
+// route tests
+export async function syncAllAssets () : Promise<any[]> {
+	let params : any = {
+		TableName: process.env.NAME_ASSETDB
+	};
+
+	let items;
+	const assets : Asset[] = []
+
+	do {
+		items = await dyn.scan(params).promise();
+		items.Items.forEach((item) => {
+			console.log('Adding asset ' + item.name)
+			assets.push(item)
+		});
+		params.ExclusiveStartKey = items.LastEvaluatedKey;
+	} while (typeof items.LastEvaluatedKey != "undefined");
+
+	await indexAssetsSearch(assets)
+
+	return assets
+}
