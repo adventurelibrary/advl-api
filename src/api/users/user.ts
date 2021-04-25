@@ -25,7 +25,7 @@ export const user: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }).promise()
 
       await search.index({
-        index: process.env.INDEX_USERDB,
+        index: process.env.INDEX_USERSDB,
         id: newUser.id,
         body: newUser
       })
