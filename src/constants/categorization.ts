@@ -1,4 +1,6 @@
-import YAML from 'yamljs';
+//import YAML from 'yamljs';
+//export const Tags:Tag[] = YAML.parse(require('./tags.yml')).Tags;
+//export const Categories:Category[] = YAML.parse(require('./categories.yml')).Categories;
 
 export interface Tag{
   name: string,
@@ -10,8 +12,8 @@ export interface Category {
   description: string
 }
 
-export const Tags:Tag[] = YAML.load('src/constants/tags.yml');
-export const Categories:Category[] = YAML.load('src/constants/tags.yml');
+export const Tags:Tag[] = require('./tags.json');
+export const Categories:Category[] = require('./categories.json');
 
 /**
  *
