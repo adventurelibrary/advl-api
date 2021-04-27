@@ -30,6 +30,17 @@ GET /assets
 
 # Setup
 
-- Run severless offline start
-- dynamodb-admin
+- Run `sls offline start`
+- Run `dynamodb-admin` to access dynamodb
 - ngrok for transloadit notify
+
+# Ava Tests
+Run `npx ava` to run the tests. The sls offline server must be up and running.
+
+You can sync up the ElasticSearch before running your rests by visiting `http://localhost:3000/v1/assets/sync` in your browser.
+
+To run specific tests you can modify the test files themselves and call `test.only(...` instead of `test(...`
+
+You can specify which tests to run from the command line with `npx ava --match "asset*"`. Prefixes all test strings with, for example, "asset:" or "user:", allows for easier matching.
+
+Tests are added to the `testing` folder. You can **ignore files in the testing folder** by adding them to the `ava.files` prop in package.json with a ! prefix.
