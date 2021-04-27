@@ -23,11 +23,10 @@ export interface Asset extends UserDefinedAssetInfo{
   sizeInBytes: number,
   uploaded: string, //ISO String
   visibility: visibility_types,
-  creatorID: string,
   unlockCount: number,
   fileType: "IMAGE" | "PDF" | "ZIP",
   originalFileExt: string,
-  creatorName?: string, //Used when returning it to Front End
+  creatorName: string, //Used when returning it to Front End
   previewLink?: string, //Used when returning to Front End
   thumbnail?: string //Used when returning to Front End
 }

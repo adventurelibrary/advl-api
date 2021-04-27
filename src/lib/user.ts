@@ -16,12 +16,6 @@ export async function getUserByID(_sub: string): Promise<User> {
   }
 }
 
-/*
-export async function getUserByName(_name: string): Promise<User> {
-
-}
-*/
-
 export async function getUserByToken(jwt: string): Promise<User | UserNotFoundError>{ 
   const userToken = validateUserToken(jwt);
   const user = await getUserByID(userToken.sub);
@@ -45,4 +39,8 @@ export function validateUserToken(userToken:string){
   } catch (e){
     throw e;
   }
+}
+
+export function getCreatorbyUserID(_userID: string){
+  
 }

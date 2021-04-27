@@ -1,8 +1,23 @@
 export interface User {
-  id: string, // "subject-identifier" aka user ID
+  id: string,
   username: string,
-  isCreator: boolean,
+  email: string,
+  type: UserType,
+  notification_preferences: NotificationPreferences,
+  last_seen: string,
   joinDate: string,
+}
+
+type UserType = "USER" | "MODERATOR" | "ADMIN" //Permissions 
+
+interface NotificationPreferences {
+  
+}
+
+export interface Creator {
+  id: string,
+  user_id: string,
+  description: string
 }
 
 export interface UserToken {
@@ -16,7 +31,9 @@ export interface UserToken {
   iat: number,
   jti: string,
   client_id: string,
-  username: string
+  username: string,
+  email: string,
+  email_verified: boolean
 }
 
 export interface UserNotFoundError{

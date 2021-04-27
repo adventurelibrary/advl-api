@@ -14,9 +14,7 @@ export async function getAsset (id: string) : Promise<Asset> {
 	}
 }
 
-export async function updateAsset (id: string, updates: any) {
-	const original:Asset = await getAsset(id)
-
+export async function updateAsset (updates: any, original:Asset) {
 	//validate stuff
 	//TODO Validate Tags actually exist
 	//TODO Validate that RevenueShare creatorIDs actually exist

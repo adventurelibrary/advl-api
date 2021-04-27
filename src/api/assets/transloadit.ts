@@ -7,16 +7,23 @@ import * as qs from 'querystring';
 import {idgen} from '../common/nanoid';
 import { search } from '../common/elastic';
 import {errorResponse, newResponse} from "../common/response";
+import { User, UserNotFoundError } from '../../interfaces/IUser';
+import { getUserByToken } from '../../lib/user';
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
 
   try{
     let FileRequest:REQ_Get_Signature = JSON.parse(_evt.body);
-    // TODO: Fetch UserID from the Cognito Authorizer
-    let creatorID = "admin-test"
-    let newAsset:Asset = await createNewAsset(creatorID, FileRequest);
+    let user: User|UserNotFoundError = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    if(user['error']){
+      throw new Error("You must be logged in to upload a new asset");
+    }
+    user = <User>user;
+    //Validate if the user is a creator
 
+
+    let newAsset:Asset = await createNewAsset(user.username, FileRequest);
     let params = await getParams(newAsset);
     let signature = await calcSignature(params);
 
@@ -35,7 +42,7 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   }
 }
 
-async function createNewAsset(_creatorID: string, req:REQ_Get_Signature): Promise<Asset> {
+async function createNewAsset(_creatorName: string, req:REQ_Get_Signature): Promise<Asset> {
   let newAsset: Asset = {
     id: idgen(),
     slug: slugify(req.name).toLowerCase(),
@@ -44,7 +51,7 @@ async function createNewAsset(_creatorID: string, req:REQ_Get_Signature): Promis
     visibility: "PENDING",
     originalFileExt: 'UNKOWN',
     fileType: "IMAGE",
-    creatorID: _creatorID,
+    creatorName: _creatorName,
     unlockCount: 0,
     name: req.name,
     description: req.description,
@@ -80,14 +87,14 @@ async function getParams(asset: Asset): Promise<string> {
   let _steps = require("./file_upload_steps.json").steps;
 
   _steps.export_original.credentials = "ADVL Originals"
-  _steps.export_original.path = `${asset.creatorID}/${asset.id}.`+'${file.ext}';
+  _steps.export_original.path = `${asset.creatorName}/${asset.id}.`+'${file.ext}';
   _steps.export_compressed_image.credentials = "ADVL WEBP"
-  _steps.export_compressed_image.path = `${asset.creatorID}/${asset.id}.webp`;
+  _steps.export_compressed_image.path = `${asset.creatorName}/${asset.id}.webp`;
 
   _steps.export_watermark.credentials = "ADVL Watermarked"
-  _steps.export_watermark.path = `${asset.creatorID}/${asset.id}.webp`;
+  _steps.export_watermark.path = `${asset.creatorName}/${asset.id}.webp`;
   _steps.export_thumb.credentials = "ADVL Thumbs"
-  _steps.export_thumb.path = `${asset.creatorID}/${asset.id}.webp`;
+  _steps.export_thumb.path = `${asset.creatorName}/${asset.id}.webp`;
 
   const params = JSON.stringify({
     auth: {
@@ -97,7 +104,7 @@ async function getParams(asset: Asset): Promise<string> {
     steps: _steps,
     notify_url: process.env.IS_OFFLINE == "true" ? process.env.TRANSLOADIT_OFFLINE_NOTIFY_URL : process.env.TRANSLOADIT_NOTIFY_URL,
     fields: {
-      creatorID: asset.creatorID,
+      creatorName: asset.creatorName,
       assetID: asset.id
     }
   })
