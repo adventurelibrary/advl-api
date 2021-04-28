@@ -17,7 +17,8 @@ export function validateTags(tags : string[]) {
 }
 
 export function validateAssetQuery(req : REQ_Query) {
-	validateTags(req.tags)
+	// TODO: Maybe reimplement the tags validation
+	//validateTags(req.tags)
 }
 
 export async function getAsset (id: string) : Promise<Asset> {

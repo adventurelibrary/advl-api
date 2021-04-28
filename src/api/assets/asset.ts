@@ -30,12 +30,18 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
     for(let key of Object.keys(eventParams)){
       queryObj[key] = eventParams[key]
     }
+    queryObj.size = parseInt(eventParams.size)
   } // null means that we just use an empty queryObj
 
   // Certain fields are comma delimited, which we override here
   queryObj.tags = getCSVParam(eventParams, 'tags')
   queryObj.categories = getCSVParam(eventParams, 'categories')
   queryObj.ids = getCSVParam(eventParams, 'ids')
+
+  if (isNaN(queryObj.size) || queryObj.size <= 0) {
+    queryObj.size = 10
+  }
+
   return queryObj
 }
 

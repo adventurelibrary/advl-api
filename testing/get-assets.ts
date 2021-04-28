@@ -25,7 +25,7 @@ test('assets: get with pagination', async (t) => {
 
 test('assets: get with tag that doesnt exist', async (t) => {
 	const res = await get('assets?tags=Spaghetti')
-	let err = await testResStatus(res, 500)
+	let err = await testResStatus(res, 200)
 	if (err) {
 		t.fail(err)
 		return
