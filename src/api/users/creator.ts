@@ -1,8 +1,8 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { getCreatorByID, getUserByToken, isAdmin } from "../../lib/user";
+import { getCreatorByID, getUserByToken, isAdmin, updateCreator } from "../../lib/user";
 import { errorResponse, newResponse } from "../common/response";
 import { User } from '../../interfaces/IUser';
-import { Creator, REQ_NewCreator } from '../../interfaces/ICreator';
+import { Creator, REQ_NewCreator, REQ_UpdateCreator } from '../../interfaces/ICreator';
 import { idgen } from "../common/nanoid";
 import { search } from "../common/elastic";
 
@@ -61,6 +61,9 @@ export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
       if(creator.owner != user.id && !isAdmin(user.id)){
         throw new Error("Creators can only be updated by their owner or an Admin")
       }
+
+      response.statusCode = 200;
+      response.body = JSON.stringify(updateCreator(creator, <REQ_UpdateCreator>JSON.parse(_evt.body)));
     }
     return response;
   } catch(e) {

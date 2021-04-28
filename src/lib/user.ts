@@ -53,6 +53,20 @@ export async function updateUser(user:User, updates:any){
   });
 }
 
+export async function updateCreator(creator:Creator, updates:any){
+  creator.description = updates.description ? updates.description : creator.description;
+
+  await search.update({
+    index: process.env.INDEX_CREATORSDB,
+    id: creator.id,
+    body: {
+      doc: creator
+    }
+  })
+
+  return creator;
+}
+
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json 
 //const jwks = JSON.parse(fs.readFileSync("src/api/users/us-east-1_029QsJhTM.json").toString())
 const jwks = require('./us-east-1_029QsJhTM.json').keys[1]
@@ -83,5 +97,5 @@ export async function getCreatorByID(creatorID: string){
  */
 export async function isAdmin(userID: string){
   //TODO replace with Aurora lookup
-  return false;
+  if(userID){return true;}
 }
