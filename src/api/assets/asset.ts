@@ -3,12 +3,11 @@ import { search } from '../common/elastic';
 import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
-import {getAsset, updateAsset, validateAssetQuery, syncAllAssets} from "../../lib/assets";
-//import { dyn } from '../common/database';
-//import { User } from '../../interfaces/IUser';
+import { getAsset, syncAllAssets, updateAsset, validateAssetQuery} from "../../lib/assets";
+import { User } from '../../interfaces/IUser';
+import { getUserByToken } from '../../lib/user';
 
 function transformAsset (asset : Asset) : Asset {
-  asset.creatorName = asset.creatorID; //TODO change to above code when we have users
   asset.previewLink = b2.GetURL('watermarked', asset);
   asset.thumbnail =  b2.GetURL('thumbnail', asset);
   return asset
@@ -211,6 +210,10 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
   }
 }
 
+/**
+ * TODO
+ * Only authorized users should be able to fetch certain types of files 
+ */
 export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
 
@@ -228,9 +231,15 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
   }
 }
 
+
 export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
   try{
+    let user: User = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    if(!user){
+      throw new Error("You must be logged in to upload a new asset");
+    }
+    
     //Specifically ANY so only the relevant keys are passed in
     let reqAssets:any[] = JSON.parse(_evt.body);
     for (let i = 0; i < reqAssets.length; i++) {
@@ -239,7 +248,13 @@ export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
       if (!id) {
         throw new Error(`No id provided at index ${i}`)
       }
-      await updateAsset(id, reqAsset)
+      const asset:Asset = await getAsset(id);
+      
+      if(user.username != asset.creatorName || user.type != 'ADMIN'){
+        throw new Error("User doesn't have permissions to edit this asset");
+      }
+
+      await updateAsset(reqAsset, asset)
     }
 
     response.statusCode = 200;

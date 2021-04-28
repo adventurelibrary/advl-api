@@ -13,5 +13,11 @@ module.exports = {
   query_assets: {
     ...env.elastic,
     ...env.backblaze
+  },
+  user: {
+    ...env.elastic
+  },
+  creator: {
+    ...env.elastic
   }
 }

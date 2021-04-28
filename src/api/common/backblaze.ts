@@ -29,7 +29,7 @@ export function GetURL(type:image_file_resolutions, asset:Asset){
 
   let signedUrl = b2.getSignedUrl('getObject', {
     Bucket: bucket,
-    Key: `${asset.creatorID}/${asset.id}.${ext}`,
+    Key: `${asset.creatorName}/${asset.id}.${ext}`,
     Expires: linkExpiryInSeconds
   })
 
