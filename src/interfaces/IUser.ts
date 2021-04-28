@@ -14,12 +14,6 @@ interface NotificationPreferences {
   
 }
 
-export interface Creator {
-  id: string,
-  user_id: string,
-  description: string
-}
-
 export interface UserToken {
   sub: string,
   event_id: string,
@@ -34,9 +28,4 @@ export interface UserToken {
   username: string,
   email: string,
   email_verified: boolean
-}
-
-export interface UserNotFoundError{
-  error: "User not found",
-  token: UserToken
 }

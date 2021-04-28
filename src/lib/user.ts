@@ -1,8 +1,10 @@
+import { dyn } from '../api/common/database';
 import { search } from "../api/common/elastic";
-import { User, UserToken, UserNotFoundError } from '../interfaces/IUser';
+import { User, UserToken } from '../interfaces/IUser';
 
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
+import { Creator } from '../interfaces/ICreator';
 
 export async function getUserByID(_sub: string): Promise<User> {
   try{ 
@@ -16,19 +18,40 @@ export async function getUserByID(_sub: string): Promise<User> {
   }
 }
 
-export async function getUserByToken(jwt: string): Promise<User | UserNotFoundError>{ 
+export async function getUserByToken(jwt: string): Promise<User>{ 
   const userToken = validateUserToken(jwt);
-  const user = await getUserByID(userToken.sub);
-  if(user){
-    return user;
-  } else {
-    return {
-      error: "User not found",
-      token: userToken
-    }
-  }
+  return await getUserByID(userToken.sub);
 }
 
+export async function updateUser(user:User, updates:any){
+  user.email = updates.email ? updates.email : user.email;
+  user.type = updates.type ? updates.type : user.type;
+  user.notification_preferences = updates.notification_preferences ? updates.notification_preferences : user.notification_preferences;
+  user.last_seen = updates.last_seen ? updates.last_seen : user.last_seen;
+
+  console.log("Updated User: ", user);
+  await dyn.update({
+    TableName: process.env.NAME_USERSDB,
+    Key: {
+      id: user.id
+    },
+    UpdateExpression: "set email = :user_email, type = :user_type, notification_preferences = :np, last_seen = :ls",
+    ExpressionAttributeValues: {
+      ":user_email": user.email,
+      ":user_type": user.type,
+      ":np": user.notification_preferences,
+      ":ls": user.last_seen
+    }
+  }).promise();
+
+  await search.update({
+    index:process.env.INDEX_USERSDB,
+    id: user.id,
+    body: {
+      doc: user
+    }
+  });
+}
 
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json 
 //const jwks = JSON.parse(fs.readFileSync("src/api/users/us-east-1_029QsJhTM.json").toString())
@@ -41,6 +64,24 @@ export function validateUserToken(userToken:string){
   }
 }
 
-export function getCreatorbyUserID(_userID: string){
-  
+export async function getCreatorByID(creatorID: string){
+  try {
+    const creator = await search.get({
+      index: process.env.INDEX_CREATORSDB,
+      id: creatorID
+    });
+    return <Creator>creator.body._source;
+  } catch(e){
+    return undefined;
+  }
+}
+
+/**
+ * Checks Admin DB to see if this user ID is an admin
+ * @param userID 
+ * @returns 
+ */
+export async function isAdmin(userID: string){
+  //TODO replace with Aurora lookup
+  return false;
 }

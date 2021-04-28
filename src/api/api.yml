@@ -2,12 +2,28 @@
 user: 
   handler: src/api/users/user.user
   events:
-    - http: 
+    - http: # GET session or create new user if it doesn't exist
         method: get
+        path: /users
+        cors: true
+    - http: # PUT updates the user
+        method: put
         path: /users
         cors: true
   environment:
     ${file(src/dynamic-environment.js):user}
+
+################## CREATORS #########################
+creator:
+  handler: src/api/users/creator.creator
+  events:
+    - http:
+        method: get
+        path: /creator/{creatorID}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
+
 ################## ASSETS #########################
 get_upload_signature:
   handler: src/api/assets/transloadit.get_signature

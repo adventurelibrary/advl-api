@@ -5,7 +5,7 @@ import * as b2 from '../common/backblaze';
 import { dyn } from '../common/database';
 import {errorResponse, newResponse} from "../common/response";
 import {indexAssetSearch, getAsset, updateAsset} from "../../lib/assets";
-import { User, UserNotFoundError } from '../../interfaces/IUser';
+import { User } from '../../interfaces/IUser';
 import { getUserByToken } from '../../lib/user';
 
 function transformAsset (asset : Asset) : Asset {
@@ -223,11 +223,10 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
 export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
   try{
-    let user: User|UserNotFoundError = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
-    if(user['error']){
+    let user: User = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    if(!user){
       throw new Error("You must be logged in to upload a new asset");
     }
-    user = <User>user;
     
     //Specifically ANY so only the relevant keys are passed in
     let reqAssets:any[] = JSON.parse(_evt.body);

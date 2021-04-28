@@ -16,5 +16,8 @@ module.exports = {
   },
   user: {
     ...env.elastic
+  },
+  creator: {
+    ...env.elastic
   }
 }

@@ -7,7 +7,7 @@ import * as qs from 'querystring';
 import {idgen} from '../common/nanoid';
 import { search } from '../common/elastic';
 import {errorResponse, newResponse} from "../common/response";
-import { User, UserNotFoundError } from '../../interfaces/IUser';
+import { User } from '../../interfaces/IUser';
 import { getUserByToken } from '../../lib/user';
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
@@ -15,12 +15,10 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
   try{
     let FileRequest:REQ_Get_Signature = JSON.parse(_evt.body);
-    let user: User|UserNotFoundError = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
-    if(user['error']){
+    let user: User = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    if(!user){
       throw new Error("You must be logged in to upload a new asset");
     }
-    user = <User>user;
-    //Validate if the user is a creator
 
 
     let newAsset:Asset = await createNewAsset(user.username, FileRequest);
