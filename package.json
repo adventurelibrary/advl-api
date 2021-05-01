@@ -11,6 +11,7 @@
     "@types/form-data": "^2.5.0",
     "@types/jwk-to-pem": "^2.0.0",
     "@types/nanoid": "^2.1.0",
+    "@types/pg": "^7.14.11",
     "aws-sdk": "^2.831.0",
     "backblaze-b2": "^1.6.0",
     "form-data": "^4.0.0",
@@ -46,7 +47,11 @@
   "author": "Dev Bharel",
   "license": "All Rights Reserved",
   "ava": {
-    "files": ["./testing/*.ts", "!./testing/lib.ts", "!./testing/files/*"],
+    "files": [
+      "./testing/*.ts",
+      "!./testing/lib.ts",
+      "!./testing/files/*"
+    ],
     "extensions": [
       "ts"
     ],

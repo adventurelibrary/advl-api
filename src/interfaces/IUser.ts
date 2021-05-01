@@ -2,13 +2,12 @@ export interface User {
   id: string,
   username: string,
   email: string,
-  type: UserType,
   notification_preferences: NotificationPreferences,
-  last_seen: string,
-  joinDate: string,
+  last_seen: Date,
+  join_date: Date,
 }
 
-type UserType = "USER" | "MODERATOR" | "ADMIN" //Permissions 
+//type UserType = "USER" | "MODERATOR" | "ADMIN" //Permissions 
 
 interface NotificationPreferences {
   
