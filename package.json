@@ -46,7 +46,14 @@
   "author": "Dev Bharel",
   "license": "All Rights Reserved",
   "ava": {
-    "files": ["./testing/*.ts", "!./testing/lib.ts", "!./testing/fixtures.ts", "!./testing/files/*"],
+    "files": [
+      "./testing/*.ts",
+      "!./testing/lib.ts",
+      "!./testing/signup.ts",
+      "!./testing/upload.ts",
+      "!./testing/fixtures.ts",
+      "!./testing/files/*"
+    ],
     "extensions": [
       "ts"
     ],

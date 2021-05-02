@@ -65,13 +65,17 @@ export type AccessTest = {
 	path?: string
 	userId: string | null
 	expectedStatus: number
+	method?: string
 }
 
 export async function testPathAccess (path: string, tests: AccessTest[]) : Promise<string | null> {
 	for (let i = 0; i < tests.length; i++) {
 		const test = tests[i]
 		test.path = path
-		const res = await requestAs(test.path, test.userId)
+		const opts = {
+			method: test.method || 'GET'
+		}
+		const res = await requestAs(test.path, test.userId, opts)
 		const err = await testResStatus(res, test.expectedStatus)
 		if (err) {
 			return `[${i}] Failed with user ${test.userId}: ${err}`
