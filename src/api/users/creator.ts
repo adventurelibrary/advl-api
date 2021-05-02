@@ -4,8 +4,7 @@ import { errorResponse, newResponse } from "../common/response";
 import { User } from '../../interfaces/IUser';
 import { Creator, REQ_NewCreator, REQ_UpdateCreator } from '../../interfaces/ICreator';
 import { idgen } from "../common/nanoid";
-import { search } from "../common/elastic";
-
+import * as db from '../common/postgres';
 /**
  * GET returns creator information.
  * POST creates a new CREATOR from a USER (ADMIN)
@@ -51,12 +50,7 @@ export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
         description: ""
       }
 
-      await search.index({
-        index: process.env.INDEX_CREATORSDB,
-        id: newCreator.id,
-        body: newCreator
-      })
-
+      await db.insertObj(process.env.DB_CREATORS, newCreator);
     } else if (_evt.httpMethod == "PUT") {
       if(creator.owner != user.id && !isAdmin(user.id)){
         throw new Error("Creators can only be updated by their owner or an Admin")

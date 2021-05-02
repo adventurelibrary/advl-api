@@ -2,8 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { errorResponse, newResponse } from '../common/response';
 import {getUserByToken, updateUser, validateUserToken} from '../../lib/user';
 import { User } from '../../interfaces/IUser';
-import { dyn } from '../common/database';
-import { search } from '../common/elastic';
+import * as db from '../common/postgres';
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -23,27 +22,19 @@ export const user: APIGatewayProxyHandler = async (_evt, _ctx) => {
           id: userToken.sub,
           username: userToken.username,
           email: userToken.email,
-          type: "USER",
           notification_preferences: {},
-          last_seen: Date.now().toString(),
-          joinDate: Date.now().toString()
+          last_seen: new Date().toISOString(),
+          join_date: new Date().toISOString()
         }
-        await dyn.put({
-          TableName: process.env.NAME_USERSDB,
-          Item: newUser
-        }).promise()
-  
-        await search.index({
-          index: process.env.INDEX_USERSDB,
-          id: newUser.id,
-          body: newUser
-        })
+
+        await db.insertObj(process.env.DB_USERS, newUser);
+
         response.statusCode = 201;
         response.body = JSON.stringify(newUser);
         return response;
       } else {
         response.statusCode = 200;
-        await updateUser(<User>user, {last_seen: Date.now().toString()})
+        await updateUser(<User>user, {last_seen: new Date().toISOString()})
         response.body = JSON.stringify(user)
         return response;
       }  

@@ -3,9 +3,9 @@ import { search } from '../common/elastic';
 import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
-import { getAsset, syncAllAssets, updateAsset, validateAssetQuery} from "../../lib/assets";
+import { getAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
 import { User } from '../../interfaces/IUser';
-import { getUserByToken } from '../../lib/user';
+import { getUserByToken, isAdmin } from '../../lib/user';
 
 function transformAsset (asset : Asset) : Asset {
   asset.previewLink = b2.GetURL('watermarked', asset);
@@ -42,26 +42,6 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
   }
 
   return queryObj
-}
-
-// This will sync our assets from the local dynamo DB with elastic search. It will update elastic search.
-// This route is useful in development. If you visit in your browser before running your tests it will reset elasticsearch
-export const sync_assets : APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse()
-  let scanResults : any[] = []
-  try {
-    scanResults = await syncAllAssets()
-  } catch (ex) {
-    const response = errorResponse(_evt, ex)
-    return response
-  }
-
-  response.statusCode = 200
-  response.body = JSON.stringify({
-    message: `Synced ${scanResults.length} db items to search`
-  })
-
-  return response
 }
 
 export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
@@ -220,7 +200,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
   try{
     let asset:Asset = await getAsset(_evt.queryStringParameters.id)
     let link = 'ERROR_FETCHING_LINK';
-    if(asset.fileType == "IMAGE"){
+    if(asset.file_type == "IMAGE"){
       link = b2.GetURL(<image_file_resolutions>_evt.queryStringParameters.type, asset);
       response.body=JSON.stringify({url: link});
     }
@@ -250,7 +230,7 @@ export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }
       const asset:Asset = await getAsset(id);
       
-      if(user.username != asset.creatorName || user.type != 'ADMIN'){
+      if(user.username != asset.creator_name || !isAdmin(user.id)){
         throw new Error("User doesn't have permissions to edit this asset");
       }
 

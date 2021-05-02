@@ -3,8 +3,8 @@ export interface User {
   username: string,
   email: string,
   notification_preferences: NotificationPreferences,
-  last_seen: Date,
-  join_date: Date,
+  last_seen: string,
+  join_date: string,
 }
 
 //type UserType = "USER" | "MODERATOR" | "ADMIN" //Permissions 

@@ -1,7 +1,7 @@
 import {search} from "../api/common/elastic";
 import {Asset, REQ_Query} from "../interfaces/IAsset";
-import {dyn} from "../api/common/database";
 import {GetTag} from "../constants/categorization";
+import * as db from '../api/common/postgres';
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -53,26 +53,8 @@ export async function updateAsset (updates: any, original:Asset) {
 
 	console.log("Updated Asset: ", original)
 	// Update Dyn
-	await dyn.update({
-		TableName: process.env.NAME_ASSETDB,
-		Key: {
-			id: original.id,
-			uploaded: original.uploaded
-		},
-		UpdateExpression: "set visibility = :v, #name = :n, description = :d, collectionID = :cID, category = :cat, tags = :t, unlockPrice = :uP",
-		ExpressionAttributeNames: {
-			"#name": "name"
-		},
-		ExpressionAttributeValues: {
-			":v": original.visibility,
-			":n": original.name,
-			":d": original.description,
-			":cID": original.collectionID,
-			":cat": original.category,
-			":t": original.tags,
-			":uP": original.unlockPrice
-		}
-	}).promise();
+
+	await db.updateObj(process.env.DB_ASSETS, original.id,original)
 
 	updateAssetSearch(original)
 }
@@ -115,6 +97,7 @@ export async function indexAssetsSearch (assets: Asset[]) {
 	})
 }
 
+/*
 // This will search our dynamo db for ALL assets and sync each one
 // to elastic search
 // This is useful for development to reset elastic search before running
@@ -140,3 +123,4 @@ export async function syncAllAssets () : Promise<any[]> {
 
 	return assets
 }
+*/
