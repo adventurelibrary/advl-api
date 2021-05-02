@@ -1,6 +1,6 @@
 import test from 'ava';
 
-import {get, getJSON, testResStatus} from "./lib";
+import {getJSON, request, testResStatus} from "./lib";
 
 test('assets: get assets', async (t) => {
 	const body = await getJSON('assets')
@@ -24,7 +24,7 @@ test('assets: get with pagination', async (t) => {
 })
 
 test('assets: get with tag that doesnt exist', async (t) => {
-	const res = await get('assets?tags=Spaghetti')
+	const res = await request('assets?tags=Spaghetti')
 	let err = await testResStatus(res, 200)
 	if (err) {
 		t.fail(err)
