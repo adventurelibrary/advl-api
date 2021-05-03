@@ -55,20 +55,6 @@ query_assets:
   environment:
     ${file(src/dynamic-environment.js):query_assets}
 
-sync_assets:
-  handler: src/api/assets/asset.sync_assets
-  events:
-    - http:
-        method: post
-        path: /assets/sync
-        cors: true
-    - http:
-        method: get
-        path: /assets/sync
-        cors: true
-  environment:
-    ${file(src/dynamic-environment.js):query_assets}
-
 asset_download_link:
   handler: src/api/assets/asset.asset_download_link
   events:

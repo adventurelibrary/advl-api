@@ -7,23 +7,9 @@ custom:
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
-  dynamodb:
-    stages:
-      - v1
-    start:
-      port: 8000
-      dbPath: database
-      migrate: true
-      seed: true
-    seed: 
-      assets:
-        sources:
-          - table: Assets
-            sources: ["./database/seed/assets.json"]
 
 plugins:
   - serverless-webpack
-  - serverless-dynamodb-local
   - serverless-offline
 
 provider:
@@ -36,15 +22,9 @@ provider:
   environment:
     ${file(src/.env.yml):common}
     
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:*
-      Resource: '*'
-
 functions:
   - ${file(src/api/api.yml)}
   # - ${file(src/workers/workers.yml)}
 
 resources:
-  - ${file(src/resources/dynamodb.yml)}
+  # - ${file(src/resources/dynamodb.yml)}
