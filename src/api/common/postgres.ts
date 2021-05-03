@@ -9,12 +9,15 @@ export async function insertObj(tableName:string, obj:any){
       columns.push(key);
       if(typeof obj[key] === 'string'){
         values.push(`\'${obj[key]}\'`);
+      } else if (typeof obj[key] === 'object'){
+        values.push(`\'${JSON.stringify(obj[key])}\'`);
       } else {
         values.push(obj[key]);
       }
     }
 
     let _sql = `INSERT INTO ${tableName}(${columns.join(",")}) VALUES (${values.join(",")})`;
+    console.debug("INSERT SQL: ", _sql);
     const result = await rds.executeStatement({
       resourceArn: process.env.POSTGRES_DB_ARN,
       secretArn: process.env.POSTGRES_SECRET_ARN,
@@ -27,9 +30,12 @@ export async function insertObj(tableName:string, obj:any){
     throw e;
   }
 }
+
 export async function getObj(tableName:string, id:string){
   try{
     let _sql = `SELECT * FROM ${tableName} WHERE id='${id}'`
+    console.debug("GET SQL: ", _sql);
+
     const result = await rds.executeStatement({
       resourceArn: process.env.POSTGRES_DB_ARN,
       secretArn: process.env.POSTGRES_SECRET_ARN,
@@ -52,6 +58,7 @@ export async function getObj(tableName:string, id:string){
 export async function getObjects(tableName:string, query:string){
   try{
     let _sql = `SELECT * FROM ${tableName} WHERE ${query}`
+    console.debug("GET MANY SQL: ", _sql);
     const result = await rds.executeStatement({
       resourceArn: process.env.POSTGRES_DB_ARN,
       secretArn: process.env.POSTGRES_SECRET_ARN,
@@ -78,6 +85,7 @@ export async function updateObj(tableName:string, objID: string, updatedObj:any)
     }
 
     let _sql = `UPDATE ${tableName} SET ${updateString.join(",")} WHERE id='${objID}'`;
+    console.debug("UPDATE SQL: ", _sql);
     const result = await rds.executeStatement({
       resourceArn: process.env.POSTGRES_DB_ARN,
       secretArn: process.env.POSTGRES_SECRET_ARN,

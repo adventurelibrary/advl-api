@@ -29,7 +29,7 @@ export async function updateCreator(creator:Creator, updates:any){
 
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json 
 //const jwks = JSON.parse(fs.readFileSync("src/api/users/us-east-1_029QsJhTM.json").toString())
-const jwks = require('./us-east-1_029QsJhTM.json').keys[1]
+const jwks = require('./us-east-1_029QsJhTM.json').keys[0]
 export function validateUserToken(userToken:string){
   try{
     return <UserToken>jwt.verify(userToken, jwkToPem(jwks))

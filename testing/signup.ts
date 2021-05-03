@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 //import {CognitoUserAttribute} from 'amazon-cognito-identity-js';
 //import {idgen} from '../src/api/common/nanoid';
 
-let testURL = 'localhost:3000/v1/'
+let testURL = 'http://localhost:3000/v1/'
 
 let userpool = new CognitoUserPool({
   ClientId: '19h0kbrgt3lmp72k2d1q41h4se',
@@ -46,7 +46,7 @@ async function signinuser(user: CognitoUser):Promise<string>{
       onSuccess: (success) => {
         console.log("Success:", success)
         //after logged in, send the user jwt to server
-        const jwt = success.getAccessToken().getJwtToken();
+        const jwt = success.getIdToken().getJwtToken();
         resolve(jwt);
       },
       onFailure: (error) => {

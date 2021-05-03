@@ -15,16 +15,14 @@ interface NotificationPreferences {
 
 export interface UserToken {
   sub: string,
+  aud: string,
+  email_verified: boolean,
   event_id: string,
-  token_user: string,
-  scope: string,
+  token_use: string,
   auth_time: number,
   iss: string,
-  exp: number, 
+  'cognito:username': string,
+  exp: number,
   iat: number,
-  jti: string,
-  client_id: string,
-  username: string,
-  email: string,
-  email_verified: boolean
+  email: string
 }

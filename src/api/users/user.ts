@@ -20,7 +20,7 @@ export const user: APIGatewayProxyHandler = async (_evt, _ctx) => {
         //create new user
         const newUser:User = {
           id: userToken.sub,
-          username: userToken.username,
+          username: userToken['cognito:username'],
           email: userToken.email,
           notification_preferences: {},
           last_seen: new Date().toISOString(),
