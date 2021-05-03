@@ -24,5 +24,9 @@ module.exports = {
   creator: {
     ...env.elastic,
     ...env.postgres,
+  },
+  database: {
+    ...env.elastic,
+    ...env.postgres
   }
 }

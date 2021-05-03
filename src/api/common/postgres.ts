@@ -24,7 +24,6 @@ export async function insertObj(tableName:string, obj:any){
       database: process.env.POSTGRES_DB_NAME,
       sql: _sql 
     }).promise();
-    console.debug("Result: ", result);
     return result;
   } catch (e){
     throw e;
@@ -42,7 +41,6 @@ export async function getObj(tableName:string, id:string){
       database: process.env.POSTGRES_DB_NAME,
       sql: _sql 
     }).promise();
-    //console.debug("Result: ", result);
     if(result.records.length == 0){ return undefined;}
     return stitchObject(await getColumnNames(tableName), valuesArray(result.records[0]))
   } catch (e) {
@@ -92,7 +90,6 @@ export async function updateObj(tableName:string, objID: string, updatedObj:any)
       database: process.env.POSTGRES_DB_NAME,
       sql: _sql 
     }).promise();
-    console.debug("Result: ", result);
     return result;
   } catch (e) {
     throw e;
@@ -112,14 +109,23 @@ export async function query(sql:string){
       database: process.env.POSTGRES_DB_NAME,
       sql: sql 
     }).promise();
-    console.debug("Result: ", result);
-    return result;
+
+    if(result.records){
+      let records = [];
+      for(let record of result.records){
+        records.push(valuesArray(record));
+      }
+      return records;
+    } else {
+      return result;
+    }
+
   } catch (e) {
     throw e;
   }
 }
 
-async function getColumnNames(tableName:string){
+export async function getColumnNames(tableName:string){
   try{
     const columnResult = await rds.executeStatement({
       resourceArn: process.env.POSTGRES_DB_ARN,
@@ -139,7 +145,12 @@ async function getColumnNames(tableName:string){
   }
 }
 
-function valuesArray(rdsValues:any[]): any[]{
+/**
+ * Normalizes an RDS record to into a array of values
+ * @param rdsValues 
+ * @returns 
+ */
+export function valuesArray(rdsValues:any[]): any[]{
   let values:any[] = [];
   for(let valueObj of rdsValues){
     values.push(Object.values(valueObj)[0]);
@@ -147,7 +158,14 @@ function valuesArray(rdsValues:any[]): any[]{
   return values;
 }
 
-function stitchObject(columNames:string[], values:any[]){
+
+/**
+ * Converts lists of column names and normalized value array (from valuesArray()) into an object
+ * @param columNames 
+ * @param values 
+ * @returns 
+ */
+export function stitchObject(columNames:string[], values:any[]){
   let obj:any = {}
 
   for(let i=0; i<columNames.length; i++){
