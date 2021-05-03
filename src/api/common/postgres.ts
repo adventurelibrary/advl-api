@@ -1,46 +1,47 @@
 import {RDSDataService} from 'aws-sdk';
 const rds = new RDSDataService({region:'us-east-1'})
 
+
 export async function insertObj(tableName:string, obj:any){
   try{
     let columns: string[] = []
     let values: any[] = []
     for(let key of Object.keys(obj)){
       columns.push(key);
-      if(typeof obj[key] === 'string'){
-        values.push(`\'${obj[key]}\'`);
-      } else if (typeof obj[key] === 'object'){
-        values.push(`\'${JSON.stringify(obj[key])}\'`);
-      } else {
-        values.push(obj[key]);
-      }
+      values.push(obj[key])
     }
+		const qmarks = values.map(_ => '?')
 
-    let _sql = `INSERT INTO ${tableName}(${columns.join(",")}) VALUES (${values.join(",")})`;
+    let _sql = `INSERT INTO ${tableName}(${columns.join(",")}) VALUES (${qmarks.join(",")})`;
     console.debug("INSERT SQL: ", _sql);
-    const result = await rds.executeStatement({
-      resourceArn: process.env.POSTGRES_DB_ARN,
-      secretArn: process.env.POSTGRES_SECRET_ARN,
-      database: process.env.POSTGRES_DB_NAME,
-      sql: _sql 
-    }).promise();
+    const result = await executeStatement(_sql, values)
+    console.debug("Result: ", result);
     return result;
   } catch (e){
     throw e;
   }
 }
 
+export async function executeStatement (sql: string, params : any[] = []) {
+	return await rds.executeStatement({
+		resourceArn: process.env.POSTGRES_DB_ARN,
+		secretArn: process.env.POSTGRES_SECRET_ARN,
+		database: process.env.POSTGRES_DB_NAME,
+		sql: sql,
+		parameters: params.map((value: any) => {
+			return {
+				value: value
+			}
+		})
+	}).promise();
+}
+
 export async function getObj(tableName:string, id:string){
   try{
-    let _sql = `SELECT * FROM ${tableName} WHERE id='${id}'`
-    console.debug("GET SQL: ", _sql);
+    let _sql = `SELECT * FROM ${tableName} WHERE id=?`
 
-    const result = await rds.executeStatement({
-      resourceArn: process.env.POSTGRES_DB_ARN,
-      secretArn: process.env.POSTGRES_SECRET_ARN,
-      database: process.env.POSTGRES_DB_NAME,
-      sql: _sql 
-    }).promise();
+    const result = await executeStatement(_sql, [id])
+		console.debug("GET SQL: ", _sql);
     if(result.records.length == 0){ return undefined;}
     return stitchObject(await getColumnNames(tableName), valuesArray(result.records[0]))
   } catch (e) {
@@ -50,20 +51,15 @@ export async function getObj(tableName:string, id:string){
 
 /**
  * SELECT * FROM Table WHERE ${query}
- * @param tableName 
- * @param query 
+ * @param tableName
+ * @param query
  */
 export async function getObjects(tableName:string, query:string){
   try{
     let _sql = `SELECT * FROM ${tableName} WHERE ${query}`
     console.debug("GET MANY SQL: ", _sql);
-    const result = await rds.executeStatement({
-      resourceArn: process.env.POSTGRES_DB_ARN,
-      secretArn: process.env.POSTGRES_SECRET_ARN,
-      database: process.env.POSTGRES_DB_NAME,
-      sql: _sql 
-    }).promise();
-    
+    const result = await executeStatement(_sql)
+
     let columnNames = await getColumnNames(tableName);
     let objects = [];
     for(let record of result.records){
@@ -77,19 +73,17 @@ export async function getObjects(tableName:string, query:string){
 
 export async function updateObj(tableName:string, objID: string, updatedObj:any){
   try{
-    let updateString:string[] = [];
+    const updateString:string[] = [];
+    const params : any[] = []
     for(let key of Object.keys(updatedObj)){
-      updateString.push(`${key} = ${updateObj[key]}`);
+      updateString.push(`${key} = ?`);
+      params.push(updateObj[key])
     }
+    params.push(objID)
 
-    let _sql = `UPDATE ${tableName} SET ${updateString.join(",")} WHERE id='${objID}'`;
-    console.debug("UPDATE SQL: ", _sql);
-    const result = await rds.executeStatement({
-      resourceArn: process.env.POSTGRES_DB_ARN,
-      secretArn: process.env.POSTGRES_SECRET_ARN,
-      database: process.env.POSTGRES_DB_NAME,
-      sql: _sql 
-    }).promise();
+    let _sql = `UPDATE ${tableName} SET ${updateString.join(",")} WHERE id=?`;
+    const result = await executeStatement(_sql, params)
+    console.debug("Result: ", result);
     return result;
   } catch (e) {
     throw e;
@@ -98,17 +92,13 @@ export async function updateObj(tableName:string, objID: string, updatedObj:any)
 
 /**
  * Runs the raw query against the database
- * @param sql 
- * @returns 
+ * @param sql
+ * @returns
  */
 export async function query(sql:string){
   try{
-    const result = await rds.executeStatement({
-      resourceArn: process.env.POSTGRES_DB_ARN,
-      secretArn: process.env.POSTGRES_SECRET_ARN,
-      database: process.env.POSTGRES_DB_NAME,
-      sql: sql 
-    }).promise();
+		const result = await executeStatement(sql)
+
 
     if(result.records){
       let records = [];
@@ -119,7 +109,6 @@ export async function query(sql:string){
     } else {
       return result;
     }
-
   } catch (e) {
     throw e;
   }
@@ -127,12 +116,8 @@ export async function query(sql:string){
 
 export async function getColumnNames(tableName:string){
   try{
-    const columnResult = await rds.executeStatement({
-      resourceArn: process.env.POSTGRES_DB_ARN,
-      secretArn: process.env.POSTGRES_SECRET_ARN,
-      database: process.env.POSTGRES_DB_NAME,
-      sql: `SELECT json_object_keys(to_json((SELECT t FROM public.${tableName} t LIMIT 1)))` 
-    }).promise();
+  	const sql = `SELECT json_object_keys(to_json((SELECT t FROM public.${tableName} t LIMIT 1)))`
+    const columnResult = await executeStatement(sql)
 
     let columnNames:string[] = []
     for(let columnNameArr of columnResult.records[0]){
@@ -147,8 +132,8 @@ export async function getColumnNames(tableName:string){
 
 /**
  * Normalizes an RDS record to into a array of values
- * @param rdsValues 
- * @returns 
+ * @param rdsValues
+ * @returns
  */
 export function valuesArray(rdsValues:any[]): any[]{
   let values:any[] = [];
@@ -161,9 +146,9 @@ export function valuesArray(rdsValues:any[]): any[]{
 
 /**
  * Converts lists of column names and normalized value array (from valuesArray()) into an object
- * @param columNames 
- * @param values 
- * @returns 
+ * @param columNames
+ * @param values
+ * @returns
  */
 export function stitchObject(columNames:string[], values:any[]){
   let obj:any = {}
