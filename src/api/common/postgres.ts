@@ -7,7 +7,11 @@ export async function insertObj(tableName:string, obj:any){
     let values: any[] = []
     for(let key of Object.keys(obj)){
       columns.push(key);
-      values.push(obj[key]);
+      if(typeof obj[key] === 'string'){
+        values.push(`\'${obj[key]}\'`);
+      } else {
+        values.push(obj[key]);
+      }
     }
 
     let _sql = `INSERT INTO ${tableName}(${columns.join(",")}) VALUES (${values.join(",")})`;
@@ -25,7 +29,7 @@ export async function insertObj(tableName:string, obj:any){
 }
 export async function getObj(tableName:string, id:string){
   try{
-    let _sql = `SELECT * FROM ${tableName} WHERE id=${id}`
+    let _sql = `SELECT * FROM ${tableName} WHERE id='${id}'`
     const result = await rds.executeStatement({
       resourceArn: process.env.POSTGRES_DB_ARN,
       secretArn: process.env.POSTGRES_SECRET_ARN,
@@ -73,7 +77,7 @@ export async function updateObj(tableName:string, objID: string, updatedObj:any)
       updateString.push(`${key} = ${updateObj[key]}`);
     }
 
-    let _sql = `UPDATE ${tableName} SET ${updateString.join(",")} WHERE id=${objID}`;
+    let _sql = `UPDATE ${tableName} SET ${updateString.join(",")} WHERE id='${objID}'`;
     const result = await rds.executeStatement({
       resourceArn: process.env.POSTGRES_DB_ARN,
       secretArn: process.env.POSTGRES_SECRET_ARN,
@@ -144,36 +148,3 @@ function stitchObject(columNames:string[], values:any[]){
 
   return obj;
 }
-
-/**
- * Extremly important function. Since RDS doesn't give us column metadata on the call, we make a second call to the table for the columns, then sitch the column and value together in order they were recieved. 
- * @param tableName 
- * @param valueArray 
- * @returns 
-async function buildObj(tableName: string, valueArray:any){
-  try{
-    let obj:any = {};
-
-    let values: any[] = []
-
-    for(let value of valueArray){
-      values.push(Object.values(value)[0]);
-    }
-    
-    const columnResult = await rds.executeStatement({
-      resourceArn: process.env.POSTGRES_DB_ARN,
-      secretArn: process.env.POSTGRES_SECRET_ARN,
-      database: process.env.POSTGRES_DB_NAME,
-      sql: `SELECT json_object_keys(to_json((SELECT t FROM public.${tableName} t LIMIT 1)))` 
-    }).promise();
-
-    for(let i=0; i<columnResult.records[0].length;i++){
-      obj[columnResult.records[0][i]['stringValue']] = values[i]
-    }
-    console.log("Object Built: ", obj);
-    return obj;
-  } catch(e) {
-    throw e;
-  }
-}
-*/

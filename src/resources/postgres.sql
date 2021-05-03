@@ -5,7 +5,7 @@ create table Assets (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
   slug TEXT NOT NULL,
   sizeInBytes int NOT NULL,
-  uploaded TIMESTAMPTZ NOT NULL,
+  uploaded TIMESTAMP NOT NULL,
   visibility visibility_types NOT NULL,
   unlock_count int NOT NULL DEFAULT 0,
   file_type filetypes NOT NULL,
@@ -26,8 +26,8 @@ create table Users (
   username TEXT NOT NULL UNIQUE,
   email TEXT NOT NULL UNIQUE,
   notification_preferences JSON DEFAULT '{}'::jsonb,
-  last_seen TIMESTAMPTZ NOT NULL,
-  join_date TIMESTAMPTZ NOT NULL
+  last_seen TIMESTAMP NOT NULL,
+  join_date TIMESTAMP NOT NULL
 );
 
 create UNIQUE INDEX users_name ON Users(username);
