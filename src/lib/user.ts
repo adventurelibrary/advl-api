@@ -4,6 +4,7 @@ import { User, UserToken } from '../interfaces/IUser';
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
 import { Creator } from '../interfaces/ICreator';
+import { Admin } from '../interfaces/IAdmin';
 
 export async function getUserByID(_sub: string): Promise<User> {
   try{ 
@@ -53,6 +54,7 @@ export async function getCreatorByID(creatorID: string){
  * @returns 
  */
 export async function isAdmin(userID: string){
-  //TODO replace with Aurora lookup
-  if(userID){return true;}
+  const admin = <Admin> await db.getObj(process.env.DB_ADMIN, userID);
+  if(!admin){return false;}
+  return true;
 }
