@@ -23,17 +23,94 @@ export async function insertObj(tableName:string, obj:any){
 }
 
 export async function executeStatement (sql: string, params : any[] = []) {
-	return await rds.executeStatement({
+	const parameters = params.map((value: any, idx: number) => {
+		if (value === null) {
+			return {
+				name: 'p' + idx,
+				value: {
+					isNull: true
+				}
+			}
+		}
+
+		let key
+		let paramValue = value
+
+		let to = typeof value
+		let typeHint
+		switch (to) {
+			case "boolean":
+				key = "booleanValue";
+				break
+			case "string":
+				key = "stringValue'"
+				typeHint = "STRING"
+				break;
+			case "object":
+				if (typeof value.toISOString === 'function') {
+					key = "stringValue"
+					typeHint = "TIMESTAMP"
+					paramValue = value.toISOString() // TODO: Fix date format to what the db wants
+				}
+				break;
+		}
+
+		const param : any = {
+			name: 'p' + idx,
+			value: {
+				[key]: paramValue
+			}
+		}
+
+		if (typeHint) {
+			param.typeHint = typeHint
+		}
+
+		return param
+	})
+	console.log('parameters', parameters)
+	console.log('sql', sql)
+	const response = await rds.executeStatement({
 		resourceArn: process.env.POSTGRES_DB_ARN,
 		secretArn: process.env.POSTGRES_SECRET_ARN,
 		database: process.env.POSTGRES_DB_NAME,
 		sql: sql,
-		parameters: params.map((value: any) => {
-			return {
-				value: value
-			}
-		})
+		parameters: parameters,
+		includeResultMetadata: true
+
 	}).promise();
+	return response
+}
+
+export async function query(sql: string, params: any[]) : Promise<object[]> {
+	const res = await executeStatement(sql, params)
+
+	return res.records.map((record) => {
+		const obj = {}
+		// Column data isn't returned with each record, so we build the object ourselves
+		res.columnMetadata.forEach((col, idx) => {
+			console.log('-------')
+			const colName = col.name
+			console.log('col name', colName)
+			let value : any
+
+			const returnedValue = record[idx]
+			console.log('returned value', returnedValue)
+			if (returnedValue.isNull) {
+				console.log('make it null')
+				value = null
+			} else {
+				// This will turn {stringValue: 'hi'} into 'hi'
+				const things = Object.entries(returnedValue)
+				console.log('things', things)
+				value = things[0][1]
+				console.log('value', value)
+			}
+
+			obj[colName] = value
+		})
+		return obj
+	})
 }
 
 export async function getObj(tableName:string, id:string){
@@ -95,7 +172,7 @@ export async function updateObj(tableName:string, objID: string, updatedObj:any)
  * @param sql
  * @returns
  */
-export async function query(sql:string){
+export async function query2(sql:string){
   try{
 		const result = await executeStatement(sql)
 

@@ -1,8 +1,14 @@
+INSERT INTO vin_users (id, username, email, is_admin) VALUES
+('23a4b04b-8b32-43fa-a841-60874926f0c2', 'User', 'user@gmail.com', false),
+('86cad582-b421-479d-864c-938e60c3dde0', 'Creator', 'creator@gmail.com', false),
+('f6d8bb1a-63cd-4b48-951a-65b05c42e8b7',  'Admin', 'admin@gmail.com', true);
 
-INSERT INTO creators (id, name, slug) VALUES
-('5f9f10e7-5002-444f-bf24-562e218e971d', 'Adventure Library', 'adventure-library');
 
-INSERT INTO assets (id, creator_id, slug, name, description, tags, original_file_ext, type, visibility, size_in_bytes) VALUES
+INSERT INTO vin_creators (id, name, slug, owner_id) VALUES
+('5f9f10e7-5002-444f-bf24-562e218e971d', 'Adventure Library', 'adventure-library', null),
+('0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'Mrs Creator', 'mrs-creator', '86cad582-b421-479d-864c-938e60c3dde0');
+
+INSERT INTO vin_assets (id, creator_id, slug, name, description, tags, original_file_ext, type, visibility, size_in_bytes) VALUES
 
 ('8fb5fb80-9177-49e3-81d0-2114d861fa18','5f9f10e7-5002-444f-bf24-562e218e971d', 'knightly-camp-of-fire-7195', 'Knightly Camp of Fire', 'ever ever produces pleasure? happiness. pleasure laborious To that no because man anyone him again pain born give a and ', '{"Priest","Fall","Fantasy"}', 'webp','CHARACTER', 'PUBLIC', 5990056),
 
@@ -14,21 +20,21 @@ INSERT INTO assets (id, creator_id, slug, name, description, tags, original_file
 
 ('695c57c1-fc7e-4cc8-821e-0f7869118f10','5f9f10e7-5002-444f-bf24-562e218e971d', 'windy-forest-of-the-vampires-4769', 'Windy Forest of the Vampires', 'except do account the pursue ever toil the those denouncing from is how and or pleasure pain annoying To again because pleasure great one ', '{"Archer"}', 'webp','MAP', 'PUBLIC', 5917470),
 
-('eaf77b3c-a856-4728-b110-38462cf26e4c','5f9f10e7-5002-444f-bf24-562e218e971d', 'holy-fortress-of-the-vampires-4427', 'Holy Fortress of the Vampires', 'But the pursues give or painful. human to To again painful. to painful. has circumstances account I resultant of and pleasure ', '{"Castle","Orc"}', 'webp','MAP', 'HIDDEN', 5732569),
+('eaf77b3c-a856-4728-b110-38462cf26e4c','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'holy-fortress-of-the-vampires-4427', 'Holy Fortress of the Vampires', 'But the pursues give or painful. human to To again painful. to painful. has circumstances account I resultant of and pleasure ', '{"Castle","Orc"}', 'webp','MAP', 'HIDDEN', 5732569),
 
-('d9131a29-6a9b-439e-9c61-33ae344698fd','5f9f10e7-5002-444f-bf24-562e218e971d', 'frozen-fort-of-fire-7598', 'Frozen Fort of Fire', 'or I a pain man man human pleasure, procure pleasure? rationally there the pain undertakes pain pain, there truth, pursue consequences, ', '{"Fantasy"}', 'webp','CHARACTER', 'PUBLIC', 6069975),
+('d9131a29-6a9b-439e-9c61-33ae344698fd','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'frozen-fort-of-fire-7598', 'Frozen Fort of Fire', 'or I a pain man man human pleasure, procure pleasure? rationally there the pain undertakes pain pain, there truth, pursue consequences, ', '{"Fantasy"}', 'webp','CHARACTER', 'PUBLIC', 6069975),
 
-('f55f0bb6-65e6-4cef-8f37-237f00ac0c8f','5f9f10e7-5002-444f-bf24-562e218e971d', 'knightly-camp-of-ice-472', 'Knightly Camp of Ice', 'obtain a know that great a and it Nor not pursues the a system, has painful. extremely of to and pursue great to give who some those who ', '{"Fantasy","Priest","Fall","Archer"}', 'webp','MAP', 'PUBLIC', 5857029),
+('f55f0bb6-65e6-4cef-8f37-237f00ac0c8f','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'knightly-camp-of-ice-472', 'Knightly Camp of Ice', 'obtain a know that great a and it Nor not pursues the a system, has painful. extremely of to and pursue great to give who some those who ', '{"Fantasy","Priest","Fall","Archer"}', 'webp','MAP', 'PUBLIC', 5857029),
 
-('7d445c1c-ba81-49cf-8ac1-8e8df7a86e9b','5f9f10e7-5002-444f-bf24-562e218e971d', 'sunny-oasis-of-fire-6676', 'Sunny Oasis of Fire', 'not a it pain a in of I is Nor there know chooses again happiness. I But or not how who pain of to that fault ', '{"Winter","Priest"}', 'webp','TOKEN', 'PUBLIC', 5897753),
+('7d445c1c-ba81-49cf-8ac1-8e8df7a86e9b','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'sunny-oasis-of-fire-6676', 'Sunny Oasis of Fire', 'not a it pain a in of I is Nor there know chooses again happiness. I But or not how who pain of to that fault ', '{"Winter","Priest"}', 'webp','TOKEN', 'PUBLIC', 5897753),
 
-('6b5820e8-f308-4560-8698-f27a47d004fd','5f9f10e7-5002-444f-bf24-562e218e971d', 'wartorn-camp-of-dawn-9265', 'Wartorn Camp of Dawn', 'find of rationally human a to of do trivial consequences But because mistaken pleasure to who in itself, who pleasure? exercise, born it? enjoy pain has pleasure exercise, the one ', '{"Town"}', 'webp','TOKEN', 'PUBLIC', 5843708),
+('6b5820e8-f308-4560-8698-f27a47d004fd','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'wartorn-camp-of-dawn-9265', 'Wartorn Camp of Dawn', 'find of rationally human a to of do trivial consequences But because mistaken pleasure to who in itself, who pleasure? exercise, born it? enjoy pain has pleasure exercise, the one ', '{"Town"}', 'webp','TOKEN', 'PUBLIC', 5843708),
 
-('5ef6df5b-da80-4be1-8c1d-ee066e9beec6','5f9f10e7-5002-444f-bf24-562e218e971d', 'frozen-town-of-doom-7135', 'Frozen Town of Doom', 'must or right must of you exercise, the you pleasure toil painful. idea pleasure. that there rejects, is happiness. some ', '{"Spring","Town"}', 'webp','SCENE', 'PUBLIC', 6092825),
+('5ef6df5b-da80-4be1-8c1d-ee066e9beec6','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'frozen-town-of-doom-7135', 'Frozen Town of Doom', 'must or right must of you exercise, the you pleasure toil painful. idea pleasure. that there rejects, is happiness. some ', '{"Spring","Town"}', 'webp','SCENE', 'PUBLIC', 6092825),
 
-('f28165c6-eaad-44d6-8e7c-332ff963d22b','5f9f10e7-5002-444f-bf24-562e218e971d', 'windy-cathedral-of-fire-6862', 'Windy Cathedral of Fire', 'But know explain laborious pursue to rationally pain in and can some because it a has give explain one pursue ', '{"Winter","Spring","Fantasy"}', 'webp','SCENE', 'PUBLIC', 5867439),
+('f28165c6-eaad-44d6-8e7c-332ff963d22b','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'windy-cathedral-of-fire-6862', 'Windy Cathedral of Fire', 'But know explain laborious pursue to rationally pain in and can some because it a has give explain one pursue ', '{"Winter","Spring","Fantasy"}', 'webp','SCENE', 'PUBLIC', 5867439),
 
-('c3e523c8-fef9-47a1-8ade-3928d348e8af','5f9f10e7-5002-444f-bf24-562e218e971d', 'holy-forest-of-fire-3943', 'Holy Forest of Fire', 'the loves truth, pleasure explain born must will with avoids must except I is or how to But teachings pleasure. any from teachings ', '{"Winter","Castle"}', 'webp','SCENE', 'PUBLIC', 5862511),
+('c3e523c8-fef9-47a1-8ade-3928d348e8af','0a4e9205-ae50-4c53-99b9-4290a31c4f46', 'holy-forest-of-fire-3943', 'Holy Forest of Fire', 'the loves truth, pleasure explain born must will with avoids must except I is or how to But teachings pleasure. any from teachings ', '{"Winter","Castle"}', 'webp','SCENE', 'PUBLIC', 5862511),
 
 ('c2da1bb0-9946-42c5-9146-cb16083c44ca','5f9f10e7-5002-444f-bf24-562e218e971d', 'sunny-camp-of-dawn-1663', 'Sunny Camp of Dawn', 'one occasionally Nor of the But again pleasure? consequences, can of anyone produces us a it? system, dislikes, toil all him ', '{"Castle","Summer"}', 'webp','MAP', 'PUBLIC', 5750534),
 
