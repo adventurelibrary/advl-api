@@ -6,9 +6,8 @@ import * as qs from 'querystring';
 import {idgen} from '../common/nanoid';
 import { search } from '../common/elastic';
 import {errorResponse, newResponse} from "../common/response";
-import { User } from '../../interfaces/IUser';
-import { getUserByToken } from '../../lib/user';
 import * as db from '../common/postgres'
+import {getEventUser} from "../common/events";
 
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
@@ -16,7 +15,7 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
   try{
     let FileRequest:REQ_Get_Signature = JSON.parse(_evt.body);
-    let user: User = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    const user = await getEventUser(_evt)
     if(!user){
       throw new Error("You must be logged in to upload a new asset");
     }

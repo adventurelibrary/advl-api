@@ -18,5 +18,8 @@ WHERE u.is_admin = :p0
 	})
 	const json = await res.json()
 	console.log('json', json)
+	if (json.error) {
+		t.fail(json.error)
+	}
 	t.pass()
 })
