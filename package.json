@@ -50,6 +50,9 @@
     "files": [
       "./testing/*.ts",
       "!./testing/lib.ts",
+      "!./testing/signup.ts",
+      "!./testing/upload.ts",
+      "!./testing/fixtures.ts",
       "!./testing/files/*"
     ],
     "extensions": [
