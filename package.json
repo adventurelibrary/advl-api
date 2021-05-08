@@ -49,11 +49,7 @@
   "ava": {
     "files": [
       "./testing/*.ts",
-      "!./testing/lib.ts",
-      "!./testing/signup.ts",
-      "!./testing/database.ts",
-      "!./testing/upload.ts",
-      "!./testing/fixtures.ts",
+      "!./testing/lib/*",
       "!./testing/files/*"
     ],
     "extensions": [

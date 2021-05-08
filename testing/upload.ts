@@ -4,37 +4,50 @@ import { REQ_Get_Signature } from '../src/interfaces/IAsset';
 import * as fs from 'fs';
 import FormData from 'form-data';
 import test from 'ava'
+import {request, testResStatus} from "./lib/lib";
 
+const uploadReq:REQ_Get_Signature = {
+  name: "Mountain Dig Site",
+  description: "Frag Maps Mountain Dig Site",
+  collectionID: "001",
+  category: "token",
+  tags: [],
+  unlockPrice: 0,
+  revenueShare: {}
+}
+
+
+test('upload: upload a file while not logged in', async (t) => {
+  const response = await request('assets/get_signature', {
+    method: "POST",
+    body: uploadReq
+  })
+  const err = await testResStatus(response, 500)
+  if (err) {
+    t.fail(err)
+  }
+  t.pass()
+})
 test('upload: upload a file to transloadit', async (t) => {
-  const productionURL = 'https://api.adventurelibrary.art/'
+  //const productionURL = 'https://api.adventurelibrary.art/'
   let transloadit_response
   try{
-    //File paths are relative to
-    //let map = fs.readFileSync("tests/files/Mountain_Dig_Site.png");
-    //console.log(map);
-
-    let uploadReq:REQ_Get_Signature = {
-      name: "Mountain Dig Site",
-      description: "Frag Maps Mountain Dig Site",
-      collectionID: "001",
-      category: "token",
-      tags: [],
-      unlockPrice: 0,
-      revenueShare: {}
+    const response = await request('assets/get_signature', {
+      userKey: 'TEST1',
+      method: "POST",
+      body: uploadReq
+    })
+    let err = await testResStatus(response, 200)
+    if (err) {
+      t.fail(err)
     }
 
-    let response = (await (await fetch(productionURL+'assets/get_signature', {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify(uploadReq)
-    })).json());
+    const json = response.data
 
     let form = new FormData();
     form.append('file', fs.createReadStream('tests/files/Mountain_Dig_Site.png'));
-    form.append('params', response.params),
-    form.append('signature', response.signature)
+    form.append('params', json.params),
+    form.append('signature', json.signature)
 
 
     transloadit_response = await (await fetch('https://api2.transloadit.com/assemblies', {

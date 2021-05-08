@@ -43,17 +43,18 @@ export async function updateAsset (updates: any, original:Asset) {
 	//TODO Validate Collection ID
 	//TODO Validate unlockPrice is positive
 
-	original.visibility = updates.visibility ? updates.visibility : original.visibility;
-	original.name = updates.name ? updates.name : original.name;
-	original.description = updates.description ? updates.description : original.description;
-	original.collectionID = updates.collectionID ? updates.collectionID : original.collectionID;
-	original.category = updates.category ? updates.category : original.category;
-	original.tags = updates.tags ? updates.tags : original.tags;
-	original.unlockPrice = updates.unlockPrice ? updates.unlockPrice : original.unlockPrice;
-	original.revenueShare = updates.revenueShare ? updates.revenueShare : original.revenueShare;
+	const sets : any = {}
+	sets.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
+	sets.name = updates.hasOwnProperty('name') ? updates.name : original.name;
+	sets.description = updates.hasOwnProperty('description') ? updates.description : original.description;
+	sets.collectionID = updates.hasOwnProperty('collectionID') ? updates.collectionID : original.collectionID;
+	sets.category = updates.hasOwnProperty('category') ? updates.category : original.category;
+	sets.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
+	sets.unlockPrice = updates.hasOwnProperty('unlockPrice') ? updates.unlockPrice : original.unlockPrice;
+	sets.revenueShare = updates.hasOwnProperty('revenueShare') ? updates.revenueShare : original.revenueShare;
 
-	console.log("Updated Asset: ", original)
-	await db.updateObj(process.env.DB_ASSETS, original.id, original)
+	console.log("Updated Asset: ", sets)
+	await db.updateObj(process.env.DB_ASSETS, original.id, sets)
 
 	await updateAssetSearch(original)
 }

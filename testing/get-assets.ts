@@ -1,6 +1,6 @@
 import test from 'ava';
 
-import {getJSON, request, testResStatus} from "./lib";
+import {getJSON, request, testResStatus} from "./lib/lib";
 
 test('assets: get assets', async (t) => {
 	const body = await getJSON('assets')

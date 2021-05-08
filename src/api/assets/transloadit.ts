@@ -45,7 +45,7 @@ async function createNewAsset(_creatorName: string, req:REQ_Get_Signature): Prom
     id: idgen(),
     slug: slugify(req.name).toLowerCase(),
     sizeInBytes: 0,
-    uploaded: Date.now().toString(),
+    uploaded: new Date(),
     visibility: "PENDING",
     originalFileExt: 'UNKOWN',
     file_type: "IMAGE",
@@ -159,7 +159,6 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
     response.statusCode = 200;
     return response;
   } catch (E){
-    console.error(`ERROR | \n Event: ${JSON.stringify(_evt)} \n Error: ${E}` );
-    return response;
+    return errorResponse(_evt, E)
   }
 }

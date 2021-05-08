@@ -5,6 +5,7 @@ import { User } from '../../interfaces/IUser';
 import { Creator, REQ_NewCreator, REQ_UpdateCreator } from '../../interfaces/ICreator';
 import { idgen } from "../common/nanoid";
 import * as db from '../common/postgres';
+import {getEventUser} from "../common/events";
 /**
  * GET returns creator information.
  * POST creates a new CREATOR from a USER (ADMIN)
@@ -14,7 +15,7 @@ import * as db from '../common/postgres';
 export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse();
   try{
-    let user: User = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    let user: User = await getEventUser(_evt);
     let creator = await getCreatorByID(_evt.pathParameters.creatorID)
     if(_evt.httpMethod == "GET"){
       if(creator == undefined) {
@@ -66,8 +67,8 @@ export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
 }
 
 /**
- * 
- * @param creator 
+ *
+ * @param creator
  * @returns A stripped down version of the creator object for basic front end display
  */
 function BasicCreatorInfo(creator:Creator){

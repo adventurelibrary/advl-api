@@ -21,7 +21,7 @@ export interface Asset extends UserDefinedAssetInfo{
   id: string,
   slug: string,
   sizeInBytes: number,
-  uploaded: string, //ISO String
+  uploaded: Date, //ISO String
   visibility: visibility_types,
   unlock_count: number,
   file_type: "IMAGE" | "PDF" | "ZIP",
