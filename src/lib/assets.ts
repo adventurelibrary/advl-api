@@ -16,6 +16,7 @@ export function validateTags(tags : string[]) {
 	}
 }
 
+//@ts-ignore
 export function validateAssetQuery(req : REQ_Query) {
 	// TODO: Maybe reimplement the tags validation
 	//validateTags(req.tags)
@@ -52,11 +53,9 @@ export async function updateAsset (updates: any, original:Asset) {
 	original.revenueShare = updates.revenueShare ? updates.revenueShare : original.revenueShare;
 
 	console.log("Updated Asset: ", original)
-	// Update Dyn
+	await db.updateObj(process.env.DB_ASSETS, original.id, original)
 
-	await db.updateObj(process.env.DB_ASSETS, original.id,original)
-
-	updateAssetSearch(original)
+	await updateAssetSearch(original)
 }
 
 export async function updateAssetSearch (asset: Asset) {

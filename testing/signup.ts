@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 //import {CognitoUserAttribute} from 'amazon-cognito-identity-js';
 //import {idgen} from '../src/api/common/nanoid';
 
+
 let testURL = 'http://localhost:3000/v1/'
 
 let userpool = new CognitoUserPool({
@@ -20,7 +21,7 @@ export async function user(){
       Pool: userpool
     }));
     console.log(jwt);
-    
+
     //send to ADVL server
     await fetch(testURL+'users', {
       method: 'get',
@@ -41,7 +42,7 @@ async function signinuser(user: CognitoUser):Promise<string>{
       Username: 'test-user-01',
       Password: 'test-password'
     })
-    
+
     user.authenticateUser(AuthData, {
       onSuccess: (success) => {
         console.log("Success:", success)
@@ -81,6 +82,6 @@ async function signupuser(){
       reject(e);
     }
   })
-}  
+}
 
 */

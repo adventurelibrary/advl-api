@@ -192,7 +192,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
 /**
  * TODO
- * Only authorized users should be able to fetch certain types of files 
+ * Only authorized users should be able to fetch certain types of files
  */
 export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
@@ -219,7 +219,7 @@ export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
     if(!user){
       throw new Error("You must be logged in to upload a new asset");
     }
-    
+
     //Specifically ANY so only the relevant keys are passed in
     let reqAssets:any[] = JSON.parse(_evt.body);
     for (let i = 0; i < reqAssets.length; i++) {
@@ -229,7 +229,7 @@ export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
         throw new Error(`No id provided at index ${i}`)
       }
       const asset:Asset = await getAsset(id);
-      
+
       if(user.username != asset.creator_name || !isAdmin(user.id)){
         throw new Error("User doesn't have permissions to edit this asset");
       }
