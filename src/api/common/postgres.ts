@@ -136,7 +136,6 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
 		sql: sql,
 		parameters: sqlParams,
 		includeResultMetadata: true
-
 	}).promise();
 	return response
 }
@@ -196,8 +195,8 @@ export async function updateObj(tableName:string, objID: string, updatedObj:any)
 	params.push(objID)
 
 	const _sql = `UPDATE ${tableName} 
-SET ${updateString.join(",")} 
-WHERE id=?`;
+		SET ${updateString.join(",")} 
+		WHERE id=?`;
 	const result = await executeStatement(_sql, params)
 	console.debug("Result: ", result);
 	return result;
