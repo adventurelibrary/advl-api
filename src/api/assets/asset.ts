@@ -6,6 +6,7 @@ import {errorResponse, newResponse} from "../common/response";
 import { getAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
 import { User } from '../../interfaces/IUser';
 import { getUserByToken, isAdmin } from '../../lib/user';
+import {getEventUser} from "../common/events";
 
 function transformAsset (asset : Asset) : Asset {
   asset.previewLink = b2.GetURL('watermarked', asset);
@@ -215,7 +216,7 @@ export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) =>
 export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
   try{
-    let user: User = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    let user: User = await getEventUser(_evt);
     if(!user){
       throw new Error("You must be logged in to upload a new asset");
     }

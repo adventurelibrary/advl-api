@@ -1,7 +1,7 @@
 import test from 'ava';
 
-import {AccessTest, getJSONAs, requestAs, testPathAccess, testResStatus} from "./lib";
-import {ASSET_1, ASSET_2, ASSET_3, ASSET_4, BUNDLE_PRIVATE, BUNDLE_PUBLIC, USER_1, USER_2, USER_ADMIN} from './fixtures'
+import {AccessTest, getJSONAs, requestAs, testPathAccess, testResStatus} from "./lib/lib";
+import {ASSET_1, ASSET_2, ASSET_3, ASSET_4, BUNDLE_PRIVATE, BUNDLE_PUBLIC, USER_1, USER_2, USER_ADMIN} from './lib/fixtures'
 
 // Note: we use .serial because ava by default runs tests concurrently
 // this might cause issues where one test updates data while another test reads it from the same source

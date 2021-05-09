@@ -1,8 +1,9 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { errorResponse, newResponse } from '../common/response';
-import {getUserByToken, updateUser, validateUserToken} from '../../lib/user';
+import {updateUser, validateUserToken} from '../../lib/user';
 import { User } from '../../interfaces/IUser';
 import * as db from '../common/postgres';
+import {getEventUser} from "../common/events";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -13,7 +14,7 @@ export const user: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse();
 
   try{
-    const user: User = await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
+    const user: User = await getEventUser(_evt);
     if(_evt.httpMethod == "GET"){
       if(user == undefined){
         let userToken = validateUserToken(_evt.headers.Authorization.split(" ")[1]);
@@ -23,8 +24,8 @@ export const user: APIGatewayProxyHandler = async (_evt, _ctx) => {
           username: userToken['cognito:username'],
           email: userToken.email,
           notification_preferences: {},
-          last_seen: new Date().toISOString(),
-          join_date: new Date().toISOString()
+          last_seen: new Date(),
+          join_date: new Date()
         }
 
         await db.insertObj(process.env.DB_USERS, newUser);
@@ -34,10 +35,10 @@ export const user: APIGatewayProxyHandler = async (_evt, _ctx) => {
         return response;
       } else {
         response.statusCode = 200;
-        await updateUser(<User>user, {last_seen: new Date().toISOString()})
+        await updateUser(<User>user, {last_seen: new Date()})
         response.body = JSON.stringify(user)
         return response;
-      }  
+      }
     } else if (_evt.httpMethod == "PUT") {
       await updateUser(<User>user, JSON.parse(_evt.body))
     }

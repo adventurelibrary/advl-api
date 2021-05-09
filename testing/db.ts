@@ -1,5 +1,5 @@
 import test from 'ava'
-import {request} from "./lib";
+import {request} from "./lib/lib";
 
 test('db: left join', async (t) => {
 	// Get all users and left join any creators they own
