@@ -2,6 +2,7 @@ import {search} from "../api/common/elastic";
 import {Asset, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
+import {getObj} from "../api/common/postgres";
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -22,7 +23,8 @@ export function validateAssetQuery(req : REQ_Query) {
 	//validateTags(req.tags)
 }
 
-export async function getAsset (id: string) : Promise<Asset> {
+// Returns an asset from ElasticSearch
+export async function searchAsset (id: string) : Promise<Asset> {
 	try{
 		const doc = await search.get({
 			index: process.env.INDEX_ASSETDB,
@@ -32,6 +34,10 @@ export async function getAsset (id: string) : Promise<Asset> {
 	} catch (e) {
 		throw new Error(`${id} doesn't exist in Index`);
 	}
+}
+
+export async function getAsset (id: string) : Promise<Asset> {
+	return <Asset> await getObj(process.env.DB_ASSETS, id)
 }
 
 export async function updateAsset (updates: any, original:Asset) {

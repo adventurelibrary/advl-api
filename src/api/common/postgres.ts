@@ -4,16 +4,12 @@ const rds = new RDSDataService({region:'us-east-1'})
 
 type QueryParams = any[] | Record<string, any>
 
-function camelToSnake (colName: string) : string {
-  return colName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-}
-
 export async function insertObj(tableName:string, obj:any){
   try{
     let columns: string[] = []
     let values: any[] = []
     for(let key of Object.keys(obj)){
-      columns.push(camelToSnake(key));
+      columns.push(key);
       values.push(obj[key])
     }
     const qmarks = values.map(_ => '?')
@@ -125,6 +121,16 @@ function paramToSqlParam (value: any, name: string) : SqlParameter {
 }
 
 export async function executeStatement (sql: string, params : QueryParams = []) {
+  if (!process.env.POSTGRES_DB_ARN) {
+    throw new Error('env variable POSTGRES_DB_ARN is blank, check your api.yml file for what is loading in')
+  }
+  if (!process.env.POSTGRES_SECRET_ARN) {
+    throw new Error('env variable POSTGRES_SECRET_ARN is blank, check your api.yml file for what is loading in')
+  }
+  if (!process.env.POSTGRES_DB_NAME) {
+    throw new Error('env variable POSTGRES_DB_NAME is blank, check your api.yml file for what is loading in')
+  }
+
   // Sometimes it's easier to build a query using ? for param replacement
   // At this stage we want to replace the ?'s with actual parameter names
   // so that UPDATE table SET name = ? WHERE id = ?
@@ -156,7 +162,6 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
     throw ex
   }
 
-  // TODO: remove this when code is more solid, or wrap around a check that we're in dev mode
 
   let response
   try {
@@ -223,7 +228,7 @@ export async function updateObj(tableName:string, objID: string, updates : Recor
   const updateString:string[] = [];
   const params : any[] = []
   for(let key of Object.keys(updates)){
-    updateString.push(`${camelToSnake(key)} = ?`);
+    updateString.push(`${key} = ?`);
     params.push(updates[key])
   }
   params.push(objID)

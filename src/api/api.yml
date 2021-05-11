@@ -2,7 +2,7 @@
 debug_rds:
   handler: src/api/debug/rds.debug_rds
   events:
-    - http: 
+    - http:
         method: post
         path: /database
         cors: true
@@ -11,14 +11,14 @@ debug_rds:
 debug_sync:
   handler: src/api/debug/rds.debug_sync
   events:
-    - http: 
+    - http:
         method: post
         path: /database/sync
         cors: true
   environment:
     ${file(src/dynamic-environment.js):database}
 ################## USERS  #########################
-user: 
+user:
   handler: src/api/users/user.user
   events:
     - http: # GET session or create new user if it doesn't exist
@@ -79,7 +79,7 @@ asset_download_link:
   events:
     - http:
         method: get
-        path: /assets/download
+        path: /assets/{assetId}/download
         cors: true
   environment:
     ${file(src/dynamic-environment.js):asset_download_link}
@@ -93,3 +93,13 @@ update_asset:
         cors: true
   environment:
     ${file(src/.env.yml):elastic}
+
+get_asset:
+  handler: src/api/assets/asset.get_asset
+  events:
+    - http:
+        method: get
+        path: /assets/{assetId}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):query_assets}

@@ -48,9 +48,9 @@ async function createNewAsset(_creatorName: string, req:REQ_Get_Signature): Prom
     uploaded: new Date(),
     visibility: "PENDING",
     originalFileExt: 'UNKOWN',
-    file_type: "IMAGE",
-    creator_name: _creatorName,
-    unlock_count: 0,
+    fileType: "IMAGE",
+    creatorName: _creatorName,
+    unlockCount: 0,
     name: req.name,
     description: req.description,
     collectionID: req.collectionID,
@@ -81,14 +81,14 @@ async function getParams(asset: Asset): Promise<string> {
   let _steps = require("./file_upload_steps.json").steps;
 
   _steps.export_original.credentials = "ADVL Originals"
-  _steps.export_original.path = `${asset.creator_name}/${asset.id}.`+'${file.ext}';
+  _steps.export_original.path = `${asset.creatorName}/${asset.id}.`+'${file.ext}';
   _steps.export_compressed_image.credentials = "ADVL WEBP"
-  _steps.export_compressed_image.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_compressed_image.path = `${asset.creatorName}/${asset.id}.webp`;
 
   _steps.export_watermark.credentials = "ADVL Watermarked"
-  _steps.export_watermark.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_watermark.path = `${asset.creatorName}/${asset.id}.webp`;
   _steps.export_thumb.credentials = "ADVL Thumbs"
-  _steps.export_thumb.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_thumb.path = `${asset.creatorName}/${asset.id}.webp`;
 
   const params = JSON.stringify({
     auth: {
@@ -98,7 +98,7 @@ async function getParams(asset: Asset): Promise<string> {
     steps: _steps,
     notify_url: process.env.IS_OFFLINE == "true" ? process.env.TRANSLOADIT_OFFLINE_NOTIFY_URL : process.env.TRANSLOADIT_NOTIFY_URL,
     fields: {
-      creatorName: asset.creator_name,
+      creatorName: asset.creatorName,
       assetID: asset.id
     }
   })

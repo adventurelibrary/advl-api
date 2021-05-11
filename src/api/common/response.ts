@@ -10,7 +10,7 @@ export function newResponse ()  {
 	}
 }
 
-export function errorResponse (_evt, error) {
+export function errorResponse (_evt, error, status?: number) {
 	const response = newResponse()
 	console.error(`ERROR | \n Event: ${_evt} \n Error: ${error}`);
 	// TODO: Change this to like an environment variable, or a user check or something
@@ -19,6 +19,9 @@ export function errorResponse (_evt, error) {
 			error: error.toString(),
 			details: JSON.stringify(error)
 		})
+	}
+	if (status > 0) {
+		response.statusCode = status
 	}
 	return response;
 }

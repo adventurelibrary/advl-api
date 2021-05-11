@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS Assets;
+DROP TABLE IF EXISTS Creators;
+DROP TABLE IF EXISTS Administrators;
+DROP TABLE IF EXISTS Users;
+DROP TYPE IF EXISTS  visibility_types;
+DROP TYPE IF EXISTS  filetypes;
