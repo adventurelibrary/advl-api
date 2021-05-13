@@ -1,14 +1,12 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { REQ_Get_Signature, RES_Get_Signature, Asset } from '../../interfaces/IAsset';
 import * as crypto from 'crypto';
-import slugify from 'slugify';
 import * as qs from 'querystring';
-import {idgen} from '../common/nanoid';
 import { search } from '../common/elastic';
 import {errorResponse, newResponse} from "../common/response";
 import * as db from '../common/postgres'
 import {getEventUser} from "../common/events";
-
+import {createNewAsset} from "../../lib/assets";
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
@@ -38,31 +36,6 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   }catch (E){
     return errorResponse(_evt, E)
   }
-}
-
-async function createNewAsset(_creatorName: string, req:REQ_Get_Signature): Promise<Asset> {
-  let newAsset: Asset = {
-    id: idgen(),
-    slug: slugify(req.name).toLowerCase(),
-    sizeInBytes: 0,
-    uploaded: new Date(),
-    visibility: "PENDING",
-    originalFileExt: 'UNKOWN',
-    fileType: "IMAGE",
-    creatorName: _creatorName,
-    unlockCount: 0,
-    name: req.name,
-    description: req.description,
-    collectionID: req.collectionID,
-    category: req.category,
-    tags: req.tags,
-    unlockPrice: req.unlockPrice,
-    revenueShare: req.revenueShare
-  }
-
-  await db.insertObj(process.env.DB_ASSETS, newAsset);
-  console.log(`PENDING ASSET CREATED\n`, newAsset);
-  return newAsset;
 }
 
 async function getParams(asset: Asset): Promise<string> {

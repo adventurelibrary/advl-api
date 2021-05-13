@@ -1,8 +1,13 @@
 import {RDSDataService} from 'aws-sdk';
-import {FieldList, Metadata, SqlParameter} from "aws-sdk/clients/rdsdataservice";
+import {FieldList, Metadata, SqlParameter as AWSSqlParameter} from "aws-sdk/clients/rdsdataservice";
+import CustomSQLParam from "./customsqlparam";
 const rds = new RDSDataService({region:'us-east-1'})
 
 type QueryParams = any[] | Record<string, any>
+
+type SqlParameter = AWSSqlParameter & {
+	castTo?: string
+}
 
 export async function insertObj(tableName:string, obj:any){
   try{
@@ -15,7 +20,6 @@ export async function insertObj(tableName:string, obj:any){
     const qmarks = values.map(_ => '?')
 
     let _sql = `INSERT INTO ${tableName}(${columns.join(",")}) VALUES (${qmarks.join(",")})`;
-    console.debug("INSERT SQL: ", _sql);
     const result = await executeStatement(_sql, values)
     console.debug("Result: ", result);
     return result;
@@ -63,6 +67,17 @@ function paramToSqlParam (value: any, name: string) : SqlParameter {
       }
     }
   }
+
+  if (value instanceof CustomSQLParam) {
+  	return <SqlParameter>{
+  		name: name,
+			value: {
+  			[value.valueType]: value.value
+			},
+			typeHint: value.typeHint,
+			castTo: value.castTo
+		}
+	}
 
   let key
   let paramValue = value
@@ -131,6 +146,22 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
     throw new Error('env variable POSTGRES_DB_NAME is blank, check your api.yml file for what is loading in')
   }
 
+	// We accept both an array list of params and key:value object
+	// This will convert both into the list that rds needs
+	let sqlParams : SqlParameter[] = []
+	let usingMapParams = false
+	try {
+		if (Array.isArray((params))) {
+			sqlParams = paramsListToSqlParams(params)
+		} else {
+			usingMapParams = true
+			sqlParams = paramsMapToSqlParams(params)
+		}
+	} catch (ex) {
+		throw ex
+	}
+
+
   // Sometimes it's easier to build a query using ? for param replacement
   // At this stage we want to replace the ?'s with actual parameter names
   // so that UPDATE table SET name = ? WHERE id = ?
@@ -141,27 +172,30 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
     const parts = sql.split('?')
     let newSql = parts[0]
     for (let i = 1; i < parts.length; i++) {
-      newSql += ':p' + (i-1) + parts[i]
+    	const paramIdx = i - 1
+      newSql += ':p' + (paramIdx)
+
+			// Some parameters need to be cast in the db from the type we give
+			// to Data API into a type that the db recognizes
+			// For example: changing visibility_type of an Asset from string into an enum
+			const param = sqlParams[paramIdx]
+			if (!param) {
+				throw new Error(`Param at idx ${paramIdx} is undefined`)
+			}
+			if (param.castTo) {
+				newSql += '::' + param.castTo
+			}
+
+			newSql +=  parts[i]
     }
     sql = newSql
   }
 
-  // We accept both an array list of params and key:value object
-  // This will convert both into the list that rds needs
-  let sqlParams : SqlParameter[] = []
-  try {
-    if (Array.isArray((params))) {
-      sqlParams = paramsListToSqlParams(params)
-    } else {
-      sqlParams = paramsMapToSqlParams(params)
-      if (questionParams) {
-        throw new Error(`You can't run a query with ? parameter placeholders and a non-array params. Params need to be array if using ?`)
-      }
-    }
-  } catch (ex) {
-    throw ex
-  }
+	if (questionParams && usingMapParams) {
+		throw new Error(`You can't run a query with ? parameter placeholders and a non-array params. Params need to be array if using ?`)
+	}
 
+	console.debug('SQL:', sql)
 
   let response
   try {
@@ -170,13 +204,26 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
       secretArn: process.env.POSTGRES_SECRET_ARN,
       database: process.env.POSTGRES_DB_NAME,
       sql: sql,
-      parameters: sqlParams,
+      parameters: sanitizeSQLParams(sqlParams),
       includeResultMetadata: true
     }).promise();
   } catch (ex) {
     throw ex
   }
   return response
+}
+
+// Our SQL parameters have extra fields (like castTo) that we need to build our
+// queries properly
+// The RDS Data API complains about these though, so we need to strip them out
+function sanitizeSQLParams (params: SqlParameter[]) : AWSSqlParameter[] {
+	return params.map((p) => {
+		return {
+			name: p.name,
+			typeHint: p.typeHint,
+			value: p.value
+		}
+	})
 }
 
 // The data send back is returned in arrays, so we need to convert it to

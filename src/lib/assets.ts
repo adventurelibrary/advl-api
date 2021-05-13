@@ -1,8 +1,11 @@
 import {search} from "../api/common/elastic";
-import {Asset, REQ_Query} from "../interfaces/IAsset";
+import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
 import {getObj} from "../api/common/postgres";
+import {idgen} from "../api/common/nanoid";
+import slugify from "slugify";
+import CustomSQLParam from "../api/common/customsqlparam";
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -49,21 +52,70 @@ export async function updateAsset (updates: any, original:Asset) {
 	//TODO Validate Collection ID
 	//TODO Validate unlockPrice is positive
 
-	const sets : any = {}
-	sets.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
-	sets.name = updates.hasOwnProperty('name') ? updates.name : original.name;
-	sets.description = updates.hasOwnProperty('description') ? updates.description : original.description;
-	sets.collectionID = updates.hasOwnProperty('collectionID') ? updates.collectionID : original.collectionID;
-	sets.category = updates.hasOwnProperty('category') ? updates.category : original.category;
-	sets.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
-	sets.unlockPrice = updates.hasOwnProperty('unlockPrice') ? updates.unlockPrice : original.unlockPrice;
-	sets.revenueShare = updates.hasOwnProperty('revenueShare') ? updates.revenueShare : original.revenueShare;
+	original.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
+	original.name = updates.hasOwnProperty('name') ? updates.name : original.name;
+	original.description = updates.hasOwnProperty('description') ? updates.description : original.description;
+	original.collectionID = updates.hasOwnProperty('collectionID') ? updates.collectionID : original.collectionID;
+	original.category = updates.hasOwnProperty('category') ? updates.category : original.category;
+	original.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
+	original.unlockPrice = updates.hasOwnProperty('unlockPrice') ? updates.unlockPrice : original.unlockPrice;
+	original.revenueShare = updates.hasOwnProperty('revenueShare') ? updates.revenueShare : original.revenueShare;
 
+	const sets = assetToDatabaseWrite(original)
 	console.log("Updated Asset: ", sets)
 	await db.updateObj(process.env.DB_ASSETS, original.id, sets)
 
 	await updateAssetSearch(original)
 }
+
+export async function createNewAsset(_creatorName: string, req:REQ_Get_Signature): Promise<Asset> {
+	let newAsset: Asset = {
+		id: idgen(),
+		slug: slugify(req.name).toLowerCase(),
+		sizeInBytes: 0,
+		uploaded: new Date(),
+		visibility: "PENDING",
+		originalFileExt: 'UNKOWN',
+		fileType: "IMAGE",
+		creatorName: _creatorName,
+		unlockCount: 0,
+		name: req.name,
+		description: req.description,
+		collectionID: req.collectionID,
+		category: req.category,
+		tags: req.tags,
+		unlockPrice: req.unlockPrice,
+		revenueShare: req.revenueShare
+	}
+
+
+	await db.insertObj(process.env.DB_ASSETS, assetToDatabaseWrite(newAsset));
+	console.log(`PENDING ASSET CREATED\n`, newAsset);
+	return newAsset;
+}
+
+export function assetToDatabaseWrite (asset: Asset) : any {
+	// We have to pass the parameter to the Data API as a string
+	// So we have to change our query to cast it in the db from string
+	// to our custom type
+	const dbwrite = <any>asset
+	dbwrite.visibility = new CustomSQLParam({
+		value: asset.visibility,
+		castTo: 'visibility_types'
+	})
+
+	dbwrite.fileType = new CustomSQLParam({
+		value: asset.fileType,
+		castTo: 'filetypes'
+	})
+
+	dbwrite.tags = new CustomSQLParam({
+		value: '{' + asset.tags.map(t => '"' + t + '"').join(',') + '}',
+		castTo: 'TEXT[]',
+	})
+	return dbwrite
+}
+
 
 export async function updateAssetSearch (asset: Asset) {
 	// Update ES

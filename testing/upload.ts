@@ -11,7 +11,7 @@ const uploadReq:REQ_Get_Signature = {
   description: "Frag Maps Mountain Dig Site",
   collectionID: "001",
   category: "token",
-  tags: [],
+  tags: ['Mountain'],
   unlockPrice: 0,
   revenueShare: {}
 }
@@ -40,9 +40,15 @@ test('upload: upload a file to transloadit', async (t) => {
     let err = await testResStatus(response, 200)
     if (err) {
       t.fail(err)
+			return
     }
 
-    const json = response.data
+    const json = await response.json()
+
+		if (!json) {
+			t.fail('No json retunred from get signature')
+			return
+		}
 
     let form = new FormData();
     form.append('file', fs.createReadStream('tests/files/Mountain_Dig_Site.png'));

@@ -32,7 +32,6 @@ export async function signInUser(username : string, password : string, useCache 
 
     cUser.authenticateUser(AuthData, {
       onSuccess: (success) => {
-        console.log("Success:", success)
         //after logged in, send the user jwt to server
         const jwt = success.getIdToken().getJwtToken();
         jwtCache[username] = jwt
