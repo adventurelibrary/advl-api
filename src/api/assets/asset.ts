@@ -242,7 +242,7 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
     }
     const asset:Asset = await searchAsset(id);
 
-    if(user.username != asset.creatorName || !isAdmin(user.id)){
+    if(user.username != asset.creator_name || !isAdmin(user.id)){
       throw new Error("User doesn't have permissions to edit this asset");
     }
 

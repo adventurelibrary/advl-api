@@ -8,25 +8,24 @@ export interface RES_Get_Signature{
 interface UserDefinedAssetInfo {
   name: string,
   description: string,
-  collectionID: string,
   category: string,
   tags: string[],
-  unlockPrice: number,
+  unlock_price: number,
   revenueShare: RevenueShare
 }
 
-export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC" | "all"
+export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC"
 
 export interface Asset extends UserDefinedAssetInfo{
   id: string,
   slug: string,
-  sizeInBytes: number,
+  size_in_bytes: number,
   uploaded: Date, //ISO String
   visibility: visibility_types,
-  unlockCount: number,
-  fileType: "IMAGE" | "PDF" | "ZIP",
-  originalFileExt: string,
-  creatorName: string, //Used when returning it to Front End
+  unlock_count: number,
+  filetype: "IMAGE" | "PDF" | "ZIP",
+  original_file_ext: string,
+  creator_name: string, //Used when returning it to Front End
   previewLink?: string, //Used when returning to Front End
   thumbnail?: string //Used when returning to Front End
 }
@@ -43,18 +42,18 @@ export interface REQ_Query_Assets{
 export interface REQ_Query {
   id? :string,
   ids? : string[],
-  sort?: "uploaded" | "unlockCount" | "unlockPrice" | "_score" | "name"
+  sort?: "uploaded" | "unlock_count" | "unlock_price" | "_score" | "name"
   sort_type?: "asc" | "desc",
   from?: number,
   size?: number
 
   text?: string, // will search name & description
   visibility?: visibility_types
-  originalFileExt?: string,
-  creatorName?: string,
+  original_file_ext?: string,
+  creator_name?: string, // Can come from join queries
   collectionID?: string,
   tags?: string[],
-  categories?: string[],
+  category: string,
 }
 
 export interface REQ_DownloadLink {
@@ -71,6 +70,6 @@ export interface REQ_Update {
   collectionID: string,
   category: string,
   tags: string[],
-  unlockPrice: number,
-  revenueShare: RevenueShare
+  unlock_price: number,
+  revenue_share: RevenueShare
 }

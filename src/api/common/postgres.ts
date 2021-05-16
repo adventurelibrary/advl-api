@@ -59,7 +59,7 @@ export function paramsMapToSqlParams (params : Record<string, any>) : SqlParamet
 // We use this when we're querying to take the nice JavaScript variables we like
 // working with and convert them into a format that RDS expects
 function paramToSqlParam (value: any, name: string) : SqlParameter {
-  if (value === null) {
+  if (value === null || value === undefined) {
     return {
       name: name,
       value: {
@@ -136,7 +136,11 @@ function paramToSqlParam (value: any, name: string) : SqlParameter {
 }
 
 export async function executeStatement (sql: string, params : QueryParams = []) {
-  if (!process.env.POSTGRES_DB_ARN) {
+	console.log('===execute====')
+	console.debug('SQL:', sql)
+	console.debug('params:', params)
+
+	if (!process.env.POSTGRES_DB_ARN) {
     throw new Error('env variable POSTGRES_DB_ARN is blank, check your api.yml file for what is loading in')
   }
   if (!process.env.POSTGRES_SECRET_ARN) {
@@ -195,7 +199,7 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
 		throw new Error(`You can't run a query with ? parameter placeholders and a non-array params. Params need to be array if using ?`)
 	}
 
-	console.debug('SQL:', sql)
+	console.debug('PARAMS:', sqlParams)
 
   let response
   try {
@@ -210,6 +214,7 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
   } catch (ex) {
     throw ex
   }
+	console.log('success execute', response)
   return response
 }
 

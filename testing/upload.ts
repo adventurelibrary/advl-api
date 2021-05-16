@@ -9,13 +9,11 @@ import {request, testResStatus} from "./lib/lib";
 const uploadReq:REQ_Get_Signature = {
   name: "Mountain Dig Site",
   description: "Frag Maps Mountain Dig Site",
-  collectionID: "001",
   category: "token",
   tags: ['Mountain'],
   unlockPrice: 0,
   revenueShare: {}
 }
-
 
 test('upload: upload a file while not logged in', async (t) => {
   const response = await request('assets/get_signature', {
@@ -28,6 +26,7 @@ test('upload: upload a file while not logged in', async (t) => {
   }
   t.pass()
 })
+
 test('upload: upload a file to transloadit', async (t) => {
   //const productionURL = 'https://api.adventurelibrary.art/'
   let transloadit_response

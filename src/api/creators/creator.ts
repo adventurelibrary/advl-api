@@ -25,12 +25,8 @@ export const creator_put = newHandler({
 }, async ({creator, json}) => {
   await updateCreator(creator, json)
 
-  // Grab from the db instead of using the updated object, to account for things
-  // like joins
-  const updated = await getCreatorByID(creator.id)
   return {
-    status: 200,
-    body: updated
+    status: 204
   }
 })
 

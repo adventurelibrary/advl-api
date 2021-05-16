@@ -2,8 +2,8 @@ import test from 'ava'
 import {signInUser} from "./lib/cognito";
 import {users} from "./lib/fixtures"
 import {getJSON} from "./lib/lib";
-const {TEST1} = users
 
+const {TEST1} = users
 test('signup: getting session from logged in user should get their data', async (t) => {
   const jwt = await signInUser(TEST1.username, TEST1.password)
   if (!jwt) {

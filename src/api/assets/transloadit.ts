@@ -54,14 +54,14 @@ async function getParams(asset: Asset): Promise<string> {
   let _steps = require("./file_upload_steps.json").steps;
 
   _steps.export_original.credentials = "ADVL Originals"
-  _steps.export_original.path = `${asset.creatorName}/${asset.id}.`+'${file.ext}';
+  _steps.export_original.path = `${asset.creator_name}/${asset.id}.`+'${file.ext}';
   _steps.export_compressed_image.credentials = "ADVL WEBP"
-  _steps.export_compressed_image.path = `${asset.creatorName}/${asset.id}.webp`;
+  _steps.export_compressed_image.path = `${asset.creator_name}/${asset.id}.webp`;
 
   _steps.export_watermark.credentials = "ADVL Watermarked"
-  _steps.export_watermark.path = `${asset.creatorName}/${asset.id}.webp`;
+  _steps.export_watermark.path = `${asset.creator_name}/${asset.id}.webp`;
   _steps.export_thumb.credentials = "ADVL Thumbs"
-  _steps.export_thumb.path = `${asset.creatorName}/${asset.id}.webp`;
+  _steps.export_thumb.path = `${asset.creator_name}/${asset.id}.webp`;
 
   const params = JSON.stringify({
     auth: {
@@ -71,7 +71,7 @@ async function getParams(asset: Asset): Promise<string> {
     steps: _steps,
     notify_url: process.env.IS_OFFLINE == "true" ? process.env.TRANSLOADIT_OFFLINE_NOTIFY_URL : process.env.TRANSLOADIT_NOTIFY_URL,
     fields: {
-      creatorName: asset.creatorName,
+      creatorName: asset.creator_name,
       assetID: asset.id
     }
   })
@@ -113,12 +113,12 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
           visibility: "HIDDEN"
         });
 
-        asset.sizeInBytes = notification.bytes_received;
+        asset.size_in_bytes = notification.bytes_received;
         asset.visibility = "HIDDEN";
         if(notification.uploads.length > 1){
           throw new Error("Transloadit got multiple file uploads!");
         }
-        asset.originalFileExt = notification.uploads[0].ext;
+        asset.original_file_ext = notification.uploads[0].ext;
         //Add the asset to the Elasticsearch DB
         await search.index({
           index: process.env.INDEX_ASSETDB,

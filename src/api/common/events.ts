@@ -6,5 +6,6 @@ export async function getEventUser (_evt : APIGatewayProxyEvent) : Promise<User 
 	if (!_evt.headers.Authorization) {
 		return undefined
 	}
+	console.log('getting event user')
 	return await getUserByToken(_evt.headers.Authorization.split(" ")[1]);
 }

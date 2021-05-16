@@ -18,14 +18,20 @@ debug_sync:
   environment:
     ${file(src/dynamic-environment.js):database}
 ################## USERS  #########################
-user:
-  handler: src/api/users/user.user
+user_get:
+  handler: src/api/users/user.user_get
   events:
     - http: # GET session or create new user if it doesn't exist
         method: get
         path: /users
         cors: true
-    - http: # PUT updates the user
+  environment:
+    ${file(src/dynamic-environment.js):user}
+
+user_put:
+  handler: src/api/users/user.user_put
+  events:
+    - http: # PUT updates the currently logged in user
         method: put
         path: /users
         cors: true

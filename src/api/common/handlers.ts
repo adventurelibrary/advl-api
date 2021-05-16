@@ -9,7 +9,7 @@ import {errorResponse, newResponse} from "./response";
 import {getAsset} from "../../lib/assets";
 import {User} from "../../interfaces/IUser";
 import {getEventUser} from "./events";
-import {getCreatorByID} from "../../lib/user";
+import {getCreatorByID} from "../../lib/creator";
 import {Creator} from "../../interfaces/ICreator";
 import {userHasCreatorPermission} from "../../lib/creator";
 
@@ -85,7 +85,12 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
     try {
       // For routes that want access to the currently logged in user
       if (opts.includeUser || opts.requireUser) {
-        const user = await getEventUser(_evt)
+        let user : User | undefined
+        try {
+          user = await getEventUser(_evt)
+        } catch (ex) {
+          console.log('Error getting event user', ex)
+        }
         if (!user && opts.requireUser) {
           return errorResponse(_evt, `Route requires you to be logged in`, 401)
         }
@@ -93,6 +98,8 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         if (opts.requireAdmin && !user.is_admin) {
           return errorResponse(_evt, `Route requires you to be an admin`, 403)
         }
+
+        ctx.user = user
       }
 
       // These routes assume that the asset id is provided as :assetId

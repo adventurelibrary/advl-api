@@ -28,3 +28,20 @@ ava('creators: non-admin in tries to create a user', async (t) => {
 
 	t.pass()
 })
+
+ava('creators: create validation', async (t) => {
+	const res = await request('/creator', {
+		method: 'POST',
+		userKey: 'ADMIN1',
+		body: {
+		}
+	})
+
+	// Name is required
+	let err = await testResStatus(res,400)
+	if (err) {
+		t.fail(err)
+	}
+
+	t.pass()
+})
