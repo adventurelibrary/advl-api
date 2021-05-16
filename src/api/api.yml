@@ -33,11 +33,31 @@ user:
     ${file(src/dynamic-environment.js):user}
 
 ################## CREATORS #########################
-creator:
-  handler: src/api/users/creator.creator
+creator_get:
+  handler: src/api/creators/creator.creator_get
   events:
     - http:
         method: get
+        path: /creator/{creatorID}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
+
+creator_post:
+  handler: src/api/creators/creator.creator_post
+  events:
+    - http:
+        method: post
+        path: /creator
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
+
+creator_put:
+  handler: src/api/creators/creator.creator_put
+  events:
+    - http:
+        method: put
         path: /creator/{creatorID}
         cors: true
   environment:

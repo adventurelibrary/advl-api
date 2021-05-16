@@ -36,9 +36,9 @@ create UNIQUE INDEX users_email ON Users(email);
 
 create table Creators (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
-  owner TEXT NOT NULL,
+  owner_id TEXT NULL,
   description TEXT,
-  CONSTRAINT fk_owner FOREIGN KEY (owner) REFERENCES Users(id)
+  CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES Users(id)
 );
 
 create table Administrators (

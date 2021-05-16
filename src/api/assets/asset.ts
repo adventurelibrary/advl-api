@@ -246,7 +246,7 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
       throw new Error("User doesn't have permissions to edit this asset");
     }
 
-    await updateAsset(reqAsset, asset)
+    await updateAsset(asset, reqAsset)
   }
   return {
     status: 204,

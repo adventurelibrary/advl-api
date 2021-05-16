@@ -43,7 +43,7 @@ export async function getAsset (id: string) : Promise<Asset> {
 	return <Asset> await getObj(process.env.DB_ASSETS, id)
 }
 
-export async function updateAsset (updates: any, original:Asset) {
+export async function updateAsset (original:Asset, updates: any) {
 	//validate stuff
 	//TODO Validate Tags actually exist
 	//TODO Validate that RevenueShare creatorIDs actually exist

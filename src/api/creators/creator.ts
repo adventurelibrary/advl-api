@@ -1,17 +1,65 @@
-import { APIGatewayProxyHandler } from "aws-lambda";
-import { getCreatorByID, getUserByToken, isAdmin, updateCreator } from "../../lib/user";
-import { errorResponse, newResponse } from "../common/response";
-import { User } from '../../interfaces/IUser';
-import { Creator, REQ_NewCreator, REQ_UpdateCreator } from '../../interfaces/ICreator';
+import { Creator } from '../../interfaces/ICreator';
 import { idgen } from "../common/nanoid";
-import * as db from '../common/postgres';
-import {getEventUser} from "../common/events";
-/**
+import {newHandler} from "../common/handlers";
+import {getCreatorByID, insertCreator, updateCreator, userHasCreatorPermission} from "../../lib/creator";
+
+export const creator_get = newHandler({
+  requireCreator: true,
+  includeUser: true,
+}, async ({user, creator}) => {
+  let body : any = {}
+  const hasPerm = await userHasCreatorPermission(user, creator)
+  if (hasPerm) {
+    body = creator
+  } else {
+    body = BasicCreatorInfo(creator)
+  }
+  return {
+    status: 200,
+    body: body
+  }
+})
+
+export const creator_put = newHandler({
+  requireCreatorPermission: true
+}, async ({creator, json}) => {
+  await updateCreator(creator, json)
+
+  // Grab from the db instead of using the updated object, to account for things
+  // like joins
+  const updated = await getCreatorByID(creator.id)
+  return {
+    status: 200,
+    body: updated
+  }
+})
+
+export const creator_post = newHandler({
+  requireAdmin: true
+}, async ({json}) => {
+  const newCreator = {
+    id: idgen(),
+    name: json.name,
+    owner_id: json.owner_id,
+    description: json.description,
+  }
+  const id = await insertCreator(newCreator)
+
+  return {
+    status: 204,
+    body: {
+      id: id
+    }
+  }
+})
+/*
+
+
+/!**
  * GET returns creator information.
  * POST creates a new CREATOR from a USER (ADMIN)
  * PUT updates the creator (ADMIN or Creator OWNER)
- */
-
+ *!/
 export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse();
   try{
@@ -44,14 +92,6 @@ export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
         throw new Error("Only admins can make new creators")
       }
 
-      let newCreatorInput:REQ_NewCreator = JSON.parse(_evt.body);
-      let newCreator:Creator = {
-        id: idgen(),
-        owner: newCreatorInput.id,
-        description: ""
-      }
-
-      await db.insertObj(process.env.DB_CREATORS, newCreator);
     } else if (_evt.httpMethod == "PUT") {
       if(creator.owner != user.id && !isAdmin(user.id)){
         throw new Error("Creators can only be updated by their owner or an Admin")
@@ -65,6 +105,7 @@ export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
     return errorResponse(_evt, e);
   }
 }
+*/
 
 /**
  *
