@@ -130,9 +130,14 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         }
       }
 
+      // This is where you custom route handler actually gets called
+      // It will get a full context object to work with
+      // It should return status and body, or throw an error
       const handleResult = await handler(ctx)
       res.statusCode = handleResult.status
-      res.body = JSON.stringify(handleResult.body)
+      if (res.statusCode !== 204) {
+        res.body = JSON.stringify(handleResult.body)
+      }
     } catch (ex) {
       return errorResponse(_evt, ex)
     }

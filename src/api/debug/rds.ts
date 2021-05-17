@@ -36,14 +36,16 @@ JOIN creators c ON c.id = a.creator_id
     let assets
     try {
       assets = await query<Asset>(sql)
-      console.log(`Found ${assets.length} assets to sync`)
+      console.debug(`Found ${assets.length} assets to sync`)
     } catch (ex) {
-      console.log('ex', ex)
+      console.debug('ex', ex)
+      return errorResponse(_evt, ex, 500)
     }
     try {
       await indexAssetsSearch(assets)
     } catch (ex) {
-      console.log('ex from index', ex)
+      console.debug('ex from index', ex)
+      return errorResponse(_evt, ex, 500)
     }
 
     response.statusCode = 204

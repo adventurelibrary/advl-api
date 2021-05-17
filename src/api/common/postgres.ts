@@ -6,9 +6,10 @@ const rds = new RDSDataService({region:'us-east-1'})
 type QueryParams = any[] | Record<string, any>
 
 type SqlParameter = AWSSqlParameter & {
-	castTo?: string
+  castTo?: string // This is needed for our custom enums, so the query becomes "SET enum_field = :p1::custom_type"
 }
 
+// Each key in the obj will be inserted as a column
 export async function insertObj(tableName:string, obj:any){
   try{
     let columns: string[] = []
@@ -34,7 +35,7 @@ export async function insertObj(tableName:string, obj:any){
 // For a query like UPDATE table SET last_updated = :p0, name = :p1 WHERE id = :p2
 // you would give it an array like [new Date(), 'Fresh Name', 82]
 // This function presumes that parameter names in the SQL query will be in the same order
-// as the array of paremters given here
+// as the array of parameters given here
 export function paramsListToSqlParams (params : any[]) : SqlParameter[] {
   return params.map((value: any, idx: number) => {
     const name = 'p' + idx
@@ -42,7 +43,7 @@ export function paramsListToSqlParams (params : any[]) : SqlParameter[] {
   })
 }
 
-// This function works the same as the list one, but it takes in key:value pairs
+// This function works the same as the list one just above, but it takes in key:value pairs
 // So you have query like "UPDATE table SET name = :name WHERE id = :id"
 // and you use paramsMapToSqlParams({name: 'New Name', id: 34})
 export function paramsMapToSqlParams (params : Record<string, any>) : SqlParameter[] {
@@ -69,15 +70,15 @@ function paramToSqlParam (value: any, name: string) : SqlParameter {
   }
 
   if (value instanceof CustomSQLParam) {
-  	return <SqlParameter>{
-  		name: name,
-			value: {
-  			[value.valueType]: value.value
-			},
-			typeHint: value.typeHint,
-			castTo: value.castTo
-		}
-	}
+    return <SqlParameter>{
+      name: name,
+      value: {
+        [value.valueType]: value.value
+      },
+      typeHint: value.typeHint,
+      castTo: value.castTo
+    }
+  }
 
   let key
   let paramValue = value
@@ -136,11 +137,11 @@ function paramToSqlParam (value: any, name: string) : SqlParameter {
 }
 
 export async function executeStatement (sql: string, params : QueryParams = []) {
-	console.debug('===execute====')
-	console.debug('SQL:', sql)
-	console.debug('PARAMS BEFORE:', params)
+  console.debug('===execute====')
+  console.debug('SQL:', sql)
+  console.debug('PARAMS BEFORE:', params)
 
-	if (!process.env.POSTGRES_DB_ARN) {
+  if (!process.env.POSTGRES_DB_ARN) {
     throw new Error('env variable POSTGRES_DB_ARN is blank, check your api.yml file for what is loading in')
   }
   if (!process.env.POSTGRES_SECRET_ARN) {
@@ -150,20 +151,20 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
     throw new Error('env variable POSTGRES_DB_NAME is blank, check your api.yml file for what is loading in')
   }
 
-	// We accept both an array list of params and key:value object
-	// This will convert both into the list that rds needs
-	let sqlParams : SqlParameter[] = []
-	let usingMapParams = false
-	try {
-		if (Array.isArray((params))) {
-			sqlParams = paramsListToSqlParams(params)
-		} else {
-			usingMapParams = true
-			sqlParams = paramsMapToSqlParams(params)
-		}
-	} catch (ex) {
-		throw ex
-	}
+  // We accept both an array list of params and key:value object
+  // This will convert both into the list that rds needs
+  let sqlParams : SqlParameter[] = []
+  let usingMapParams = false
+  try {
+    if (Array.isArray((params))) {
+      sqlParams = paramsListToSqlParams(params)
+    } else {
+      usingMapParams = true
+      sqlParams = paramsMapToSqlParams(params)
+    }
+  } catch (ex) {
+    throw ex
+  }
 
 
   // Sometimes it's easier to build a query using ? for param replacement
@@ -176,31 +177,33 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
     const parts = sql.split('?')
     let newSql = parts[0]
     for (let i = 1; i < parts.length; i++) {
-    	const paramIdx = i - 1
+      const paramIdx = i - 1
       newSql += ':p' + (paramIdx)
 
-			// Some parameters need to be cast in the db from the type we give
-			// to Data API into a type that the db recognizes
-			// For example: changing visibility_type of an Asset from string into an enum
-			const param = sqlParams[paramIdx]
-			if (!param) {
-				throw new Error(`Param at idx ${paramIdx} is undefined`)
-			}
-			if (param.castTo) {
-				newSql += '::' + param.castTo
-			}
+      // Some parameters need to be cast in the db from the type we give
+      // to Data API into a type that the db recognizes
+      // For example: changing visibility_type of an Asset from string into an enum
+      const param = sqlParams[paramIdx]
+      if (!param) {
+        throw new Error(`Param at idx ${paramIdx} is undefined`)
+      }
+      if (param.castTo) {
+        newSql += '::' + param.castTo
+      }
 
-			newSql +=  parts[i]
+      newSql +=  parts[i]
     }
     sql = newSql
   }
 
-	if (questionParams && usingMapParams) {
-		throw new Error(`You can't run a query with ? parameter placeholders and a non-array params. Params need to be array if using ?`)
-	}
+  if (questionParams && usingMapParams) {
+    throw new Error(`You can't run a query with ? parameter placeholders and a non-array params. Params need to be array if using ?`)
+  }
 
-	const sanitized = sanitizeSQLParams(sqlParams)
-	console.debug('SANITIZED PARAMS:', sanitized)
+  // This strips out any extra fields that we're using before we send to RDS
+  // Otherwise it will complain about unknown keys
+  const sanitized = sanitizeSQLParams(sqlParams)
+  console.debug('SANITIZED PARAMS:', sanitized)
 
   let response
   try {
@@ -215,7 +218,7 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
   } catch (ex) {
     throw ex
   }
-	//console.log('success execute', response)
+  //console.log('success execute', response)
   return response
 }
 
@@ -223,13 +226,13 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
 // queries properly
 // The RDS Data API complains about these though, so we need to strip them out
 function sanitizeSQLParams (params: SqlParameter[]) : AWSSqlParameter[] {
-	return params.map((p) => {
-		return {
-			name: p.name,
-			typeHint: p.typeHint,
-			value: p.value
-		}
-	})
+  return params.map((p) => {
+    return {
+      name: p.name,
+      typeHint: p.typeHint,
+      value: p.value
+    }
+  })
 }
 
 // The data send back is returned in arrays, so we need to convert it to
@@ -245,6 +248,13 @@ function convertResultToMap(record : FieldList, columnsMeta : Metadata) {
     const returnedValue = record[idx]
     if (returnedValue.isNull) {
       value = null
+    } else if (returnedValue.arrayValue) {
+      // This will turn {arrayValue: {stringValue: ['hi']}} into {stringValue: ['hi']}
+      const things = Object.entries(returnedValue)
+      const arrayValue = things[0][1]
+
+      const values = Object.entries(arrayValue)
+      value = values[0][1]
     } else {
       // This will turn {stringValue: 'hi'} into 'hi'
       const things = Object.entries(returnedValue)

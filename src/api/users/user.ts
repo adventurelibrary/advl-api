@@ -12,7 +12,6 @@ import {newHandler} from "../common/handlers";
 export const user_get = newHandler({
   includeUser: true
 }, async ({user, event}) => {
-  console.log('user in user_get from handler factory', user)
   // Not logged in, but they have an Auth header
   if (!user && event.headers.Authorization) {
     let userToken
@@ -24,7 +23,6 @@ export const user_get = newHandler({
         status: 204
       }
     }
-    console.log('no find user with it', userToken.sub)
     const newUser:User = {
       id: userToken.sub,
       username: userToken['cognito:username'],

@@ -61,15 +61,15 @@ test.skip('upload: upload a file to transloadit', async (t) => {
     let err = await testResStatus(response, 200)
     if (err) {
       t.fail(err)
-			return
+      return
     }
 
     const json = await response.json()
 
-		if (!json) {
-			t.fail('No json retunred from get signature')
-			return
-		}
+    if (!json) {
+      t.fail('No json returned from get signature')
+      return
+    }
 
     let form = new FormData();
     form.append('file', fs.createReadStream('tests/files/Mountain_Dig_Site.png'));

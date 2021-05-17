@@ -106,9 +106,10 @@ export function assetToDatabaseWrite (asset: Asset) : any {
 
 	dbwrite.filetype = new CustomSQLParam({
 		value: asset.filetype,
-		castTo: 'filetypes'
+		castTo: 'filetype'
 	})
 
+	// TODO: Protected against SQL injection
 	dbwrite.tags = new CustomSQLParam({
 		value: '{' + asset.tags.map(t => '"' + t + '"').join(',') + '}',
 		castTo: 'TEXT[]',
@@ -149,10 +150,16 @@ export async function indexAssetsSearch (assets: Asset[]) {
 	})
 
 
-	await search.bulk({
+	const result = await search.bulk({
 		refresh: true,
 		body
 	})
+
+	if (result.body.errors) {
+		throw new Error(`Search index returned errors` + JSON.stringify(result.body.items))
+	}
+
+	return result
 }
 
 /*
