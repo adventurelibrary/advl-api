@@ -69,7 +69,7 @@ export async function updateAsset (original:Asset, updates: any) {
 	await updateAssetSearch(original)
 }
 
-export async function createNewAsset(creatorId: string, req:REQ_Get_Signature): Promise<Asset> {
+export async function createNewAsset(creatorID: string, req:REQ_Get_Signature): Promise<Asset> {
 	let newAsset: Asset = {
 		id: idgen(),
 		slug: slugify(req.name).toLowerCase(),
@@ -78,7 +78,7 @@ export async function createNewAsset(creatorId: string, req:REQ_Get_Signature): 
 		visibility: "PENDING",
 		original_file_ext: 'UNKOWN',
 		filetype: "IMAGE",
-		creator_id: creatorId,
+		creator_id: creatorID,
 		unlock_count: 0,
 		name: req.name,
 		description: req.description,

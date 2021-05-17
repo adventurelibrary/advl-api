@@ -102,10 +102,10 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.user = user
       }
 
-      // These routes assume that the asset id is provided as :assetId
+      // These routes assume that the asset id is provided as :assetID
       // in the api.yml file
       if (opts.includeAsset || opts.requireAsset) {
-        const asset = await getAsset(_evt.pathParameters.assetId)
+        const asset = await getAsset(_evt.pathParameters.assetID)
         if (!asset && opts.requireAsset) {
           return errorResponse(_evt, new Error('Could not find asset'), 404)
         }

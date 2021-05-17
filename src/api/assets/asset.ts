@@ -242,6 +242,8 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
     }
     const asset:Asset = await searchAsset(id);
 
+    // TODO: Check the owner_id of the asset's creator with a query
+    //  that query can later be expanded for user's having multiple access
     if(user.username != asset.creator_name || !isAdmin(user.id)){
       throw new Error("User doesn't have permissions to edit this asset");
     }

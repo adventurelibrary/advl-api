@@ -105,7 +105,7 @@ asset_download_link:
   events:
     - http:
         method: get
-        path: /assets/{assetId}/download
+        path: /assets/{assetID}/download
         cors: true
   environment:
     ${file(src/dynamic-environment.js):asset_download_link}
@@ -125,7 +125,7 @@ get_asset:
   events:
     - http:
         method: get
-        path: /assets/{assetId}
+        path: /assets/{assetID}
         cors: true
   environment:
     ${file(src/dynamic-environment.js):query_assets}
