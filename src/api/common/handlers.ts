@@ -116,7 +116,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       // These routes assume that the asset id is provided as :creatorId
       // in the api.yml file
       if (opts.includeCreator || opts.requireCreator) {
-        const creator = await getCreatorByID(_evt.pathParameters.creatorId)
+        const creator = await getCreatorByID(_evt.pathParameters.creatorID)
         if (!creator && opts.requireCreator) {
           return errorResponse(_evt, new Error('Could not find creator'), 404)
         }

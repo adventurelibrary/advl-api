@@ -29,7 +29,11 @@ export const creator_put = newHandler({
   requireCreatorPermission: true, // You're either an admin, or you're editing your creator
   takesJSON: true
 }, async ({creator, json}) => {
-  await updateCreator(creator, json)
+  const updates = <Creator>json
+  await validateCreator(updates)
+  await updateCreator(creator, updates)
+
+  // TODO: Update all this creator's assets in Elasticsearch
 
   return {
     status: 204
