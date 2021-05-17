@@ -22,7 +22,8 @@ test('signup: getting session from logged in user should get their data', async 
 })
 
 // TODO: Delete the user from the db first, ensure that it gets created. That test should be serial.
-
+// TODO: Get /users with no auth token
+// TODO: Get /users with invalid auth token
 
 /*
 async function signupuser(){

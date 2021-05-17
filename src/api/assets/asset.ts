@@ -3,7 +3,7 @@ import {
   APIGatewayProxyHandler
 } from 'aws-lambda';
 import { search } from '../common/elastic';
-import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
+import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import { searchAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
@@ -37,7 +37,7 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
 
   // Certain fields are comma delimited, which we override here
   queryObj.tags = getCSVParam(eventParams, 'tags')
-  queryObj.categories = getCSVParam(eventParams, 'categories')
+  queryObj.categories = <category[]>getCSVParam(eventParams, 'categories')
   queryObj.ids = getCSVParam(eventParams, 'ids')
 
   if (isNaN(queryObj.size) || queryObj.size <= 0) {

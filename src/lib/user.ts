@@ -8,17 +8,14 @@ import { Admin } from '../interfaces/IAdmin';
 export async function getUserByID(_sub: string): Promise<User> {
   try{
     const user = <User> await db.getObj(process.env.DB_USERS, _sub);
-    console.log('user from get user', user)
     return user;
   } catch (e){
-    console.log('e fail on getObj for user', e)
     return undefined;
   }
 }
 
 export async function getUserByToken(jwt: string): Promise<User>{
   const userToken = validateUserToken(jwt);
-  console.log('user toekn in get user by token', userToken)
   return await getUserByID(userToken.sub);
 }
 
@@ -36,8 +33,7 @@ export function validateUserToken(userToken:string){
     throw new Error(`Provided user token was blank`)
   }
   const decoded = jwt.decode(userToken)
-  console.log('WARNING! Not verifying the JWT, just decoding it.')
-  console.log('decoded', decoded)
+  console.log('WARNING! Not verifying the JWT, just decoding it. Verifying was not working')
   return <UserToken>decoded
 
   try{

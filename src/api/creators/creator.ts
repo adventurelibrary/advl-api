@@ -1,7 +1,12 @@
 import { Creator } from '../../interfaces/ICreator';
 import { idgen } from "../common/nanoid";
 import {newHandler} from "../common/handlers";
-import {getCreatorByID, insertCreator, updateCreator, userHasCreatorPermission} from "../../lib/creator";
+import {
+  insertCreator,
+  updateCreator,
+  userHasCreatorPermission,
+  validateCreator
+} from "../../lib/creator";
 
 export const creator_get = newHandler({
   requireCreator: true,
@@ -21,7 +26,8 @@ export const creator_get = newHandler({
 })
 
 export const creator_put = newHandler({
-  requireCreatorPermission: true
+  requireCreatorPermission: true, // You're either an admin, or you're editing your creator
+  takesJSON: true
 }, async ({creator, json}) => {
   await updateCreator(creator, json)
 
@@ -31,7 +37,8 @@ export const creator_put = newHandler({
 })
 
 export const creator_post = newHandler({
-  requireAdmin: true
+  requireAdmin: true,
+  takesJSON: true
 }, async ({json}) => {
   const newCreator = {
     id: idgen(),
@@ -39,6 +46,7 @@ export const creator_post = newHandler({
     owner_id: json.owner_id,
     description: json.description,
   }
+  await validateCreator(newCreator)
   const id = await insertCreator(newCreator)
 
   return {

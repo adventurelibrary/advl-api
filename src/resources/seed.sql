@@ -1,5 +1,6 @@
-INSERT INTO users (id, username, email, last_seen, join_date) VALUES
-('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 'test-user-01', 'test+1@adventurelibrary.art', NOW(), '2021-05-16');
+INSERT INTO users (id, username, email, last_seen, join_date, is_admin) VALUES
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 'test-user-01', 'test+1@adventurelibrary.art', NOW(), '2021-05-16', false),
+('147ca904-ce80-4154-9f90-8f50243c21b5', 'test-admin-1', 'vindexus+admin@gmail.com', NOW(), '2021-05-14', true);
 
 INSERT INTO creators (id, name) VALUES
 ('9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', 'Adventure Library');

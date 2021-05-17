@@ -1,6 +1,7 @@
 import {User} from "../interfaces/IUser";
 import {Creator} from "../interfaces/ICreator";
 import * as db from "../api/common/postgres";
+import {Validation} from "./errors";
 
 
 export async function getCreatorByID(creatorID: string){
@@ -45,4 +46,13 @@ export async function updateCreator (creator:Creator, updates:any) {
 export async function insertCreator(creator:Creator) {
 	const write = creatorToDatabaseWrite(creator)
 	return await db.insertObj(process.env.DB_CREATORS, write)
+}
+
+export async function validateCreator(creator: Creator) {
+	const val = new Validation()
+	val.validateRequired(creator.name, {
+		message: 'Creator name is required',
+		field: 'name'
+	})
+	val.throwIfErrors()
 }

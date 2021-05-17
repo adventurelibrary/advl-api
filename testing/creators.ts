@@ -24,7 +24,7 @@ ava('creators: non-admin in tries to create a user', async (t) => {
 	}
 
 	const json = await res.json()
-	t.is(json.error, "Route requires you to be an admin")
+	t.is(json.error.message, "Route requires you to be an admin")
 
 	t.pass()
 })
@@ -42,6 +42,10 @@ ava('creators: create validation', async (t) => {
 	if (err) {
 		t.fail(err)
 	}
+
+	const json = await res.json()
+	t.truthy(json.error.key == 'validation')
+	t.is(json.error.details[0].field, 'name')
 
 	t.pass()
 })

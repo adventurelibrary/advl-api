@@ -35,6 +35,7 @@ export async function signInUser(username : string, password : string, useCache 
         //after logged in, send the user jwt to server
         const jwt = success.getIdToken().getJwtToken();
         jwtCache[username] = jwt
+
         resolve(jwt);
       },
       onFailure: (error) => {

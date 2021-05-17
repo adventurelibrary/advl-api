@@ -136,9 +136,9 @@ function paramToSqlParam (value: any, name: string) : SqlParameter {
 }
 
 export async function executeStatement (sql: string, params : QueryParams = []) {
-	console.log('===execute====')
+	console.debug('===execute====')
 	console.debug('SQL:', sql)
-	console.debug('params:', params)
+	console.debug('PARAMS BEFORE:', params)
 
 	if (!process.env.POSTGRES_DB_ARN) {
     throw new Error('env variable POSTGRES_DB_ARN is blank, check your api.yml file for what is loading in')
@@ -199,7 +199,8 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
 		throw new Error(`You can't run a query with ? parameter placeholders and a non-array params. Params need to be array if using ?`)
 	}
 
-	console.debug('PARAMS:', sqlParams)
+	const sanitized = sanitizeSQLParams(sqlParams)
+	console.debug('SANITIZED PARAMS:', sanitized)
 
   let response
   try {
@@ -208,13 +209,13 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
       secretArn: process.env.POSTGRES_SECRET_ARN,
       database: process.env.POSTGRES_DB_NAME,
       sql: sql,
-      parameters: sanitizeSQLParams(sqlParams),
+      parameters: sanitized,
       includeResultMetadata: true
     }).promise();
   } catch (ex) {
     throw ex
   }
-	console.log('success execute', response)
+	//console.log('success execute', response)
   return response
 }
 

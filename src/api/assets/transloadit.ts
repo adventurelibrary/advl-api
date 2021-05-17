@@ -6,27 +6,29 @@ import { search } from '../common/elastic';
 import {errorResponse, newResponse} from "../common/response";
 import * as db from '../common/postgres'
 import {getEventUser} from "../common/events";
-import {createNewAsset} from "../../lib/assets";
+import {createNewAsset, validateAsset} from "../../lib/assets";
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
 
   try{
-    let FileRequest:REQ_Get_Signature = JSON.parse(_evt.body);
     const user = await getEventUser(_evt)
     if(!user){
       throw new Error("You must be logged in to upload a new asset");
     }
+    const newAsset = <Asset>JSON.parse(_evt.body);
+    validateAsset(newAsset)
 
 
-    let newAsset:Asset = await createNewAsset(user.username, FileRequest);
+    const created = await createNewAsset(user.username, newAsset);
+    await validateAsset(newAsset)
     let params = await getParams(newAsset);
     let signature = await calcSignature(params);
 
     let _res:RES_Get_Signature = {
       params: params,
       signature: signature,
-      assetID: newAsset.id
+      assetID: created.id
     }
 
     response.statusCode = 200
@@ -54,14 +56,14 @@ async function getParams(asset: Asset): Promise<string> {
   let _steps = require("./file_upload_steps.json").steps;
 
   _steps.export_original.credentials = "ADVL Originals"
-  _steps.export_original.path = `${asset.creator_name}/${asset.id}.`+'${file.ext}';
+  _steps.export_original.path = `${asset.creator_id}/${asset.id}.`+'${file.ext}';
   _steps.export_compressed_image.credentials = "ADVL WEBP"
-  _steps.export_compressed_image.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_compressed_image.path = `${asset.creator_id}/${asset.id}.webp`;
 
   _steps.export_watermark.credentials = "ADVL Watermarked"
-  _steps.export_watermark.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_watermark.path = `${asset.creator_id}/${asset.id}.webp`;
   _steps.export_thumb.credentials = "ADVL Thumbs"
-  _steps.export_thumb.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_thumb.path = `${asset.creator_id}/${asset.id}.webp`;
 
   const params = JSON.stringify({
     auth: {
@@ -71,7 +73,7 @@ async function getParams(asset: Asset): Promise<string> {
     steps: _steps,
     notify_url: process.env.IS_OFFLINE == "true" ? process.env.TRANSLOADIT_OFFLINE_NOTIFY_URL : process.env.TRANSLOADIT_NOTIFY_URL,
     fields: {
-      creatorName: asset.creator_name,
+      creatorId: asset.creator_id,
       assetID: asset.id
     }
   })

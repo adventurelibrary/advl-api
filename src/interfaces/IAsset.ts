@@ -5,13 +5,15 @@ export interface RES_Get_Signature{
   assetID: string
 }
 
+export type category = 'map' | 'character' | 'scene' | 'token'
+
 interface UserDefinedAssetInfo {
   name: string,
   description: string,
-  category: string,
+  category: category,
   tags: string[],
   unlock_price: number,
-  revenueShare: RevenueShare
+  revenue_share: RevenueShare
 }
 
 export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC"
@@ -25,7 +27,8 @@ export interface Asset extends UserDefinedAssetInfo{
   unlock_count: number,
   filetype: "IMAGE" | "PDF" | "ZIP",
   original_file_ext: string,
-  creator_name: string, //Used when returning it to Front End
+  creator_id: string,
+  creator_name?: string, //Used when returning it to Front End
   previewLink?: string, //Used when returning to Front End
   thumbnail?: string //Used when returning to Front End
 }
@@ -48,12 +51,12 @@ export interface REQ_Query {
   size?: number
 
   text?: string, // will search name & description
-  visibility?: visibility_types
+  visibility?: visibility_types[] | 'all'
   original_file_ext?: string,
   creator_name?: string, // Can come from join queries
   collectionID?: string,
   tags?: string[],
-  category: string,
+  categories?: category[],
 }
 
 export interface REQ_DownloadLink {

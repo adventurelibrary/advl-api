@@ -27,7 +27,7 @@ export const user_get = newHandler({
     console.log('no find user with it', userToken.sub)
     const newUser:User = {
       id: userToken.sub,
-      username: userToken['username'],
+      username: userToken['cognito:username'],
       email: userToken.email || userToken.username + '@thisemailisfake.com',
       notification_preferences: {},
       is_admin: false,

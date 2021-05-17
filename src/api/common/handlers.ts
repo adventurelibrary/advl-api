@@ -134,7 +134,6 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       res.statusCode = handleResult.status
       res.body = JSON.stringify(handleResult.body)
     } catch (ex) {
-      console.log('err has been caughted')
       return errorResponse(_evt, ex)
     }
     return res

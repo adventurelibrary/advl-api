@@ -6,6 +6,7 @@ import {getObj} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import CustomSQLParam from "../api/common/customsqlparam";
+import {Validation} from "./errors";
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -50,16 +51,16 @@ export async function updateAsset (original:Asset, updates: any) {
 	//TODO Validate Category actually exists
 	//TODO Validate Visibility exists
 	//TODO Validate Collection ID
-	//TODO Validate unlockPrice is positive
+	//TODO Validate unlock_price is positive
 
 	original.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
 	original.name = updates.hasOwnProperty('name') ? updates.name : original.name;
 	original.description = updates.hasOwnProperty('description') ? updates.description : original.description;
-	original.collectionID = updates.hasOwnProperty('collectionID') ? updates.collectionID : original.collectionID;
+	//original.collectionID = updates.hasOwnProperty('collectionID') ? updates.collectionID : original.collectionID;
 	original.category = updates.hasOwnProperty('category') ? updates.category : original.category;
 	original.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
-	original.unlockPrice = updates.hasOwnProperty('unlockPrice') ? updates.unlockPrice : original.unlockPrice;
-	original.revenueShare = updates.hasOwnProperty('revenueShare') ? updates.revenueShare : original.revenueShare;
+	original.unlock_price = updates.hasOwnProperty('unlock_price') ? updates.unlock_price : original.unlock_price;
+	original.revenue_share = updates.hasOwnProperty('revenue_share') ? updates.revenue_share : original.revenue_share;
 
 	const sets = assetToDatabaseWrite(original)
 	console.log("Updated Asset: ", sets)
@@ -68,7 +69,7 @@ export async function updateAsset (original:Asset, updates: any) {
 	await updateAssetSearch(original)
 }
 
-export async function createNewAsset(_creatorName: string, req:REQ_Get_Signature): Promise<Asset> {
+export async function createNewAsset(creatorId: string, req:REQ_Get_Signature): Promise<Asset> {
 	let newAsset: Asset = {
 		id: idgen(),
 		slug: slugify(req.name).toLowerCase(),
@@ -76,16 +77,15 @@ export async function createNewAsset(_creatorName: string, req:REQ_Get_Signature
 		uploaded: new Date(),
 		visibility: "PENDING",
 		original_file_ext: 'UNKOWN',
-		fileType: "IMAGE",
-		creator_name: _creatorName,
+		filetype: "IMAGE",
+		creator_id: creatorId,
 		unlock_count: 0,
 		name: req.name,
 		description: req.description,
-		collectionID: req.collectionID,
 		category: req.category,
 		tags: req.tags,
-		unlockPrice: req.unlockPrice,
-		revenueShare: req.revenueShare
+		unlock_price: req.unlock_price,
+		revenue_share: req.revenue_share
 	}
 
 
@@ -104,8 +104,8 @@ export function assetToDatabaseWrite (asset: Asset) : any {
 		castTo: 'visibility_types'
 	})
 
-	dbwrite.fileType = new CustomSQLParam({
-		value: asset.fileType,
+	dbwrite.filetype = new CustomSQLParam({
+		value: asset.filetype,
 		castTo: 'filetypes'
 	})
 
@@ -182,3 +182,20 @@ export async function syncAllAssets () : Promise<any[]> {
 	return assets
 }
 */
+
+export function validateAsset (asset: Asset) {
+	const val = new Validation()
+	val.validateRequired(asset.name, {
+		message: 'Name is required',
+		field: 'name'
+	})
+	val.validateRequired(asset.creator_id, {
+		message: 'Please select a creator',
+		field: 'creator_id'
+	})
+	val.validateRequired(asset.category, {
+		message: 'Please select a category',
+		field: 'category'
+	})
+	val.throwIfErrors()
+}
