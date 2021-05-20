@@ -7,7 +7,6 @@ export const users = {
     username: 'test-user-01',
     password: 'test-password'
   },
-  // TODO: Actually create this in Cognito
   ADMIN1: {
     username: 'test-admin-1',
     password: 'test-password'

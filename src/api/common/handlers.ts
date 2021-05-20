@@ -32,6 +32,7 @@ export type HandlerContext = {
 export type HandlerOpts = {
   takesJSON?: boolean
 
+  // TODO: Support for DB vs ElastiSearch inclusion
   includeAsset?: boolean
   requireAsset?: boolean
 
