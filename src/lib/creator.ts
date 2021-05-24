@@ -3,7 +3,6 @@ import {Creator} from "../interfaces/ICreator";
 import * as db from "../api/common/postgres";
 import {Validation} from "./errors";
 
-
 export async function getCreatorByID(creatorID: string){
 	try {
 		const creator = <Creator> await db.getObj(process.env.DB_CREATORS, creatorID);
@@ -13,6 +12,24 @@ export async function getCreatorByID(creatorID: string){
 	}
 }
 
+export type GetCreatorOpts = {
+	limit?: number
+	skip?: number
+}
+
+export async function getTotalCreators() {
+	const res = <{total: number}[]> await db.query('SELECT COUNT(*) as total FROM creators')
+	return res[0].total
+}
+
+export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
+	const result = <Creator[]>await db.getObjects(process.env.DB_CREATORS, {
+		limit: opts.limit,
+		skip: opts.skip
+	})
+
+	return result
+}
 
 // Async so that later this can do a DB query to check permissions
 // Something like SELECT EXISTS(SELECT id FROM creator_users WHERE user_id = ? AND creator_id = ?))

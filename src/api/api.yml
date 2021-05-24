@@ -49,6 +49,16 @@ creator_get:
   environment:
     ${file(src/dynamic-environment.js)):creator}
 
+creators_get:
+  handler: src/api/creators/creator.creators_get
+  events:
+    - http:
+        method: get
+        path: /creators
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
+
 creator_post:
   handler: src/api/creators/creator.creator_post
   events:

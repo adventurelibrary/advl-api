@@ -287,6 +287,34 @@ export async function getObj (tableName:string, id:string) {
   return rows[0]
 }
 
+export type GetObjectsOpts = {
+  limit: number,
+  skip: number,
+}
+
+export async function getObjects (tableName:string, {
+  limit,
+  skip
+} : GetObjectsOpts) {
+  const params : QueryParams = {}
+  let sql = `SELECT * FROM ${tableName} `
+
+  if (limit) {
+    sql += ` LIMIT :limit `
+    params.limit = limit
+  }
+
+  if (skip) {
+    sql += `
+  OFFSET :skip`
+    params.skip = skip
+  }
+
+  const rows = await query(sql, params)
+  return rows
+}
+
+
 export async function updateObj(tableName:string, objID: string, updates : Record<string, any>){
   const updateString:string[] = [];
   const params : any[] = []

@@ -23,6 +23,7 @@ export type HandlerContext = {
   user?: User
   asset?: Asset
   creator?: Creator
+  query: Record<string, string>
 }
 
 // These options are used when creating a new handler to determine what oft-repeated
@@ -68,9 +69,17 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       opts.requireUser = true
     }
 
+    const query : Record<string, string> = {}
+    if (_evt.queryStringParameters) {
+      for(let key of Object.keys(_evt.queryStringParameters)){
+        query[key] = _evt.queryStringParameters[key]
+      }
+    }
+
     const ctx : HandlerContext = {
       lambdaContext: _ctx,
       event: _evt,
+      query: query
     }
 
     if (opts.takesJSON) {

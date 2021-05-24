@@ -2,6 +2,7 @@ import { Creator } from '../../interfaces/ICreator';
 import { idgen } from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
+  getCreators, getTotalCreators,
   insertCreator,
   updateCreator,
   userHasCreatorPermission,
@@ -22,6 +23,23 @@ export const creator_get = newHandler({
   return {
     status: 200,
     body: body
+  }
+})
+
+export const creators_get = newHandler({
+  requireAdmin: true,
+}, async ({query}) => {
+  const rows = await getCreators({
+    limit: parseInt(query.limit),
+    skip: parseInt(query.skip)
+  })
+  const total = await getTotalCreators()
+  return {
+    status: 200,
+    body: {
+      creators: rows,
+      total: total
+    }
   }
 })
 

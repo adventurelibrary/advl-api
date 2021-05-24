@@ -203,7 +203,7 @@ export const asset_download_link = newHandler({
   requireAsset: true
 }, async ({event, asset}: HandlerContext) => {
   let link = 'ERROR_FETCHING_LINK';
-  if(asset.fileType == "IMAGE"){
+  if(asset.filetype == "IMAGE"){
     link = b2.GetURL(<image_file_resolutions>event.queryStringParameters.type, asset);
   } else {
     throw new Error(`ERROR_FETCHING_LINK`)
