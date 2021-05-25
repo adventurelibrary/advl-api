@@ -10,23 +10,18 @@ type SqlParameter = AWSSqlParameter & {
 }
 
 // Each key in the obj will be inserted as a column
-export async function insertObj(tableName:string, obj:any){
-  try{
-    let columns: string[] = []
-    let values: any[] = []
-    for(let key of Object.keys(obj)){
-      columns.push(key);
-      values.push(obj[key])
-    }
-    const qmarks = values.map(_ => '?')
-
-    let _sql = `INSERT INTO ${tableName}(${columns.join(",")}) VALUES (${qmarks.join(",")})`;
-    const result = await executeStatement(_sql, values)
-    console.debug("Result: ", result);
-    return result;
-  } catch (e){
-    throw e;
+export async function insertObj(tableName:string, obj:any) : Promise<string> {
+  let columns: string[] = []
+  let values: any[] = []
+  for(let key of Object.keys(obj)){
+    columns.push(key);
+    values.push(obj[key])
   }
+  const qmarks = values.map(_ => '?')
+
+  let _sql = `INSERT INTO ${tableName}(${columns.join(",")}) VALUES (${qmarks.join(",")}) RETURNING id`;
+  const result = await executeStatement(_sql, values)
+  return result.records[0][0].stringValue;
 }
 
 // Takes in an array of parameters that are meant to be put into an SQL query
@@ -276,6 +271,10 @@ function mapFromColumns(columnsMeta: Metadata) : (record : FieldList, idx: numbe
 // Runs a query which returns a list of results
 export async function query<T>(sql: string, params: QueryParams = []) : Promise<T[]> {
   const res = await executeStatement(sql, params)
+
+  if (!res.records) {
+    return []
+  }
 
   return res.records.map(mapFromColumns(res.columnMetadata))
 }

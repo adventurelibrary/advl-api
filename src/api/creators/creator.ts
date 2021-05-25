@@ -72,7 +72,7 @@ export const creator_post = newHandler({
   const id = await insertCreator(newCreator)
 
   return {
-    status: 204,
+    status: 201,
     body: {
       id: id
     }

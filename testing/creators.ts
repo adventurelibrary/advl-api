@@ -35,7 +35,7 @@ ava('creators:get a list of creators', async (t) => {
 	t.pass()
 })
 
-ava('creators:post non-logged in tries to create a user', async (t) => {
+ava('creators:post non-logged in tries to create a creator', async (t) => {
 	const res = await request('/creator', {
 		method: 'POST',
 	})
@@ -47,7 +47,7 @@ ava('creators:post non-logged in tries to create a user', async (t) => {
 	t.pass()
 })
 
-ava('creators:post non-admin in tries to create a user', async (t) => {
+ava('creators:post non-admin in tries to create a creator', async (t) => {
 	const res = await request('/creator', {
 		method: 'POST',
 		userKey: 'TEST1'
@@ -80,6 +80,43 @@ ava('creators: create validation', async (t) => {
 	const json = await res.json()
 	t.truthy(json.error.key == 'validation')
 	t.is(json.error.details[0].field, 'name')
+
+	t.pass()
+})
+
+ava('creators:create success', async (t) => {
+	let res = await request('/creator', {
+		method: 'POST',
+		userKey: 'ADMIN1',
+		body: {
+			name: 'Creatortron'
+		}
+	})
+
+	let err = await testResStatus(res,201)
+	if (err) {
+		t.fail(err)
+	}
+
+	const json = await res.json()
+	const id = json.id
+
+	// Cleanup: destroy the new thing
+	res = await request('database', {
+		method: 'POST',
+		body: {
+			query: `
+DELETE FROM creators
+WHERE id = ?
+`,
+			params: [id]
+		}
+	})
+
+	err = await testResStatus(res,200)
+	if (err) {
+		t.fail(err)
+	}
 
 	t.pass()
 })
