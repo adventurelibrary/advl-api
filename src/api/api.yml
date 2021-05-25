@@ -31,7 +31,6 @@ user:
         cors: true
   environment:
     ${file(src/dynamic-environment.js):user}
-
 ################## CREATORS #########################
 creator:
   handler: src/api/users/creator.creator
@@ -42,6 +41,9 @@ creator:
         cors: true
   environment:
     ${file(src/dynamic-environment.js)):creator}
+################## BUNDLES #########################
+bundle:
+  handler: src/api/assets/bundles.bundle
 
 ################## ASSETS #########################
 get_upload_signature:
