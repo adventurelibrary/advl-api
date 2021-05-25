@@ -1,5 +1,6 @@
 export interface User {
   id: string,
+  is_admin: boolean,
   username: string,
   email: string,
   notification_preferences: NotificationPreferences,

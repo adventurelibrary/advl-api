@@ -1,48 +1,61 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
-import { errorResponse, newResponse } from '../common/response';
 import {updateUser, validateUserToken} from '../../lib/user';
 import { User } from '../../interfaces/IUser';
 import * as db from '../common/postgres';
-import {getEventUser} from "../common/events";
+import {newHandler} from "../common/handlers";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
  * GET - returns user if auth token is correct
  * PUT - updates user
  */
-export const user: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse();
 
-  try{
-    const user: User = await getEventUser(_evt);
-    if(_evt.httpMethod == "GET"){
-      if(user == undefined){
-        let userToken = validateUserToken(_evt.headers.Authorization.split(" ")[1]);
-        //create new user
-        const newUser:User = {
-          id: userToken.sub,
-          username: userToken['cognito:username'],
-          email: userToken.email,
-          notification_preferences: {},
-          last_seen: new Date(),
-          join_date: new Date()
-        }
-
-        await db.insertObj(process.env.DB_USERS, newUser);
-
-        response.statusCode = 201;
-        response.body = JSON.stringify(newUser);
-        return response;
-      } else {
-        response.statusCode = 200;
-        await updateUser(<User>user, {last_seen: new Date()})
-        response.body = JSON.stringify(user)
-        return response;
+export const user_get = newHandler({
+  includeUser: true
+}, async ({user, event}) => {
+  // Not logged in, but they have an Auth header
+  if (!user && event.headers.Authorization) {
+    let userToken
+    try {
+      userToken = validateUserToken(event.headers.Authorization.split(' ')[1]);
+    } catch (ex) {
+      console.log('Could not verify JWT', ex)
+      return {
+        status: 204
       }
-    } else if (_evt.httpMethod == "PUT") {
-      await updateUser(<User>user, JSON.parse(_evt.body))
     }
-  } catch (E){
-    return errorResponse(_evt, E);
+    const newUser:User = {
+      id: userToken.sub,
+      username: userToken['cognito:username'],
+      email: userToken.email || userToken.username + '@thisemailisfake.com',
+      notification_preferences: {},
+      is_admin: false,
+      last_seen: new Date(),
+      join_date: new Date()
+    }
+
+    await db.insertObj(process.env.DB_USERS, newUser);
+    return {
+      status: 201,
+      body: newUser
+    }
+  } else if (user) {
+    // TODO: updateUserLastSeen()
+    await updateUser(user, {last_seen: new Date()})
   }
-}
+  return {
+    status: 200,
+    body: user
+  }
+})
+
+export const user_put = newHandler({
+  requireUser: true
+}, async ({user, json}) => {
+  await updateUser(user, {
+    ...json,
+    last_seen: new Date()
+  })
+  return {
+    status: 204,
+  }
+})

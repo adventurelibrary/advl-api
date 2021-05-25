@@ -1,12 +1,14 @@
-import {APIGatewayProxyEventQueryStringParameters, APIGatewayProxyHandler} from 'aws-lambda';
+import {
+  APIGatewayProxyEventQueryStringParameters,
+  APIGatewayProxyHandler
+} from 'aws-lambda';
 import { search } from '../common/elastic';
-import { Asset, image_file_resolutions, REQ_Query } from '../../interfaces/IAsset';
+import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
-import { getAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
-import { User } from '../../interfaces/IUser';
-import { getUserByToken, isAdmin } from '../../lib/user';
-import {getEventUser} from "../common/events";
+import { searchAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
+import { isAdmin } from '../../lib/user';
+import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 
 function transformAsset (asset : Asset) : Asset {
   asset.previewLink = b2.GetURL('watermarked', asset);
@@ -35,7 +37,7 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
 
   // Certain fields are comma delimited, which we override here
   queryObj.tags = getCSVParam(eventParams, 'tags')
-  queryObj.categories = getCSVParam(eventParams, 'categories')
+  queryObj.categories = <category[]>getCSVParam(eventParams, 'categories')
   queryObj.ids = getCSVParam(eventParams, 'ids')
 
   if (isNaN(queryObj.size) || queryObj.size <= 0) {
@@ -53,7 +55,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj.id) {
-      let FrontEndAsset:Asset = await getAsset(queryObj.id);
+      let FrontEndAsset:Asset = await searchAsset(queryObj.id);
       response.body = JSON.stringify(transformAsset(FrontEndAsset));
       response.statusCode = 200;
       return response;
@@ -63,7 +65,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     if(queryObj.ids && queryObj.ids.length) {
       let FEAssets:Asset[] = [];
       for(let id of queryObj.ids){
-        let FrontEndAsset:Asset = await getAsset(id);
+        let FrontEndAsset:Asset = await searchAsset(id);
         FEAssets.push(transformAsset(FrontEndAsset));
       }
       response.body = JSON.stringify(FEAssets);
@@ -191,57 +193,64 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
   }
 }
 
+
 /**
  * TODO
  * Only authorized users should be able to fetch certain types of files
  */
-export const asset_download_link: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse()
-
-  try{
-    let asset:Asset = await getAsset(_evt.queryStringParameters.id)
-    let link = 'ERROR_FETCHING_LINK';
-    if(asset.file_type == "IMAGE"){
-      link = b2.GetURL(<image_file_resolutions>_evt.queryStringParameters.type, asset);
-      response.body=JSON.stringify({url: link});
-    }
-    response.statusCode = 200;
-    return response;
-  } catch (E){
-    return errorResponse(_evt, E)
+export const asset_download_link = newHandler({
+  includeUser: true, // For later, we can check the user passed in
+  requireAsset: true
+}, async ({event, asset}: HandlerContext) => {
+  let link = 'ERROR_FETCHING_LINK';
+  if(asset.filetype == "IMAGE"){
+    link = b2.GetURL(<image_file_resolutions>event.queryStringParameters.type, asset);
+  } else {
+    throw new Error(`ERROR_FETCHING_LINK`)
   }
-}
-
-
-export const update_asset: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse()
-  try{
-    let user: User = await getEventUser(_evt);
-    if(!user){
-      throw new Error("You must be logged in to upload a new asset");
+  return {
+    status: 200,
+    body: {
+      url: link
     }
-
-    //Specifically ANY so only the relevant keys are passed in
-    let reqAssets:any[] = JSON.parse(_evt.body);
-    for (let i = 0; i < reqAssets.length; i++) {
-      const reqAsset = reqAssets[i]
-      const id = reqAsset.id
-      if (!id) {
-        throw new Error(`No id provided at index ${i}`)
-      }
-      const asset:Asset = await getAsset(id);
-
-      if(user.username != asset.creator_name || !isAdmin(user.id)){
-        throw new Error("User doesn't have permissions to edit this asset");
-      }
-
-      await updateAsset(reqAsset, asset)
-    }
-
-    response.statusCode = 200;
-    response.body = JSON.stringify({success: "Assets Updated"})
-    return response;
-  } catch (E){
-    return errorResponse(_evt, E)
   }
-}
+})
+
+// Returns the asset directly from our database
+export const get_asset : APIGatewayProxyHandler = newHandler({
+  requireAsset: true
+}, async (ctx : HandlerContext) : Promise<HandlerResult> => {
+  return {
+    status: 200,
+    body: ctx.asset
+  }
+})
+
+// Takes in an array of asset data as the body and updates each of them
+export const update_asset : APIGatewayProxyHandler = newHandler({
+  requireUser: true,
+}, async (ctx : HandlerContext) : Promise<HandlerResult> => {
+  const {event, user} = ctx
+
+  //Specifically ANY so only the relevant keys are passed in
+  let reqAssets:any[] = JSON.parse(event.body);
+  for (let i = 0; i < reqAssets.length; i++) {
+    const reqAsset = reqAssets[i]
+    const id = reqAsset.id
+    if (!id) {
+      throw new Error(`No id provided at index ${i}`)
+    }
+    const asset:Asset = await searchAsset(id);
+
+    // TODO: Check the owner_id of the asset's creator with a query
+    //  that query can later be expanded for user's having multiple access
+    if(user.username != asset.creator_name || !isAdmin(user.id)){
+      throw new Error("User doesn't have permissions to edit this asset");
+    }
+
+    await updateAsset(asset, reqAsset)
+  }
+  return {
+    status: 204,
+  }
+})

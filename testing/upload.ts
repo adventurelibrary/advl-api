@@ -9,13 +9,11 @@ import {request, testResStatus} from "./lib/lib";
 const uploadReq:REQ_Get_Signature = {
   name: "Mountain Dig Site",
   description: "Frag Maps Mountain Dig Site",
-  collectionID: "001",
   category: "token",
-  tags: [],
-  unlockPrice: 0,
-  revenueShare: {}
+  tags: ['Mountain'],
+  unlock_price: 0,
+  revenue_share: {}
 }
-
 
 test('upload: upload a file while not logged in', async (t) => {
   const response = await request('assets/get_signature', {
@@ -28,7 +26,30 @@ test('upload: upload a file while not logged in', async (t) => {
   }
   t.pass()
 })
-test('upload: upload a file to transloadit', async (t) => {
+
+test('upload: validation', async (t) => {
+  const response = await request('assets/get_signature', {
+    userKey: 'ADMIN1',
+    method: "POST",
+    body: {
+
+    }
+  })
+  let err = await testResStatus(response, 400)
+  if (err) {
+    t.fail(err)
+    return
+  }
+
+  const json = await response.json()
+  t.is(json.error.key, 'validation')
+  t.is(json.error.details[0].field, 'name')
+  t.is(json.error.details[1].field, 'creator_id')
+  t.is(json.error.details[2].field, 'category')
+  t.pass()
+})
+
+test.skip('upload: upload a file to transloadit', async (t) => {
   //const productionURL = 'https://api.adventurelibrary.art/'
   let transloadit_response
   try{
@@ -40,9 +61,15 @@ test('upload: upload a file to transloadit', async (t) => {
     let err = await testResStatus(response, 200)
     if (err) {
       t.fail(err)
+      return
     }
 
-    const json = response.data
+    const json = await response.json()
+
+    if (!json) {
+      t.fail('No json returned from get signature')
+      return
+    }
 
     let form = new FormData();
     form.append('file', fs.createReadStream('tests/files/Mountain_Dig_Site.png'));

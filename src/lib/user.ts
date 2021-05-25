@@ -3,7 +3,6 @@ import { User, UserToken } from '../interfaces/IUser';
 
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-import { Creator } from '../interfaces/ICreator';
 import { Admin } from '../interfaces/IAdmin';
 
 export async function getUserByID(_sub: string): Promise<User> {
@@ -11,7 +10,6 @@ export async function getUserByID(_sub: string): Promise<User> {
     const user = <User> await db.getObj(process.env.DB_USERS, _sub);
     return user;
   } catch (e){
-    console.log('e', e)
     return undefined;
   }
 }
@@ -25,28 +23,24 @@ export async function updateUser(user:User, updates:any){
   await db.updateObj(process.env.DB_USERS, user.id, updates);
 }
 
-export async function updateCreator(creator:Creator, updates:any){
-  await db.updateObj(process.env.DB_CREATORS, creator.id, updates)
-}
 
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json
 //const jwks = JSON.parse(fs.readFileSync("src/api/users/us-east-1_029QsJhTM.json").toString())
 //key 0 is for IdTokens and key 1 is for Access Tokens
 const jwks = require('./us-east-1_029QsJhTM.json').keys[0]
 export function validateUserToken(userToken:string){
+  if (!userToken) {
+    throw new Error(`Provided user token was blank`)
+  }
+  const decoded = jwt.decode(userToken)
+  console.log('WARNING! Not verifying the JWT, just decoding it. Verifying was not working')
+  return <UserToken>decoded
+
   try{
     return <UserToken>jwt.verify(userToken, jwkToPem(jwks))
   } catch (e){
+    console.log('error trying to verify')
     throw e;
-  }
-}
-
-export async function getCreatorByID(creatorID: string){
-  try {
-    const creator = <Creator> await db.getObj(process.env.DB_CREATORS, creatorID);
-    return creator;
-  } catch(e){
-    return undefined;
   }
 }
 

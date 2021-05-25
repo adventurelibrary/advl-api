@@ -29,10 +29,26 @@ export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
 export const debug_sync:APIGatewayProxyHandler = async(_evt, _ctx) => {
   try{
     let response = newResponse();
-    const sql = `SELECT * FROM assets`
-    const assets = await query<Asset>(sql)
-    await indexAssetsSearch(assets)
+    const sql = `SELECT a.*, c.name as creator_name
+FROM assets a
+JOIN creators c ON c.id = a.creator_id
+`
+    let assets
+    try {
+      assets = await query<Asset>(sql)
+      console.debug(`Found ${assets.length} assets to sync`)
+    } catch (ex) {
+      console.debug('ex', ex)
+      return errorResponse(_evt, ex, 500)
+    }
+    try {
+      await indexAssetsSearch(assets)
+    } catch (ex) {
+      console.debug('ex from index', ex)
+      return errorResponse(_evt, ex, 500)
+    }
 
+    response.statusCode = 204
     return response;
   } catch (e) {
     return errorResponse(_evt,e);

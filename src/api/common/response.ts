@@ -1,3 +1,5 @@
+import {APIError} from "../../lib/errors";
+
 export function newResponse ()  {
 	return {
 		statusCode: 500,
@@ -10,15 +12,33 @@ export function newResponse ()  {
 	}
 }
 
-export function errorResponse (_evt, error) {
+export function errorResponse (_evt, error, status?: number) {
 	const response = newResponse()
 	console.error(`ERROR | \n Event: ${_evt} \n Error: ${error}`);
+	if (error instanceof APIError) {
+		console.log('ERROR is APIError')
+		response.body = JSON.stringify({
+			error: {
+				message: error.message,
+				key: error.key,
+				details: error.details,
+			},
+		})
+		response.statusCode = error.status || 500
+		return response
+	}
+
 	// TODO: Change this to like an environment variable, or a user check or something
 	if (true) {
 		response.body = JSON.stringify({
-			error: error.toString(),
-			details: JSON.stringify(error)
+			error: {
+				message: error.toString(),
+				details: JSON.stringify(error)
+			},
 		})
+	}
+	if (status > 0) {
+		response.statusCode = status
 	}
 	return response;
 }

@@ -10,7 +10,7 @@ const b2 = new S3({
 
 
 export function GetURL(type:image_file_resolutions, asset:Asset){
-  let ext = type == 'original' ? asset.originalFileExt : 'webp'
+  let ext = type == 'original' ? asset.original_file_ext : 'webp'
   let bucket = '';
   switch(type){
     case 'optimized':

@@ -1,34 +1,34 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { REQ_Get_Signature, RES_Get_Signature, Asset } from '../../interfaces/IAsset';
 import * as crypto from 'crypto';
-import slugify from 'slugify';
 import * as qs from 'querystring';
-import {idgen} from '../common/nanoid';
 import { search } from '../common/elastic';
 import {errorResponse, newResponse} from "../common/response";
 import * as db from '../common/postgres'
 import {getEventUser} from "../common/events";
-
+import {createNewAsset, validateAsset} from "../../lib/assets";
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
 
   try{
-    let FileRequest:REQ_Get_Signature = JSON.parse(_evt.body);
     const user = await getEventUser(_evt)
     if(!user){
       throw new Error("You must be logged in to upload a new asset");
     }
+    const newAsset = <Asset>JSON.parse(_evt.body);
+    validateAsset(newAsset)
 
 
-    let newAsset:Asset = await createNewAsset(user.username, FileRequest);
+    const created = await createNewAsset(user.username, newAsset);
+    await validateAsset(newAsset)
     let params = await getParams(newAsset);
     let signature = await calcSignature(params);
 
     let _res:RES_Get_Signature = {
       params: params,
       signature: signature,
-      assetID: newAsset.id
+      assetID: created.id
     }
 
     response.statusCode = 200
@@ -38,31 +38,6 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   }catch (E){
     return errorResponse(_evt, E)
   }
-}
-
-async function createNewAsset(_creatorName: string, req:REQ_Get_Signature): Promise<Asset> {
-  let newAsset: Asset = {
-    id: idgen(),
-    slug: slugify(req.name).toLowerCase(),
-    sizeInBytes: 0,
-    uploaded: new Date(),
-    visibility: "PENDING",
-    originalFileExt: 'UNKOWN',
-    file_type: "IMAGE",
-    creator_name: _creatorName,
-    unlock_count: 0,
-    name: req.name,
-    description: req.description,
-    collectionID: req.collectionID,
-    category: req.category,
-    tags: req.tags,
-    unlockPrice: req.unlockPrice,
-    revenueShare: req.revenueShare
-  }
-
-  await db.insertObj(process.env.DB_ASSETS, newAsset);
-  console.log(`PENDING ASSET CREATED\n`, newAsset);
-  return newAsset;
 }
 
 async function getParams(asset: Asset): Promise<string> {
@@ -81,14 +56,14 @@ async function getParams(asset: Asset): Promise<string> {
   let _steps = require("./file_upload_steps.json").steps;
 
   _steps.export_original.credentials = "ADVL Originals"
-  _steps.export_original.path = `${asset.creator_name}/${asset.id}.`+'${file.ext}';
+  _steps.export_original.path = `${asset.creator_id}/${asset.id}.`+'${file.ext}';
   _steps.export_compressed_image.credentials = "ADVL WEBP"
-  _steps.export_compressed_image.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_compressed_image.path = `${asset.creator_id}/${asset.id}.webp`;
 
   _steps.export_watermark.credentials = "ADVL Watermarked"
-  _steps.export_watermark.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_watermark.path = `${asset.creator_id}/${asset.id}.webp`;
   _steps.export_thumb.credentials = "ADVL Thumbs"
-  _steps.export_thumb.path = `${asset.creator_name}/${asset.id}.webp`;
+  _steps.export_thumb.path = `${asset.creator_id}/${asset.id}.webp`;
 
   const params = JSON.stringify({
     auth: {
@@ -98,7 +73,7 @@ async function getParams(asset: Asset): Promise<string> {
     steps: _steps,
     notify_url: process.env.IS_OFFLINE == "true" ? process.env.TRANSLOADIT_OFFLINE_NOTIFY_URL : process.env.TRANSLOADIT_NOTIFY_URL,
     fields: {
-      creatorName: asset.creator_name,
+      creatorID: asset.creator_id,
       assetID: asset.id
     }
   })
@@ -140,12 +115,12 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
           visibility: "HIDDEN"
         });
 
-        asset.sizeInBytes = notification.bytes_received;
+        asset.size_in_bytes = notification.bytes_received;
         asset.visibility = "HIDDEN";
         if(notification.uploads.length > 1){
           throw new Error("Transloadit got multiple file uploads!");
         }
-        asset.originalFileExt = notification.uploads[0].ext;
+        asset.original_file_ext = notification.uploads[0].ext;
         //Add the asset to the Elasticsearch DB
         await search.index({
           index: process.env.INDEX_ASSETDB,
