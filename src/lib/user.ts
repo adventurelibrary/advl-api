@@ -14,15 +14,17 @@ export async function getUserByID(_sub: string): Promise<User> {
   }
 }
 
-export async function getUserByToken(jwt: string): Promise<User>{
+export async function getUserByToken(jwt: string): Promise<User | undefined>{
   const userToken = validateUserToken(jwt);
+  if (!userToken) {
+    return undefined
+  }
   return await getUserByID(userToken.sub);
 }
 
 export async function updateUser(user:User, updates:any){
   await db.updateObj(process.env.DB_USERS, user.id, updates);
 }
-
 
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json
 //const jwks = JSON.parse(fs.readFileSync("src/api/users/us-east-1_029QsJhTM.json").toString())

@@ -11,9 +11,7 @@ export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
     let sql:string = body['query'];
     let params = body.params
 		const result = await query(sql, params);
-    console.log('result', result)
     response.body = JSON.stringify(result);
-    console.log('body', response.body)
     response.statusCode = 200;
     return response;
   } catch (e){

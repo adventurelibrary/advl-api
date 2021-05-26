@@ -12,3 +12,4 @@ export const users = {
     password: 'test-password'
   }
 }
+

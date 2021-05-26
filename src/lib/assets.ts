@@ -69,7 +69,7 @@ export async function updateAsset (original:Asset, updates: any) {
 	await updateAssetSearch(original)
 }
 
-export async function createNewAsset(creatorID: string, req:REQ_Get_Signature): Promise<Asset> {
+export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 	let newAsset: Asset = {
 		id: idgen(),
 		slug: slugify(req.name).toLowerCase(),
@@ -78,7 +78,7 @@ export async function createNewAsset(creatorID: string, req:REQ_Get_Signature): 
 		visibility: "PENDING",
 		original_file_ext: 'UNKOWN',
 		filetype: "IMAGE",
-		creator_id: creatorID,
+		creator_id: req.creator_id,
 		unlock_count: 0,
 		name: req.name,
 		description: req.description,
@@ -89,7 +89,8 @@ export async function createNewAsset(creatorID: string, req:REQ_Get_Signature): 
 	}
 
 
-	await db.insertObj(process.env.DB_ASSETS, assetToDatabaseWrite(newAsset));
+	const dbWrite = assetToDatabaseWrite(newAsset)
+	await db.insertObj(process.env.DB_ASSETS, dbWrite);
 	console.log(`PENDING ASSET CREATED\n`, newAsset);
 	return newAsset;
 }
@@ -101,12 +102,17 @@ export function assetToDatabaseWrite (asset: Asset) : any {
 	const dbwrite = <any>asset
 	dbwrite.visibility = new CustomSQLParam({
 		value: asset.visibility,
-		castTo: 'visibility_types'
+		castTo: 'visibility'
 	})
 
 	dbwrite.filetype = new CustomSQLParam({
 		value: asset.filetype,
 		castTo: 'filetype'
+	})
+
+	dbwrite.category = new CustomSQLParam({
+		value: asset.category,
+		castTo: 'category'
 	})
 
 	// TODO: Protected against SQL injection

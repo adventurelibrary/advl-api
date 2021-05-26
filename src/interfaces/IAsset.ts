@@ -11,6 +11,7 @@ interface UserDefinedAssetInfo {
   name: string,
   description: string,
   category: category,
+  creator_id: string,
   tags: string[],
   unlock_price: number,
   revenue_share: RevenueShare

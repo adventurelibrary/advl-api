@@ -1,5 +1,5 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { REQ_Get_Signature, RES_Get_Signature, Asset } from '../../interfaces/IAsset';
+import { RES_Get_Signature, Asset } from '../../interfaces/IAsset';
 import * as crypto from 'crypto';
 import * as qs from 'querystring';
 import { search } from '../common/elastic';
@@ -19,8 +19,7 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
     const newAsset = <Asset>JSON.parse(_evt.body);
     validateAsset(newAsset)
 
-
-    const created = await createNewAsset(user.username, newAsset);
+    const created = await createNewAsset(newAsset);
     await validateAsset(newAsset)
     let params = await getParams(newAsset);
     let signature = await calcSignature(params);
