@@ -111,7 +111,7 @@ export function assetToDatabaseWrite (asset: Asset) : any {
 	// We have to pass the parameter to the Data API as a string
 	// So we have to change our query to cast it in the db from string
 	// to our custom type
-	const dbwrite = <any>asset
+	const dbwrite = <any>Object.assign({}, asset)
 	dbwrite.visibility = new CustomSQLParam({
 		value: asset.visibility,
 		castTo: 'visibility'
@@ -142,9 +142,7 @@ export async function indexAssetSearch (asset: Asset) {
 	await search.index({
 		index: process.env.INDEX_ASSETDB,
 		id: asset.id,
-		body: {
-			doc: asset
-		}
+		body: asset
 	});
 }
 export async function updateAssetSearchById (id: string) {
