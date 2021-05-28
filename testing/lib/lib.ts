@@ -40,7 +40,7 @@ export async function request (url: string, opts: any = {})  {
 
   // Authomatically convert objects our tests pass into JSON
   if (opts.body) {
-    if (typeof opts.body == 'object') {
+    if (typeof opts.body == 'object' || Array.isArray(opts.body)) {
       opts.body = JSON.stringify(opts.body)
       opts.headers['Content-Type'] = 'application/json'
     }

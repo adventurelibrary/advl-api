@@ -47,5 +47,37 @@ test('asset: get an asset download link with wrong id', async (t) => {
 	t.pass()
 })
 
+test.serial('asset:put update an asset', async (t) => {
+	let res = await request(`assets/${ASSET_1}`)
+	let err = await testResStatus(res, 200)
+	if (err) {
+		t.fail(err)
+	}
+	const json = await res.json()
+	const asset = json
+	t.is(asset.id, ASSET_1)
 
-// TODO: Test(s) for PUT updating asset(s)
+	// This update doesn't actually change anything
+	res = await request(`assets/update`, {
+		userKey: 'ADMIN1',
+		method: 'PUT',
+		body: [asset]
+	})
+	err = await testResStatus(res, 204)
+	if (err) {
+		t.fail(err)
+	}
+
+	// This cleans up the data
+	res = await request(`assets/update`, {
+		userKey: 'ADMIN1',
+		method: 'PUT',
+		body: [asset]
+	})
+	err = await testResStatus(res, 204)
+	if (err) {
+		t.fail(err)
+	}
+
+	t.pass()
+})

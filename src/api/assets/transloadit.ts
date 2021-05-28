@@ -2,11 +2,14 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { RES_Get_Signature, Asset } from '../../interfaces/IAsset';
 import * as crypto from 'crypto';
 import * as qs from 'querystring';
-import { search } from '../common/elastic';
 import {errorResponse, newResponse} from "../common/response";
-import * as db from '../common/postgres'
 import {getEventUser} from "../common/events";
-import {createNewAsset, validateAsset} from "../../lib/assets";
+import {
+  createNewAsset,
+  getAsset,
+  updateAsset,
+  validateAsset
+} from "../../lib/assets";
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
@@ -17,11 +20,15 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
       throw new Error("You must be logged in to upload a new asset");
     }
     const newAsset = <Asset>JSON.parse(_evt.body);
-    validateAsset(newAsset)
+    await validateAsset(newAsset)
 
     const created = await createNewAsset(newAsset);
-    await validateAsset(newAsset)
-    let params = await getParams(newAsset);
+
+    if (!created.id) {
+      throw new Error('Created asset is missing id')
+    }
+
+    let params = await getParams(created);
     let signature = await calcSignature(params);
 
     let _res:RES_Get_Signature = {
@@ -64,7 +71,7 @@ async function getParams(asset: Asset): Promise<string> {
   _steps.export_thumb.credentials = "ADVL Thumbs"
   _steps.export_thumb.path = `${asset.creator_id}/${asset.id}.webp`;
 
-  const params = JSON.stringify({
+  const params = {
     auth: {
       key: authKey,
       expires: expires
@@ -75,9 +82,13 @@ async function getParams(asset: Asset): Promise<string> {
       creatorID: asset.creator_id,
       assetID: asset.id
     }
-  })
+  }
 
-  return params;
+  if (!params.fields.assetID) {
+    throw new Error('WHERE IS TEH ASSET ID?')
+  }
+
+  return JSON.stringify(params);
 }
 
 async function calcSignature(params: string): Promise<string>{
@@ -106,26 +117,22 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
     if(notification.error){
       throw new Error(JSON.stringify(notification))
     } else if(notification.ok == "ASSEMBLY_COMPLETED"){
-      let params = JSON.parse(notification.params);
-      let asset = <Asset> (await db.getObj(process.env.DB_ASSETS, params.fields.assetID));
-      if(asset && asset.visibility == "PENDING"){
-        await db.updateObj(process.env.DB_ASSETS, asset.id, {
-          sizeInBytes: notification.bytes_received,
-          visibility: "HIDDEN"
-        });
+      if(notification.uploads.length > 1){
+        throw new Error("Transloadit got multiple file uploads!");
+      }
 
-        asset.size_in_bytes = notification.bytes_received;
-        asset.visibility = "HIDDEN";
-        if(notification.uploads.length > 1){
-          throw new Error("Transloadit got multiple file uploads!");
-        }
-        asset.original_file_ext = notification.uploads[0].ext;
-        //Add the asset to the Elasticsearch DB
-        await search.index({
-          index: process.env.INDEX_ASSETDB,
-          id: asset.id,
-          body: asset
-        });
+      let params = JSON.parse(notification.params);
+      const assetId = params.fields.assetID
+      if (!assetId) {
+        throw new Error('Missing assetID from params')
+      }
+      let asset = await getAsset(params.fields.assetID)
+      if(asset && asset.visibility == "PENDING"){
+        await updateAsset(asset,  {
+          size_in_bytes: notification.bytes_received,
+          visibility: 'HIDDEN',
+          original_file_ext: notification.uploads[0].ext
+        })
 
         console.log(`${asset.id} moved from PENDING to HIDDEN.`);
       }

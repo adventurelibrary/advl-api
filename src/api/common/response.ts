@@ -15,6 +15,9 @@ export function newResponse ()  {
 export function errorResponse (_evt, error, status?: number) {
 	const response = newResponse()
 	console.error(`ERROR | \n Event: ${_evt} \n Error: ${error}`);
+	if (error.stack) {
+		console.log('stack', error.stack)
+	}
 	if (error instanceof APIError) {
 		console.log('ERROR is APIError')
 		response.body = JSON.stringify({
