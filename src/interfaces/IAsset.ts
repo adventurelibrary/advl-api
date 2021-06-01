@@ -11,6 +11,7 @@ interface UserDefinedAssetInfo {
   name: string,
   description: string,
   category: category,
+  creator_id: string,
   tags: string[],
   unlock_price: number,
   revenue_share: RevenueShare
@@ -22,7 +23,7 @@ export interface Asset extends UserDefinedAssetInfo{
   id: string,
   slug: string,
   size_in_bytes: number,
-  uploaded: Date, //ISO String
+  uploaded: Date,
   visibility: visibility_types,
   unlock_count: number,
   filetype: "IMAGE" | "PDF" | "ZIP",

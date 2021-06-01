@@ -6,7 +6,8 @@ import {getObj} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import CustomSQLParam from "../api/common/customsqlparam";
-import {Validation} from "./errors";
+import {APIError, Validation} from "./errors";
+import {User} from "../interfaces/IUser";
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -41,7 +42,18 @@ export async function searchAsset (id: string) : Promise<Asset> {
 }
 
 export async function getAsset (id: string) : Promise<Asset> {
-	return <Asset> await getObj(process.env.DB_ASSETS, id)
+	const result = <any>await getObj(process.env.DB_ASSETS, id)
+	return mapAssetRow(result)
+}
+
+// The data we get back from the DB might not be in a form that we want our javascript
+// to work with, so we transfer it here
+// For example, string dates need to become dates, JSON fields need to become objects
+function mapAssetRow (row: any) : Asset {
+	const asset = <Asset>row
+	asset.uploaded = new Date(row.uploaded)
+	asset.revenue_share = JSON.parse(row.revenue_share)
+	return asset
 }
 
 export async function updateAsset (original:Asset, updates: any) {
@@ -66,10 +78,10 @@ export async function updateAsset (original:Asset, updates: any) {
 	console.log("Updated Asset: ", sets)
 	await db.updateObj(process.env.DB_ASSETS, original.id, sets)
 
-	await updateAssetSearch(original)
+	await indexAssetSearch(original)
 }
 
-export async function createNewAsset(creatorID: string, req:REQ_Get_Signature): Promise<Asset> {
+export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 	let newAsset: Asset = {
 		id: idgen(),
 		slug: slugify(req.name).toLowerCase(),
@@ -78,7 +90,7 @@ export async function createNewAsset(creatorID: string, req:REQ_Get_Signature): 
 		visibility: "PENDING",
 		original_file_ext: 'UNKOWN',
 		filetype: "IMAGE",
-		creator_id: creatorID,
+		creator_id: req.creator_id,
 		unlock_count: 0,
 		name: req.name,
 		description: req.description,
@@ -88,9 +100,10 @@ export async function createNewAsset(creatorID: string, req:REQ_Get_Signature): 
 		revenue_share: req.revenue_share
 	}
 
-
-	await db.insertObj(process.env.DB_ASSETS, assetToDatabaseWrite(newAsset));
+	const dbWrite = assetToDatabaseWrite(newAsset)
+	const id = await db.insertObj(process.env.DB_ASSETS, dbWrite);
 	console.log(`PENDING ASSET CREATED\n`, newAsset);
+	newAsset.id = id
 	return newAsset;
 }
 
@@ -98,10 +111,10 @@ export function assetToDatabaseWrite (asset: Asset) : any {
 	// We have to pass the parameter to the Data API as a string
 	// So we have to change our query to cast it in the db from string
 	// to our custom type
-	const dbwrite = <any>asset
+	const dbwrite = <any>Object.assign({}, asset)
 	dbwrite.visibility = new CustomSQLParam({
 		value: asset.visibility,
-		castTo: 'visibility_types'
+		castTo: 'visibility'
 	})
 
 	dbwrite.filetype = new CustomSQLParam({
@@ -109,26 +122,34 @@ export function assetToDatabaseWrite (asset: Asset) : any {
 		castTo: 'filetype'
 	})
 
+	dbwrite.category = new CustomSQLParam({
+		value: asset.category,
+		castTo: 'category'
+	})
+
 	// TODO: Protected against SQL injection
 	dbwrite.tags = new CustomSQLParam({
 		value: '{' + asset.tags.map(t => '"' + t + '"').join(',') + '}',
 		castTo: 'TEXT[]',
 	})
+
 	return dbwrite
 }
 
 
-export async function updateAssetSearch (asset: Asset) {
-	// Update ES
-	await search.update({
+export async function indexAssetSearch (asset: Asset) {
+	// Update ES. This will insert it to ES if it's not on elasticsearch
+	await search.index({
 		index: process.env.INDEX_ASSETDB,
 		id: asset.id,
-		body: {
-			doc: asset
-		}
+		body: asset
 	});
 }
-
+export async function updateAssetSearchById (id: string) {
+	const asset = await getAsset(id)
+	return await indexAssetSearch(asset)
+}
+/*
 export async function indexAssetSearch (asset: Asset) {
 	// Update ES
 	await search.index({
@@ -136,7 +157,7 @@ export async function indexAssetSearch (asset: Asset) {
 		id: asset.id,
 		body: asset
 	});
-}
+}*/
 
 // This bulk update is based on the example here:
 // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/bulk_examples.html
@@ -205,4 +226,20 @@ export function validateAsset (asset: Asset) {
 		field: 'category'
 	})
 	val.throwIfErrors()
+}
+
+export function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
+	if (user.is_admin) {
+		return
+	}
+
+	console.log('asset ids to check', assetIds)
+
+	// TODO: Perform a query that joins user to creator to asset and checks user's permission
+
+	throw new APIError({
+		status: 403,
+		key: 'no_asset_access',
+		message: 'You do not have permission to access thos assets'
+	})
 }

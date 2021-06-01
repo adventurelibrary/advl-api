@@ -198,7 +198,7 @@ export async function executeStatement (sql: string, params : QueryParams = []) 
   // This strips out any extra fields that we're using before we send to RDS
   // Otherwise it will complain about unknown keys
   const sanitized = sanitizeSQLParams(sqlParams)
-  console.debug('SANITIZED PARAMS:', sanitized)
+  //console.debug('SANITIZED PARAMS:', sanitized)
 
   let response
   try {

@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import FormData from 'form-data';
 import test from 'ava'
 import {request, testResStatus} from "./lib/lib";
+import {CREATOR_1} from "./lib/fixtures";
 
 const uploadReq:REQ_Get_Signature = {
   name: "Mountain Dig Site",
@@ -12,7 +13,8 @@ const uploadReq:REQ_Get_Signature = {
   category: "token",
   tags: ['Mountain'],
   unlock_price: 0,
-  revenue_share: {}
+  revenue_share: {},
+  creator_id: CREATOR_1
 }
 
 test('upload: upload a file while not logged in', async (t) => {
@@ -46,6 +48,44 @@ test('upload: validation', async (t) => {
   t.is(json.error.details[0].field, 'name')
   t.is(json.error.details[1].field, 'creator_id')
   t.is(json.error.details[2].field, 'category')
+  t.pass()
+})
+
+test('upload:get signature', async (t) => {
+  let res = await request('assets/get_signature', {
+    userKey: 'ADMIN1',
+    method: "POST",
+    body: uploadReq
+  })
+  let err = await testResStatus(res, 200)
+  if (err) {
+    t.fail(err)
+    return
+  }
+
+  const json = await res.json()
+  t.true(json.signature.length > 10, 'Signature should be at least 10 chars long')
+  t.true(json.assetID.length > 0, 'Asset ID should exist')
+
+
+  // Cleanup: destroy the new thing
+  res = await request('database', {
+    method: 'POST',
+    body: {
+      query: `
+DELETE FROM assets
+WHERE id = ?
+`,
+      params: [json.assetID]
+    }
+  })
+
+  err = await testResStatus(res,200)
+  if (err) {
+    t.fail(err)
+  }
+
+
   t.pass()
 })
 

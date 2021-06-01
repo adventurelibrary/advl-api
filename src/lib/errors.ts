@@ -3,7 +3,16 @@ export class APIError {
 	key: string
 	message?: string
 	details: any[]
+
+	constructor ({status, key, message, details} : any) {
+		this.status = status
+		this.key = key
+		this.message = message
+		this.details = details
+	}
 }
+
+
 
 export type ValidationError = {
 	field?: string

@@ -6,9 +6,9 @@ import { search } from '../common/elastic';
 import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
-import { searchAsset, updateAsset, validateAssetQuery} from "../../lib/assets";
-import { isAdmin } from '../../lib/user';
+import {getAsset, searchAsset, updateAsset, validateAssetQuery, verifyUserHasAssetAccess} from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
+import {APIError} from "../../lib/errors";
 
 function transformAsset (asset : Asset) : Asset {
   asset.previewLink = b2.GetURL('watermarked', asset);
@@ -229,25 +229,30 @@ export const get_asset : APIGatewayProxyHandler = newHandler({
 // Takes in an array of asset data as the body and updates each of them
 export const update_asset : APIGatewayProxyHandler = newHandler({
   requireUser: true,
+  takesJSON: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
-  const {event, user} = ctx
+  const {user, json} = ctx
 
   //Specifically ANY so only the relevant keys are passed in
-  let reqAssets:any[] = JSON.parse(event.body);
+  let reqAssets:any[] = json
+  if (!Array.isArray(reqAssets)) {
+    throw new APIError({
+      status: 400,
+      message: 'Body must be an array of assets'
+    })
+  }
+
+  const assetIds = reqAssets.map(asset => asset.id)
+  await verifyUserHasAssetAccess(user, assetIds)
+
   for (let i = 0; i < reqAssets.length; i++) {
     const reqAsset = reqAssets[i]
     const id = reqAsset.id
     if (!id) {
       throw new Error(`No id provided at index ${i}`)
     }
-    const asset:Asset = await searchAsset(id);
 
-    // TODO: Check the owner_id of the asset's creator with a query
-    //  that query can later be expanded for user's having multiple access
-    if(user.username != asset.creator_name || !isAdmin(user.id)){
-      throw new Error("User doesn't have permissions to edit this asset");
-    }
-
+    const asset = await getAsset(id);
     await updateAsset(asset, reqAsset)
   }
   return {
