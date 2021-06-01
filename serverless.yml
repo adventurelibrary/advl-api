@@ -20,6 +20,14 @@ provider:
   timeout: 30
   apiGateway:
     minimumCompressionSize: 1024
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "rds-data:ExecuteStatement"
+        - "secretsmanager:*"
+      Resource:
+        - "arn:aws:rds:us-east-1:575357632480:cluster:advl-test-db-2"
+        - "arn:aws:secretsmanager:us-east-1:575357632480:secret:rds-db-credentials/cluster-CSIWAG2LX6VEWLR23DWNHFJ5VU/advl-EA98Jl"
   environment:
     ${file(src/.env.yml):common}
     
