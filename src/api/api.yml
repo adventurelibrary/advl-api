@@ -2,7 +2,7 @@
 debug_rds:
   handler: src/api/debug/rds.debug_rds
   events:
-    - http: 
+    - http:
         method: post
         path: /database
         cors: true
@@ -11,29 +11,35 @@ debug_rds:
 debug_sync:
   handler: src/api/debug/rds.debug_sync
   events:
-    - http: 
+    - http:
         method: post
         path: /database/sync
         cors: true
   environment:
     ${file(src/dynamic-environment.js):database}
 ################## USERS  #########################
-user: 
-  handler: src/api/users/user.user
+user_get:
+  handler: src/api/users/user.user_get
   events:
     - http: # GET session or create new user if it doesn't exist
         method: get
         path: /users
         cors: true
-    - http: # PUT updates the user
+  environment:
+    ${file(src/dynamic-environment.js):user}
+
+user_put:
+  handler: src/api/users/user.user_put
+  events:
+    - http: # PUT updates the currently logged in user
         method: put
         path: /users
         cors: true
   environment:
     ${file(src/dynamic-environment.js):user}
 ################## CREATORS #########################
-creator:
-  handler: src/api/users/creator.creator
+creator_get:
+  handler: src/api/creators/creator.creator_get
   events:
     - http:
         method: get
@@ -44,6 +50,36 @@ creator:
 ################## BUNDLES #########################
 bundle:
   handler: src/api/assets/bundles.bundle
+
+creators_get:
+  handler: src/api/creators/creator.creators_get
+  events:
+    - http:
+        method: get
+        path: /creators
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
+
+creator_post:
+  handler: src/api/creators/creator.creator_post
+  events:
+    - http:
+        method: post
+        path: /creator
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
+
+creator_put:
+  handler: src/api/creators/creator.creator_put
+  events:
+    - http:
+        method: put
+        path: /creator/{creatorID}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
 
 ################## ASSETS #########################
 get_upload_signature:
@@ -81,7 +117,7 @@ asset_download_link:
   events:
     - http:
         method: get
-        path: /assets/download
+        path: /assets/{assetID}/download
         cors: true
   environment:
     ${file(src/dynamic-environment.js):asset_download_link}
@@ -95,3 +131,13 @@ update_asset:
         cors: true
   environment:
     ${file(src/.env.yml):elastic}
+
+get_asset:
+  handler: src/api/assets/asset.get_asset
+  events:
+    - http:
+        method: get
+        path: /assets/{assetID}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):query_assets}

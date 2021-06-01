@@ -1,62 +1,29 @@
-import {CognitoUserPool, CognitoUser, AuthenticationDetails} from 'amazon-cognito-identity-js';
-import fetch from 'node-fetch';
-//import {testURL} from './constants';
-//import {CognitoUserAttribute} from 'amazon-cognito-identity-js';
-//import {idgen} from '../src/api/common/nanoid';
+import test from 'ava'
+import {signInUser} from "./lib/cognito";
+import {users} from "./lib/fixtures"
+import {getJSON} from "./lib/lib";
 
-
-let testURL = 'http://localhost:3000/v1/'
-
-let userpool = new CognitoUserPool({
-  ClientId: '19h0kbrgt3lmp72k2d1q41h4se',
-  UserPoolId: 'us-east-1_O29QsJhTM'
+const {TEST1} = users
+test('signup: getting session from logged in user should get their data', async (t) => {
+  const jwt = await signInUser(TEST1.username, TEST1.password)
+  if (!jwt) {
+    t.fail(`JWT is blank`)
+  }
+  const data = await getJSON('/users', {
+    headers: {
+      'Authorization': 'JWT ' + jwt
+    }
+  })
+  if (!data.username) {
+    t.fail(`Getting user returns no username`)
+    t.log(`JSON: ${JSON.stringify(data)}`)
+  }
+  t.pass()
 })
 
-user();
-export async function user(){
-  try{
-    //let user: CognitoUser = (await signupuser())['user'];
-    let jwt = await signinuser(new CognitoUser({
-      Username: 'test-user-01',
-      Pool: userpool
-    }));
-    console.log(jwt);
-
-    //send to ADVL server
-    await fetch(testURL+'users', {
-      method: 'get',
-      headers: {
-        "Authorization": "JWT " + jwt
-      }
-    })
-
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-async function signinuser(user: CognitoUser):Promise<string>{
-  return new Promise((resolve, reject) => {
-    const AuthData = new AuthenticationDetails({
-      //Username: user.getUsername(),
-      Username: 'test-user-01',
-      Password: 'test-password'
-    })
-
-    user.authenticateUser(AuthData, {
-      onSuccess: (success) => {
-        console.log("Success:", success)
-        //after logged in, send the user jwt to server
-        const jwt = success.getIdToken().getJwtToken();
-        resolve(jwt);
-      },
-      onFailure: (error) => {
-        console.error(error)
-        reject(error)
-      }
-    })
-  })
-}
+// TODO: Delete the user from the db first, ensure that it gets created. That test should be serial.
+// TODO: Get /users with no auth token
+// TODO: Get /users with invalid auth token
 
 /*
 async function signupuser(){

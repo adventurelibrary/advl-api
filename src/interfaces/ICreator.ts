@@ -1,6 +1,7 @@
 export interface Creator {
   id: string,
-  owner: string,
+  owner_id: string,
+  name: string
   description: string
 }
 

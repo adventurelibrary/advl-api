@@ -1,16 +1,17 @@
 export interface User {
   id: string,
+  is_admin: boolean,
   username: string,
   email: string,
   notification_preferences: NotificationPreferences,
-  last_seen: string,
-  join_date: string,
+  last_seen: Date,
+  join_date: Date,
 }
 
-//type UserType = "USER" | "MODERATOR" | "ADMIN" //Permissions 
+//type UserType = "USER" | "MODERATOR" | "ADMIN" //Permissions
 
 interface NotificationPreferences {
-  
+
 }
 
 export interface UserToken {
