@@ -11,3 +11,7 @@ export interface BundleAsset {
   asset_id: string, //FK to Assets
   rank: number
 }
+
+export interface REQ_Bundle_Create {
+  
+}
