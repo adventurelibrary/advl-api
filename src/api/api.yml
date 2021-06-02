@@ -139,5 +139,16 @@ get_asset:
         method: get
         path: /assets/{assetID}
         cors: true
+<<<<<<< HEAD
   environment:
     ${file(src/dynamic-environment.js):query_assets}
+=======
+
+get_my_bundles:
+  handler: src/api/bundles/bundle.get_my_bundles
+  events:
+    - http:
+        method: get
+        path: /my-bundles
+        cors: true
+>>>>>>> 3ce08ba925d91769691f4e5b0743e4c31093b96c
