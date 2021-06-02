@@ -28,5 +28,10 @@ module.exports = {
   database: {
     ...env.elastic,
     ...env.postgres
+  },
+  update_asset: {
+    ...env.postgres,
+    ...env.elastic,
+    ...env.backblaze
   }
 }

@@ -232,7 +232,6 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
   takesJSON: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
   const {user, json} = ctx
-
   //Specifically ANY so only the relevant keys are passed in
   let reqAssets:any[] = json
   if (!Array.isArray(reqAssets)) {
@@ -243,7 +242,7 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
   }
 
   const assetIds = reqAssets.map(asset => asset.id)
-  await verifyUserHasAssetAccess(user, assetIds)
+  verifyUserHasAssetAccess(user, assetIds)
 
   for (let i = 0; i < reqAssets.length; i++) {
     const reqAsset = reqAssets[i]

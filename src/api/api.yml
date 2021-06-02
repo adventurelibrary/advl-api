@@ -128,7 +128,7 @@ update_asset:
         path: /assets/update
         cors: true
   environment:
-    ${file(src/.env.yml):elastic}
+    ${file(src/dynamic-environment.js):update_asset}
 
 get_asset:
   handler: src/api/assets/asset.get_asset
