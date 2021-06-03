@@ -6,7 +6,13 @@ import { search } from '../common/elastic';
 import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
-import {getAsset, searchAsset, updateAsset, validateAssetQuery, verifyUserHasAssetAccess} from "../../lib/assets";
+import {
+  getAsset,
+  searchAsset,
+  updateAssetAndIndex,
+  validateAssetQuery,
+  verifyUserHasAssetAccess
+} from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
 
@@ -253,7 +259,7 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
     }
 
     const asset = await getAsset(id);
-    await updateAsset(asset, reqAsset)
+    await updateAssetAndIndex(asset, reqAsset)
   }
   return {
     status: 204,

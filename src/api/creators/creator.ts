@@ -48,10 +48,7 @@ export const creator_put = newHandler({
   takesJSON: true
 }, async ({creator, json}) => {
   const updates = <Creator>json
-  await validateCreator(updates)
   await updateCreator(creator, updates)
-
-  // TODO: Update all this creator's assets in Elasticsearch
 
   return {
     status: 204
@@ -65,6 +62,7 @@ export const creator_post = newHandler({
   const newCreator = {
     id: idgen(),
     name: json.name,
+    slug: json.slug,
     owner_id: json.owner_id,
     description: json.description,
   }
