@@ -9,4 +9,4 @@ INSERT INTO creators (id, name, slug) VALUES
 
 INSERT INTO assets (id, slug, name, filetype, original_file_ext, creator_id, size_in_bytes, uploaded, visibility, unlock_count, description, category, tags, unlock_price, revenue_share)
 VALUES ('7fa4da69-739d-4e32-a107-1f0bfd4a544b', 'asset-tester', 'Asset Tester', 'IMAGE', 'PNG', '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', 123, NOW(), 'PUBLIC', 1, 'Description pending', 'map', '{}', 50, '{}'),
-('spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw', 'carlos-cara-alvarez-mutante', 'Mutante', 'IMAGE', 'UNKNOWN', '7bffd388-aba7-4bd2-8472-b63fef449805', 0, '2021-06-04 02:45:11', 'VISIBLE', 0, '', 'character', '{}', 0, '{}');
+('spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw', 'carlos-cara-alvarez-mutante', 'Mutante', 'IMAGE', 'UNKNOWN', '7bffd388-aba7-4bd2-8472-b63fef449805', 0, '2021-06-04 02:45:11', 'PUBLIC', 0, '', 'character', '{}', 0, '{}');
