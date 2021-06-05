@@ -2,6 +2,7 @@ export interface Creator {
   id: string,
   owner_id: string,
   name: string
+  slug: string
   description: string
 }
 

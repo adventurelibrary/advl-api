@@ -8,7 +8,6 @@ const b2 = new S3({
   signatureVersion: "v4"
 })
 
-
 export function GetURL(type:image_file_resolutions, asset:Asset){
   let ext = type == 'original' ? asset.original_file_ext : 'webp'
   let bucket = '';

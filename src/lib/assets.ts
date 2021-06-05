@@ -2,7 +2,7 @@ import {search} from "../api/common/elastic";
 import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
-import {getObj} from "../api/common/postgres";
+import {getObj, query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import CustomSQLParam from "../api/common/customsqlparam";
@@ -42,11 +42,15 @@ export async function searchAsset (id: string) : Promise<Asset> {
 }
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
-	const result = <any>await getObj(process.env.DB_ASSETS, id)
-	if (!result) {
+	const rows = await query<Asset>(`SELECT a.*, c.name as creator_name
+FROM assets a, creators c
+WHERE a.creator_id = c.id
+AND a.id = :id
+	`, {id: id})
+	if (!rows || !rows[0]) {
 		return undefined
 	}
-	return mapAssetRow(result)
+	return mapAssetRow(rows[0])
 }
 
 // The data we get back from the DB might not be in a form that we want our javascript
@@ -76,12 +80,17 @@ export async function updateAsset (original:Asset, updates: any) {
 	original.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
 	original.unlock_price = updates.hasOwnProperty('unlock_price') ? updates.unlock_price : original.unlock_price;
 	original.revenue_share = updates.hasOwnProperty('revenue_share') ? updates.revenue_share : original.revenue_share;
+	original.size_in_bytes = updates.hasOwnProperty('size_in_bytes') ? updates.size_in_bytes : original.size_in_bytes;
+	original.original_file_ext = updates.hasOwnProperty('original_file_ext') ? updates.original_file_ext : original.original_file_ext;
 
 	const sets = assetToDatabaseWrite(original)
 	console.log("Updated Asset: ", sets)
 	await db.updateObj(process.env.DB_ASSETS, original.id, sets)
+}
 
-	await indexAssetSearch(original)
+export async function updateAssetAndIndex (original: Asset, updates: any) {
+	await updateAsset(original, updates)
+	await updateAssetSearchById(original.id)
 }
 
 export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
@@ -91,7 +100,7 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 		size_in_bytes: 0,
 		uploaded: new Date(),
 		visibility: "PENDING",
-		original_file_ext: 'UNKOWN',
+		original_file_ext: 'UNKNOWN',
 		filetype: "IMAGE",
 		creator_id: req.creator_id,
 		unlock_count: 0,
@@ -103,14 +112,14 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 		revenue_share: req.revenue_share
 	}
 
-	const dbWrite = assetToDatabaseWrite(newAsset)
+	const dbWrite = assetToDatabaseWrite(newAsset, true)
 	const id = await db.insertObj(process.env.DB_ASSETS, dbWrite);
 	console.log(`PENDING ASSET CREATED\n`, newAsset);
 	newAsset.id = id
 	return newAsset;
 }
 
-export function assetToDatabaseWrite (asset: Asset) : any {
+export function assetToDatabaseWrite (asset: Asset, isInsert: boolean) : any {
 	// We have to pass the parameter to the Data API as a string
 	// So we have to change our query to cast it in the db from string
 	// to our custom type
@@ -136,6 +145,13 @@ export function assetToDatabaseWrite (asset: Asset) : any {
 		castTo: 'TEXT[]',
 	})
 
+	// Delete any fields that might sneak int
+	delete dbwrite.creator_name
+
+	if (!isInsert) {
+		delete dbwrite.id
+	}
+
 	return dbwrite
 }
 
@@ -145,9 +161,17 @@ export async function indexAssetSearch (asset: Asset) {
 	await search.index({
 		index: process.env.INDEX_ASSETDB,
 		id: asset.id,
-		body: asset
+		body: getAssetSearchBody(asset)
 	});
 }
+
+// This is the data we want to send to Elastic Search
+function getAssetSearchBody (asset: Asset) : any {
+	const data = Object.assign({}, asset)
+	delete data.revenue_share
+	return data
+}
+
 export async function updateAssetSearchById (id: string) {
 	const asset = await getAsset(id)
 	return await indexAssetSearch(asset)
@@ -168,9 +192,10 @@ export async function indexAssetsSearch (assets: Asset[]) {
 	const body = assets.flatMap((doc) => {
 		return [{
 			index: {
-				_index: process.env.INDEX_ASSETDB
+				_index: process.env.INDEX_ASSETDB,
+				_id: doc.id
 			}
-		}, doc]
+		}, getAssetSearchBody(doc)]
 	})
 
 
