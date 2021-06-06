@@ -39,6 +39,18 @@ user_put:
     ${file(src/dynamic-environment.js):user}
 
 ################## CREATORS #########################
+
+creators_get_mine:
+  handler: src/api/creators/creator.creators_get_mine
+  events:
+    - http:
+        method: get
+        path: /creators/mine
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js)):creator}
+
+
 creator_get:
   handler: src/api/creators/creator.creator_get
   events:

@@ -41,6 +41,33 @@ export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
 	return result
 }
 
+
+export async function getTotalUserCreators(user: User) {
+	const res = <{total: number}[]> await db.query('SELECT COUNT(*) as total FROM creators WHERE owner_id = ?', [user.id])
+	return res[0].total
+}
+
+
+export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promise<Creator[]> {
+	const limit = isNaN(opts.limit) || !opts.limit ? 20 : opts.limit
+	const skip = isNaN(opts.skip) ? 0 : opts.skip
+
+	const result = <Creator[]>await db.query(`
+SELECT c.*
+FROM creators c
+WHERE owner_id = :ownerId
+ORDER BY :orderBy
+LIMIT :limit
+OFFSET :skip`, {
+		limit: limit,
+		skip: skip,
+		orderBy: 'name ASC',
+		ownerId: user.id
+	})
+
+	return result
+}
+
 // Async so that later this can do a DB query to check permissions
 // Something like SELECT EXISTS(SELECT id FROM creator_users WHERE user_id = ? AND creator_id = ?))
 export async function userHasCreatorPermission (user: User, creator: Creator) : Promise<boolean> {

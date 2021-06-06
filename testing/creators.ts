@@ -35,6 +35,54 @@ ava('creators:get a list of creators', async (t) => {
 	t.pass()
 })
 
+
+ava('creators:get:mine', async (t) => {
+	// Admin owns no creators
+	let res = await request(`/creators/mine`, {
+		userKey: 'ADMIN1'
+	})
+	let err = await testResStatus(res, 200)
+	if (err) {
+		t.fail(err)
+	}
+	let json = await res.json()
+	t.is(json.creators.length, 0)
+	t.is(json.total, 0)
+
+	res = await request(`/creators/mine`, {
+		userKey: 'CREATOR1'
+	})
+	err = await testResStatus(res, 200)
+	if (err) {
+		t.fail(err)
+	}
+	json = await res.json()
+	t.is(json.creators.length, 1)
+	t.is(json.creators[0].name, 'Gerrin Tramis')
+	t.is(json.total, 1)
+
+
+	res = await request(`/creators/mine`, {
+		userKey: 'TEST1'
+	})
+	err = await testResStatus(res, 200)
+	if (err) {
+		t.fail(err)
+	}
+	json = await res.json()
+	t.is(json.creators.length, 0)
+	t.is(json.total, 0)
+
+
+	res = await request(`/creators/mine`)
+	err = await testResStatus(res, 401)
+	if (err) {
+		t.fail(err)
+	}
+
+	t.pass()
+})
+
 ava('creators:post non-logged in tries to create a creator', async (t) => {
 	const res = await request('/creator', {
 		method: 'POST',
