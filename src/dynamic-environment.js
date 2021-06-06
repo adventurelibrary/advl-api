@@ -27,11 +27,7 @@ module.exports = {
   },
   database: {
     ...env.elastic,
-    ...env.postgres
-  },
-  update_asset: {
     ...env.postgres,
-    ...env.elastic,
-    ...env.backblaze
+    ...env.backblaze //needed for Asset init, which is in like all things
   }
 }

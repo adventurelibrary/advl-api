@@ -19,7 +19,8 @@ export interface REQ_Bundle_Create {
   name: string,
   public: boolean,
   description: string,
-  creator_id?: string
+  creator_id?: string,
+  added_assets?: string[]
 }
 
 export interface REQ_Bundle_Update {

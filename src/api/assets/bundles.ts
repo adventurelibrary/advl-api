@@ -38,8 +38,20 @@ export const bundle_create = newHandler({
     body: newBundle
   })
 
+  if(newBundleInfo.added_assets){
+    for (let assetID of newBundleInfo.added_assets){
+      let newBundleAsset:BundleAsset = {
+        id: newBundle.id,
+        asset_id: assetID,
+        time_added: new Date()
+      }
+  
+      await db.insertObj(process.env.DB_BUNDLE_ASSETS, newBundleAsset)
+    }
+  }
+
   return {
-    status: 200,
+    status: 201,
     body: {bundle_id: newBundle.id}
   }
 })

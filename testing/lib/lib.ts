@@ -1,6 +1,6 @@
 import {signInUser} from "./cognito";
 
-const fetch = require('node-fetch')
+import fetch from 'node-fetch';
 import {users} from "./fixtures"
 
 export const testURL = process.env.TEST_URL || 'http://localhost:3000/v1/'
@@ -24,7 +24,7 @@ export async function getUserFakeJWT (userId: string | null) {
   })
 }
 
-export async function request (url: string, opts: any = {})  {
+export async function request (url: string, opts: any = {}) {
   opts.headers = opts.headers || {}
 
   // If this is provided by our test, we will attempt to log in as this user first
