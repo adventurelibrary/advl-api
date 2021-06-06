@@ -48,11 +48,12 @@ export class Validation {
 	}
 
 	getError () {
-		const err = new APIError()
-		err.key = 'validation'
-		err.details = this.errors
-		err.message = 'Validation errors'
-		err.status = 400 // Bad request
+		const err = new APIError({
+			key: 'validation',
+			details: this.errors,
+			status: 400,
+			message: 'Validation errors'
+		})
 		return err
 	}
 }

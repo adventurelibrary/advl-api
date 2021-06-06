@@ -232,7 +232,6 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
   takesJSON: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
   const {user, json} = ctx
-
   //Specifically ANY so only the relevant keys are passed in
   let reqAssets:any[] = json
   if (!Array.isArray(reqAssets)) {

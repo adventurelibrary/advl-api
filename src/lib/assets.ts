@@ -41,8 +41,11 @@ export async function searchAsset (id: string) : Promise<Asset> {
 	}
 }
 
-export async function getAsset (id: string) : Promise<Asset> {
+export async function getAsset (id: string) : Promise<Asset | undefined> {
 	const result = <any>await getObj(process.env.DB_ASSETS, id)
+	if (!result) {
+		return undefined
+	}
 	return mapAssetRow(result)
 }
 
