@@ -2,6 +2,12 @@ DROP TABLE IF EXISTS assets CASCADE;
 DROP TABLE IF EXISTS creators CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
+DROP TABLE IF EXISTS creatormembers CASCADE;
+DROP TABLE IF EXISTS bundleinfo CASCADE;
+DROP TABLE IF EXISTS bundleassets CASCADE;
+
+
+
 DROP TYPE IF EXISTS visibility;
 DROP TYPE IF EXISTS filetype;
 DROP TYPE IF EXISTS category;
@@ -62,7 +68,12 @@ create table creatormembers (
 create table bundleinfo (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
   name TEXT NOT NULL,
-  description TEXT NOT NULL
+  description TEXT NOT NULL,
+  public BOOLEAN NOT NULL,
+  creator_id TEXT,
+  user_id TEXT,
+  CONSTRAINT fk_creator_id FOREIGN KEY (creator_id) REFERENCES creators(id),
+  CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 create table bundleassets (

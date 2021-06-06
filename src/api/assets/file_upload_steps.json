@@ -37,9 +37,9 @@
     "resize_image": {
       "use": "watermark",
       "robot": "/image/resize",
-      "resize_strategy": "fit",
-      "width": 250,
-      "height": 250,
+      "resize_strategy": "fillcrop",
+      "width": 352,
+      "height": 352,
       "imagemagick_stack": "v2.0.7"
     },
     "export_original": {

@@ -34,12 +34,12 @@ export function validateUserToken(userToken:string){
   if (!userToken) {
     throw new Error(`Provided user token was blank`)
   }
-  const decoded = jwt.decode(userToken)
-  console.log('WARNING! Not verifying the JWT, just decoding it. Verifying was not working')
-  return <UserToken>decoded
-
+  //const decoded = jwt.decode(userToken)
+  //console.log('WARNING! Not verifying the JWT, just decoding it. Verifying was not working')
+  //return <UserToken>decoded
   try{
-    return <UserToken>jwt.verify(userToken, jwkToPem(jwks))
+    let token = <UserToken>jwt.verify(userToken, jwkToPem(jwks));
+    return token;
   } catch (e){
     console.log('error trying to verify')
     throw e;

@@ -151,7 +151,7 @@ bundle_create:
     ${file(src/dynamic-environment.js):database}
 
 bundle_update:
-  handler: src/api/assets/bundles.bundle_create
+  handler: src/api/assets/bundles.bundle_update
   events:
     - http:
         method: put
@@ -161,7 +161,7 @@ bundle_update:
     ${file(src/dynamic-environment.js):database}
 
 bundle_get:
-  handler: src/api/assets/bundles.bundle_create
+  handler: src/api/assets/bundles.bundle_get
   events:
     - http:
         method: get
@@ -171,7 +171,7 @@ bundle_get:
     ${file(src/dynamic-environment.js):database}
 
 bundle_delete:
-  handler: src/api/assets/bundles.bundle_create
+  handler: src/api/assets/bundles.bundle_delete
   events:
     - http:
         method: post

@@ -83,7 +83,7 @@ export async function updateAsset (original:Asset, updates: any) {
 	original.size_in_bytes = updates.hasOwnProperty('size_in_bytes') ? updates.size_in_bytes : original.size_in_bytes;
 	original.original_file_ext = updates.hasOwnProperty('original_file_ext') ? updates.original_file_ext : original.original_file_ext;
 
-	const sets = assetToDatabaseWrite(original)
+	const sets = assetToDatabaseWrite(original,false)
 	console.log("Updated Asset: ", sets)
 	await db.updateObj(process.env.DB_ASSETS, original.id, sets)
 }

@@ -14,7 +14,7 @@ export const bundle_create = newHandler({
   takesJSON: true,
 }, async ({user, json}) => {
   let newBundleInfo: REQ_Bundle_Create = <REQ_Bundle_Create> json;
-  if(newBundleInfo.creator_id && !isMemberOfCreatorPage(newBundleInfo.creator_id, user.id)){
+  if(newBundleInfo.creator_id && !(await isMemberOfCreatorPage(newBundleInfo.creator_id, user.id))){
     //check if the user actually has permissions to do things as that creator
     return {
       status: 401,
@@ -80,13 +80,13 @@ export const bundle_update = newHandler({
     )
   {
     return {
-      status: 403,
+      status: 401,
       body: {error: "User/Creator doesn't have permission to edit this bundle"}
     }    
   } 
 
   //update the bundle
-  let updates: Record<string, any>;
+  let updates: Record<string, any> = {};
   if(reqBundleUpdate.name){
     updates['name'] = reqBundleUpdate.name;
     bundle.name = reqBundleUpdate.name;
@@ -100,25 +100,34 @@ export const bundle_update = newHandler({
     bundle.public = reqBundleUpdate.public;
   }
 
+  await db.updateObj(process.env.DB_BUNDLE_INFO, bundle.id, updates);
+
   await search.update({
     index: process.env.INDEX_BUNDLEINFO,
     id: bundle.id,
-    body: bundle
+    body: {
+      doc: bundle
+    }
   })
 
-  //update the removed assets
-  for(let assetID of reqBundleUpdate.removed_assets){
-    await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = ? AND asset_id = ?`, [bundle.id, assetID])
-  }
-  //update the added asses
-  for (let assetID of reqBundleUpdate.added_assets){
-    let newBundleAsset:BundleAsset = {
-      id: bundle.id,
-      asset_id: assetID,
-      time_added: new Date()
+  if(reqBundleUpdate.removed_assets){
+    //update the removed assets
+    for(let assetID of reqBundleUpdate.removed_assets){
+      await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = ? AND asset_id = ?`, [bundle.id, assetID])
     }
+  }
 
-    await db.insertObj(process.env.DB_BUNDLE_ASSETS, newBundleAsset)
+  if(reqBundleUpdate.added_assets){
+    //update the added asses
+    for (let assetID of reqBundleUpdate.added_assets){
+      let newBundleAsset:BundleAsset = {
+        id: bundle.id,
+        asset_id: assetID,
+        time_added: new Date()
+      }
+
+      await db.insertObj(process.env.DB_BUNDLE_ASSETS, newBundleAsset)
+    }
   }
 
   return {
