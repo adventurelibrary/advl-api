@@ -7,7 +7,7 @@ import {getEventUser} from "../common/events";
 import {
   createNewAsset,
   getAsset,
-  updateAsset,
+  updateAssetAndIndex,
   validateAsset
 } from "../../lib/assets";
 
@@ -128,11 +128,12 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
       }
       let asset = await getAsset(params.fields.assetID)
       if(asset && asset.visibility == "PENDING"){
-        await updateAsset(asset,  {
+        const update = {
           size_in_bytes: notification.bytes_received,
           visibility: 'HIDDEN',
           original_file_ext: notification.uploads[0].ext
-        })
+        }
+        await updateAssetAndIndex(asset,  update)
 
         console.log(`${asset.id} moved from PENDING to HIDDEN.`);
       }

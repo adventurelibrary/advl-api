@@ -24,11 +24,13 @@ create UNIQUE INDEX users_email ON users(email);
 
 create table creators (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   owner_id TEXT NULL,
   description TEXT,
   CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX creators_slug ON creators (slug);
 
 create table assets (
     id TEXT NOT NULL UNIQUE PRIMARY KEY,

@@ -38,7 +38,8 @@ export async function getTotalCreators() {
 export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
 	const result = <Creator[]>await db.getObjects(process.env.DB_CREATORS, {
 		limit: opts.limit,
-		skip: opts.skip
+		skip: opts.skip,
+		orderBy: 'name ASC'
 	})
 
 	return result
@@ -68,6 +69,7 @@ export async function updateCreator (creator:Creator, updates:any) {
 	creator.name = updates.hasOwnProperty('name') ? updates.name : creator.name
 	creator.description = updates.hasOwnProperty('description') ? updates.description : creator.description
 	creator.owner_id = updates.hasOwnProperty('owner_id') ? updates.owner_id : creator.owner_id
+	await validateCreator(creator)
 
 	const write = creatorToDatabaseWrite(creator)
 	return await db.updateObj(process.env.DB_CREATORS, creator.id, write)
@@ -83,6 +85,10 @@ export async function validateCreator(creator: Creator) {
 	val.validateRequired(creator.name, {
 		message: 'Creator name is required',
 		field: 'name'
+	})
+	val.validateRequired(creator.slug, {
+		message: 'Creator slug is required',
+		field: 'slug'
 	})
 	val.throwIfErrors()
 }

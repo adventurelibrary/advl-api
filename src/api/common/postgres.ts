@@ -289,14 +289,20 @@ export async function getObj (tableName:string, id:string) {
 export type GetObjectsOpts = {
   limit: number,
   skip: number,
+  orderBy?: string,
 }
 
 export async function getObjects (tableName:string, {
   limit,
-  skip
+  skip,
+  orderBy,
 } : GetObjectsOpts) {
   const params : QueryParams = {}
   let sql = `SELECT * FROM ${tableName} `
+
+  if (orderBy) {
+    sql += ' ORDER BY ' + orderBy
+  }
 
   if (limit) {
     sql += ` LIMIT :limit `
@@ -308,6 +314,7 @@ export async function getObjects (tableName:string, {
   OFFSET :skip`
     params.skip = skip
   }
+
 
   const rows = await query(sql, params)
   return rows

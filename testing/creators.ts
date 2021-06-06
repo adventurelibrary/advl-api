@@ -17,9 +17,9 @@ ava('creators:get a list of creators', async (t) => {
 		t.fail(err)
 	}
 	let json = await res.json()
-	t.is(json.creators.length, 1)
+	t.is(json.creators.length, 3)
 	t.is(json.creators[0].name, 'Adventure Library')
-	t.is(json.total, 1)
+	t.is(json.total, 3)
 
 	// Test the skip param
 	res = await request(`/creators?skip=10`, {
@@ -31,7 +31,7 @@ ava('creators:get a list of creators', async (t) => {
 	}
 	json = await res.json()
 	t.is(json.creators.length, 0)
-	t.is(json.total, 1)
+	t.is(json.total, 3)
 	t.pass()
 })
 
@@ -80,6 +80,8 @@ ava('creators: create validation', async (t) => {
 	const json = await res.json()
 	t.truthy(json.error.key == 'validation')
 	t.is(json.error.details[0].field, 'name')
+	t.is(json.error.details[1].field, 'slug')
+	t.is(json.error.details.length, 2)
 
 	t.pass()
 })
@@ -89,7 +91,8 @@ ava('creators:create success', async (t) => {
 		method: 'POST',
 		userKey: 'ADMIN1',
 		body: {
-			name: 'Creatortron'
+			name: 'Creatortron',
+			slug: 'creatortron'
 		}
 	})
 
@@ -126,6 +129,7 @@ ava('creators:put:validation', async (t) => {
 		method: 'PUT',
 		userKey: 'ADMIN1',
 		body: {
+			name: ''
 		}
 	})
 
@@ -137,6 +141,7 @@ ava('creators:put:validation', async (t) => {
 
 	const json = await res.json()
 	t.truthy(json.error.key == 'validation')
+	t.is(json.error.details.length, 1)
 	t.is(json.error.details[0].field, 'name')
 
 	t.pass()
