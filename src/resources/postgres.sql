@@ -49,3 +49,24 @@ create table assets (
     revenue_share JSON DEFAULT '{}'::jsonb,
     CONSTRAINT fk_creator FOREIGN KEY (creator_id) REFERENCES creators(id)
 );
+
+create table creatormembers ( 
+  creator_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  CONSTRAINT fk_creator FOREIGN KEY (creator_id) REFERENCES creators(id),
+  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+create table bundleinfo (
+  id TEXT NOT NULL UNIQUE PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL
+);
+
+create table bundleassets (
+  id TEXT NOT NULL,
+  asset_id TEXT NOT NULL ,
+  time_added TIMESTAMP NOT NULL,
+  CONSTRAINT fk_bundle_id FOREIGN KEY (id) REFERENCES bundleinfo(id),
+  CONSTRAINT fk_asset_id FOREIGN KEY (asset_id) REFERENCES assets(id)
+);

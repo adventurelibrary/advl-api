@@ -12,6 +12,8 @@ import {getEventUser} from "./events";
 import {getCreatorByID} from "../../lib/creator";
 import {Creator} from "../../interfaces/ICreator";
 import {userHasCreatorPermission} from "../../lib/creator";
+import { Bundle } from "../../interfaces/IBundle";
+import { getBundleInfo } from "../../lib/bundle";
 
 // This context we build ourselves and pass to our handlers
 // It contains the basic event and context provided by serverless
@@ -23,6 +25,7 @@ export type HandlerContext = {
   user?: User
   asset?: Asset
   creator?: Creator
+  bundle?: Bundle
   query: Record<string, string>
 }
 
@@ -44,6 +47,8 @@ export type HandlerOpts = {
   includeCreator?: boolean
   requireCreator?: boolean
   requireCreatorPermission?: boolean
+
+  requireBundle?: boolean
 }
 
 // A very simple response for our handlers to give us
@@ -123,7 +128,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       }
 
 
-      // These routes assume that the asset id is provided as :creatorId
+      // These routes assume that the creator id is provided as :creatorId
       // in the api.yml file
       if (opts.includeCreator || opts.requireCreator) {
         const creator = await getCreatorByID(_evt.pathParameters.creatorID)
@@ -138,6 +143,14 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
           if (!hasPerm)
             return errorResponse(_evt, new Error('You do not have permission'), 403)
         }
+      }
+
+      if (opts.requireBundle) {
+        const bundle = await getBundleInfo(_evt.pathParameters.bundleID)
+        if(!bundle){
+          return errorResponse(_evt, new Error("Could not find bundle"), 404)
+        } 
+        ctx.bundle = bundle
       }
 
       // This is where you custom route handler actually gets called

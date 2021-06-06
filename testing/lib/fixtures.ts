@@ -1,4 +1,5 @@
 export const ASSET_1 = '7fa4da69-739d-4e32-a107-1f0bfd4a544b'
+export const ASSET_2 = 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw'
 
 export const CREATOR_1 = '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1'
 

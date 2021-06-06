@@ -139,3 +139,43 @@ get_asset:
         cors: true
   environment:
     ${file(src/dynamic-environment.js):query_assets}
+################## Bundles #########################
+bundle_create:
+  handler: src/api/assets/bundles.bundle_create
+  events:
+    - http:
+        method: post
+        path: /bundles/create
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+bundle_update:
+  handler: src/api/assets/bundles.bundle_create
+  events:
+    - http:
+        method: put
+        path: /bundles/{bundleID}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+bundle_get:
+  handler: src/api/assets/bundles.bundle_create
+  events:
+    - http:
+        method: get
+        path: /bundles/{bundleID}
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+bundle_delete:
+  handler: src/api/assets/bundles.bundle_create
+  events:
+    - http:
+        method: post
+        path: /bundles/{bundleID}/delete
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):database}

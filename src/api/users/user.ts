@@ -14,7 +14,7 @@ export const user_get = newHandler({
 }, async ({user, event}) => {
   // Not logged in, but they have an Auth header
   if (!user && event.headers.Authorization) {
-    let userToken
+    let userToken;
     try {
       userToken = validateUserToken(event.headers.Authorization.split(' ')[1]);
     } catch (ex) {

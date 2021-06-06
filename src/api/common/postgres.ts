@@ -331,6 +331,11 @@ WHERE id=?`;
   return result;
 }
 
+export async function deleteObj(tableName:string, id:string) {
+  const sql = `DELETE FROM ${tableName} WHERE id = :id`
+  return await query(sql, {id:id})
+}
+
 // Converts an assumed date into the format that RDS wants dates in
 // Stolen from here: https://stackoverflow.com/questions/10645994/how-to-format-a-utc-date-as-a-yyyy-mm-dd-hhmmss-string-using-nodejs/10717081
 function dateToTimeStamp (date : Date | string | number) : string {

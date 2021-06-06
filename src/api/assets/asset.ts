@@ -9,10 +9,17 @@ import {errorResponse, newResponse} from "../common/response";
 import {getAsset, searchAsset, updateAsset, validateAssetQuery, verifyUserHasAssetAccess} from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
+import { getCreatorByID } from '../../lib/creator';
 
-function transformAsset (asset : Asset) : Asset {
+/**
+ * Takes a DB asset and converts it to be more friendly for Front End
+ * @param asset 
+ * @returns 
+ */
+export async function transformAsset (asset : Asset) : Promise<Asset> {
   asset.previewLink = b2.GetURL('watermarked', asset);
   asset.thumbnail =  b2.GetURL('thumbnail', asset);
+  asset.creator_name = (await getCreatorByID(asset.creator_id)).name;
   return asset
 }
 
@@ -56,7 +63,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj.id) {
       let FrontEndAsset:Asset = await searchAsset(queryObj.id);
-      response.body = JSON.stringify(transformAsset(FrontEndAsset));
+      response.body = JSON.stringify(await transformAsset(FrontEndAsset));
       response.statusCode = 200;
       return response;
     }
@@ -66,7 +73,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       let FEAssets:Asset[] = [];
       for(let id of queryObj.ids){
         let FrontEndAsset:Asset = await searchAsset(id);
-        FEAssets.push(transformAsset(FrontEndAsset));
+        FEAssets.push(await transformAsset(FrontEndAsset));
       }
       response.body = JSON.stringify(FEAssets);
       response.statusCode = 200;
@@ -163,16 +170,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     }
     let searchResults = await search.search(params)
 
-    let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
-      /*
-      doc._source.creatorName = (<User>(await dyn.get({
-        TableName: process.env.NAME_USERSDB,
-        Key: {
-          id: doc._source.creatorID
-        }
-      }).promise()).Item).name;
-      */
-      doc._source = transformAsset(doc._source)
+    let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map(async (doc:any) => {
+      doc._source = await transformAsset(doc._source)
       return doc._source
     })
 
@@ -222,7 +221,7 @@ export const get_asset : APIGatewayProxyHandler = newHandler({
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
   return {
     status: 200,
-    body: ctx.asset
+    body: await transformAsset(ctx.asset)
   }
 })
 
