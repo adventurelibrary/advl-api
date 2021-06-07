@@ -179,3 +179,13 @@ bundle_delete:
         cors: true
   environment:
     ${file(src/dynamic-environment.js):database}
+
+bundle_query:
+  handler: src/api/assets/bundles.bundle_query
+  events:
+    - http:
+        method: get
+        path: /bundles
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):database}

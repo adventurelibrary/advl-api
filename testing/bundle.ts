@@ -1,7 +1,8 @@
 import test from 'ava';
-import { request, testResStatus } from "./lib/lib";
-import { BUNDLE_1} from './lib/fixtures'
-/*
+import { ASSET_1, BUNDLE_1 } from './lib/fixtures';
+import { request, requestAs, testResStatus } from "./lib/lib";
+//import { BUNDLE_1} from './lib/fixtures'
+
 //Create a new bundle as not logged in user
 test.serial('Bundle: Try to create a bundle without being logged in', async (t) => {
   const createOpts = {
@@ -86,8 +87,8 @@ test.serial('Bundle: Create a new bundle as test user', async (t) => {
   }
   t.pass('Bundle could not be created.');
 }) 
-*/
-/*
+
+
 //Update bundle to public
 test.serial('Bundle: Update a bundle to public', async (t) => {
   const opts = {
@@ -106,10 +107,31 @@ test.serial('Bundle: Update a bundle to public', async (t) => {
   
   t.pass("Bundle updated to public")
 })
-*/
+
 
 //Get a bundle
-//Add assets to a bundle
-//Remove assets from a bundle
+test.serial('Bundle: GET a bundle', async (t) => {
+  const opts = {
+    method: 'get',
+  }
+  let res = await request (`bundles/${BUNDLE_1}`, opts)
+  let bundle = await res.json();
+  console.log(bundle);
+
+  t.pass("Bundle fetched")
+})
+
+
 //Search for a bundle 
+
+test.serial("Bundle: search for a bundle by user ID", async (t) => {
+  const opts = {
+    method: 'get'
+  }
+
+  let res = await request(`bundles?creator_id=9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1`, opts);
+  console.log(await res.json())
+
+  t.pass();
+})
 //Delete a bundle

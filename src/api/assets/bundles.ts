@@ -1,6 +1,7 @@
 import { Asset } from "../../interfaces/IAsset";
 import { Bundle, BundleAsset, GetBundle, REQ_Bundle_Create, REQ_Bundle_Update } from "../../interfaces/IBundle";
 import { searchAsset } from "../../lib/assets";
+import { getBundleInfo } from "../../lib/bundle";
 import { getCreatorByID, isMemberOfCreatorPage } from "../../lib/creator";
 import { getUserByID } from "../../lib/user";
 import { search } from "../common/elastic";
@@ -139,32 +140,9 @@ export const bundle_update = newHandler({
 export const bundle_get = newHandler({
   requireBundle: true
 }, async ({bundle}) => {
-  let bundleAssets: Asset[];
-  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id= ?`, [bundle.id])).map((record) => {
-    let bundleAsset:BundleAsset = <BundleAsset> record;
-    return bundleAsset.asset_id;
-  })
-
-  for(let id of bundleAssetIDs) {
-    bundleAssets.push(await transformAsset(await searchAsset(id)));
-  }
-
-  let bOwnerName = "";
-  if(bundle.creator_id){
-    bOwnerName = (await getCreatorByID(bundle.creator_id)).name
-  } else if (bundle.user_id){
-    bOwnerName = (await getUserByID(bundle.user_id)).username
-  }
-
-  let returnedBundle: GetBundle = {
-    ...bundle,
-    owner_name: bOwnerName,
-    assets: bundleAssets
-  }
-
   return {
     status: 200,
-    body: returnedBundle
+    body: await buildFEBundleFromBundleInfo(bundle)
   }
 })
 
@@ -213,5 +191,100 @@ export const bundle_delete = newHandler({
   }
 })
 
+async function buildFEBundleFromBundleInfo(bundle:Bundle){
+  let bundleAssets: Asset[] = [];
+  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id= ?`, [bundle.id])).map((record) => {
+    let bundleAsset:BundleAsset = <BundleAsset> record;
+    return bundleAsset.asset_id;
+  })
+
+  for(let id of bundleAssetIDs) {
+    bundleAssets.push(await transformAsset(await searchAsset(id)));
+  }
+
+  let bOwnerName = "";
+  if(bundle.creator_id){
+    bOwnerName = (await getCreatorByID(bundle.creator_id)).name
+  } else if (bundle.user_id){
+    bOwnerName = (await getUserByID(bundle.user_id)).username
+  }
+
+  let returnedBundle: GetBundle = {
+    ...bundle,
+    owner_name: bOwnerName,
+    assets: bundleAssets
+  }
+
+  return returnedBundle;
+}
 
 //export const bundle_query
+export const bundle_query = newHandler({}, async ({query}) => {
+  if(query.id){
+    let bundle = await getBundleInfo(query.id);
+    return {
+      status: 200,
+      body: await buildFEBundleFromBundleInfo(bundle)
+    }
+  }
+  console.log(query);
+
+  let _query: any = {}
+
+  if (query.user_id){
+    _query  = {
+      "bool": {
+        "must": [        ],
+        "filter": [
+          {
+            "match": {
+              "user_id" : query.user_id
+            }
+          }
+        ]
+      }
+    }
+  }
+
+  if (query.creator_id){
+    _query = {
+      "bool": {
+        "must": [        ],
+        "filter": [
+          {
+            "match": {
+              "creator_id" : query.creator_id
+            }
+          }
+        ]
+      }
+    }
+  }
+
+  if (query.text){
+    //search by fuzzy text match of title or description 
+  }
+
+  let results = await search.search({
+    index: process.env.INDEX_BUNDLEINFO,
+    body: {
+      from: query.from ? query.from : 0,
+      size: query.size ? query.size: 10,      
+      query: _query
+    }
+  })
+
+  let FEBundles:GetBundle[] = [];
+
+  for(let doc of results.body.hits.hits){
+    FEBundles.push(await buildFEBundleFromBundleInfo(doc._source));
+  }
+
+  return {
+    status: 200,
+    body: {
+      bundles: FEBundles,
+      total: results.body.hits.total.value
+    }
+  } 
+})
