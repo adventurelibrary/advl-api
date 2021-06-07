@@ -14,3 +14,12 @@ VALUES ('7fa4da69-739d-4e32-a107-1f0bfd4a544b', 'asset-tester', 'Asset Tester', 
 ('B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx','first-kill','First Kill', 'IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',3711875, '2021-06-03 12:42:06', 'PUBLIC',0, '', 'map','{}',0,'{}'),
 ('CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2','killion','Killion','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2939370,'2021-06-03 12:42:13','HIDDEN',0,'','character','{}',0,'{}'),
 ('DCjzmGvBbMYux64dhLbWeBMpgbDOgrbm','hope-keyshot','Hope Keyshot','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2491374,'2021-06-03 19:42:18','HIDDEN',0,'','scene','{}',0,'{}');
+
+INSERT INTO bundleinfo (id, name, description, user_id, public) VALUES
+('083e16ae-8f1d-4fd8-af48-e71bf757efd2', 'My Public Bundle', 'This is where I keep my bundles', 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', true),
+('a672b690-8027-47e5-889c-ef19f78d9a7d', 'My Private Bundle', '', 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', false);
+
+INSERT INTO creatormembers (creator_id, user_id) VALUES ('9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', 'cd240b82-6e33-48e7-a561-eac54bfb1a6b');
+
+insert into bundleinfo (id, name, description, public, creator_id, user_id) values ('0ZqVg1MSpHFSkyvj9yWAyDfC1sjwQAxQ', 'Bundling Bundles 3', 'The bundliest bundle BY A CREATOR', false, '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', null);
+insert into bundleinfo (id, name, description, public, creator_id, user_id) values ('ALJMgJbpNUxzzaGgx1PQzx0RpUNTZziS', 'Bundling Bundles 2', 'The bundliest bundle', false, null, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b');

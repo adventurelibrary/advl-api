@@ -18,15 +18,11 @@ export type GetCreatorOpts = {
 }
 
 export async function isMemberOfCreatorPage(creator_id: string, user_id: string){
-	try{
-		let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id= ? and user_id= ?`, [creator_id, user_id])
-		if(result.length == 0){
-			return false;
-		} else {
-			return true;
-		}
-	} catch (e){
+	let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id= ? and user_id= ? LIMIT 1`, [creator_id, user_id])
+	if(result.length == 0){
 		return false;
+	} else {
+		return true;
 	}
 }
 
