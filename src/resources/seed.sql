@@ -21,6 +21,7 @@ INSERT INTO bundleinfo (id, name, description, user_id, public) VALUES
 ('a672b690-8027-47e5-889c-ef19f78d9a7d', 'My Private Bundle', '', 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', false);
 
 INSERT INTO creatormembers (creator_id, user_id) VALUES ('9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', 'cd240b82-6e33-48e7-a561-eac54bfb1a6b');
+INSERT INTO creatormembers (creator_id, user_id) VALUES ('224d9090-2c19-4d3c-b43d-b101d4879a3b', '349b984e-8e2e-4a4b-993b-34df19189dbf');
 
 insert into bundleinfo (id, name, description, public, creator_id, user_id) values ('0ZqVg1MSpHFSkyvj9yWAyDfC1sjwQAxQ', 'Bundling Bundles 3', 'The bundliest bundle BY A CREATOR', false, '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', null);
 insert into bundleinfo (id, name, description, public, creator_id, user_id) values ('ALJMgJbpNUxzzaGgx1PQzx0RpUNTZziS', 'Bundling Bundles 2', 'The bundliest bundle', false, null, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b');

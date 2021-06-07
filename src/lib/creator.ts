@@ -43,7 +43,11 @@ export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
 
 
 export async function getTotalUserCreators(user: User) {
-	const res = <{total: number}[]> await db.query('SELECT COUNT(*) as total FROM creators WHERE owner_id = ?', [user.id])
+	const res = <{total: number}[]> await db.query(`
+SELECT COUNT(*) as total
+FROM creators c, creatormembers cm
+WHERE cm.user_id = ?
+AND cm.creator_id = c.id`, [user.id])
 	return res[0].total
 }
 
@@ -54,15 +58,16 @@ export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promi
 
 	const result = <Creator[]>await db.query(`
 SELECT c.*
-FROM creators c
-WHERE owner_id = :ownerId
+FROM creators c, creatormembers cm
+WHERE cm.user_id = :userId
+AND cm.creator_id = c.id
 ORDER BY :orderBy
 LIMIT :limit
 OFFSET :skip`, {
 		limit: limit,
 		skip: skip,
 		orderBy: 'name ASC',
-		ownerId: user.id
+		userId: user.id
 	})
 
 	return result

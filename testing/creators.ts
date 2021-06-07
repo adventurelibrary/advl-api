@@ -70,8 +70,9 @@ ava('creators:get:mine', async (t) => {
 		t.fail(err)
 	}
 	json = await res.json()
-	t.is(json.creators.length, 0)
-	t.is(json.total, 0)
+	t.is(json.creators.length, 1)
+	t.is(json.creators[0].name, 'Adventure Library')
+	t.is(json.total, 1)
 
 
 	res = await request(`/creators/mine`)
@@ -134,7 +135,7 @@ ava('creators: create validation', async (t) => {
 	t.pass()
 })
 
-ava('creators:create success', async (t) => {
+ava.serial('creators:create success', async (t) => {
 	let res = await request('/creator', {
 		method: 'POST',
 		userKey: 'ADMIN1',
