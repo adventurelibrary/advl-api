@@ -14,6 +14,15 @@ export async function getUserByID(_sub: string): Promise<User> {
   }
 }
 
+export async function getUsers () : Promise<User[]> {
+  const users = <User[]> await db.getObjects('users',{
+    limit: 500,
+    skip: 0,
+    orderBy: 'username ASC'
+  })
+  return users
+}
+
 export async function getUserByToken(jwt: string): Promise<User | undefined>{
   const userToken = validateUserToken(jwt);
   if (!userToken) {

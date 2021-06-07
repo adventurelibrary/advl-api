@@ -1,4 +1,4 @@
-import {updateUser, validateUserToken} from '../../lib/user';
+import {getUsers, updateUser, validateUserToken} from '../../lib/user';
 import { User } from '../../interfaces/IUser';
 import * as db from '../common/postgres';
 import {newHandler} from "../common/handlers";
@@ -45,6 +45,23 @@ export const user_get = newHandler({
   return {
     status: 200,
     body: user
+  }
+})
+
+/**
+ * Returns a list of users for admins to work with
+ * Used to populate user dropdowns, like to select the owner of a creator
+ */
+export const users_get = newHandler({
+  requireAdmin: true,
+}, async () => {
+  const users = await getUsers()
+  return {
+    status: 200,
+    body: {
+      users: users,
+      total: users.length
+    }
   }
 })
 

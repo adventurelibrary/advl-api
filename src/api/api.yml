@@ -23,10 +23,21 @@ user_get:
   events:
     - http: # GET session or create new user if it doesn't exist
         method: get
+        path: /user/me
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):user}
+
+users_get:
+  handler: src/api/users/user.users_get
+  events:
+    - http: # GET session or create new user if it doesn't exist
+        method: get
         path: /users
         cors: true
   environment:
     ${file(src/dynamic-environment.js):user}
+
 
 user_put:
   handler: src/api/users/user.user_put

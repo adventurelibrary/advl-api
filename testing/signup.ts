@@ -9,7 +9,7 @@ test('signup: getting session from logged in user should get their data', async 
   if (!jwt) {
     t.fail(`JWT is blank`)
   }
-  const data = await getJSON('/users', {
+  const data = await getJSON('/user/me', {
     headers: {
       'Authorization': 'JWT ' + jwt
     }

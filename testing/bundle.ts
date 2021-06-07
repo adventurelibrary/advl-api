@@ -34,17 +34,17 @@ test.serial('Bundle: Create a new bundle as test user', async (t) => {
     userKey: 'TEST1'
   }
   let res = await request('bundles/create', createOpts);
-  
+
   let err = await testResStatus(res, 201)
   if(err){
     t.fail(err);
   }
   t.pass('Bundle created by test-user-01.');
-  
+
 })
 
 //Create a new bundle as a creator
-test.serial('Bundle: Create a new bundle as test user', async (t) => {
+test.serial('Bundle: Create a new bundle as test user with creator', async (t) => {
   const createOpts = {
     method: "post",
     body: {
@@ -57,17 +57,17 @@ test.serial('Bundle: Create a new bundle as test user', async (t) => {
     userKey: 'TEST1'
   }
   let res = await request('bundles/create', createOpts);
-  
+
   let err = await testResStatus(res, 201)
   if(err){
     t.fail(err);
   }
   t.pass('Bundle created by creator (Adventure Library 2).');
-}) 
+})
 
 //attempt to create a bundle for a creator you don't have access too
 //Create a new bundle as a creator
-test.serial('Bundle: Create a new bundle as test user', async (t) => {
+test.serial('Bundle: Create a new bundle as user without creator access', async (t) => {
   const createOpts = {
     method: "post",
     body: {
@@ -80,13 +80,13 @@ test.serial('Bundle: Create a new bundle as test user', async (t) => {
     userKey: 'ADMIN1'
   }
   let res = await request('bundles/create', createOpts);
-  
+
   let err = await testResStatus(res, 401)
   if(err){
     t.fail(err);
   }
   t.pass('Bundle could not be created.');
-}) 
+})
 
 
 //Update bundle to public
@@ -104,7 +104,7 @@ test.serial('Bundle: Update a bundle to public', async (t) => {
   if(err){
     t.fail("Error code not 200")
   }
-  
+
   t.pass("Bundle updated to public")
 })
 
@@ -122,7 +122,7 @@ test.serial('Bundle: GET a bundle', async (t) => {
 })
 
 
-//Search for a bundle 
+//Search for a bundle
 
 test.serial("Bundle: search for a bundle by user ID", async (t) => {
   const opts = {
