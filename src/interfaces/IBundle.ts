@@ -7,6 +7,8 @@ export interface Bundle {
   public: boolean,
   creator_id: string // FK to Creators, nullable
   user_id: string //FK to Users, nullable
+  creator_name?: string
+  username?: string
 }
 
 export interface BundleAsset {
@@ -33,6 +35,5 @@ export interface REQ_Bundle_Update {
 }
 
 export interface GetBundle extends Bundle{
-  owner_name: string,
   assets: Asset[]
 }

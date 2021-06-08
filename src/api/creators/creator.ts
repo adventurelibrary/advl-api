@@ -2,7 +2,7 @@ import { Creator } from '../../interfaces/ICreator';
 import { idgen } from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
-  getCreators, getTotalCreators,
+  getCreators, getTotalCreators, getTotalUserCreators, getUserCreators,
   insertCreator,
   updateCreator,
   userHasCreatorPermission,
@@ -34,6 +34,24 @@ export const creators_get = newHandler({
     skip: parseInt(query.skip)
   })
   const total = await getTotalCreators()
+  return {
+    status: 200,
+    body: {
+      creators: rows,
+      total: total
+    }
+  }
+})
+
+// Get the list of creators that this user has permissions with
+export const creators_get_mine = newHandler({
+  requireUser: true,
+}, async ({query, user}) => {
+  const rows = await getUserCreators(user, {
+    limit: parseInt(query.limit),
+    skip: parseInt(query.skip)
+  })
+  const total = await getTotalUserCreators(user)
   return {
     status: 200,
     body: {
