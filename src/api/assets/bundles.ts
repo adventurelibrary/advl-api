@@ -193,37 +193,48 @@ async function buildFEBundleFromBundleInfo(bundle:Bundle){
   return returnedBundle;
 }
 
-//export const bundle_query
-export const bundle_query = newHandler({
-  requireUser: true
-}, async ({user, query}) => {
-  if(query.id){
-    let bundle = await getBundleInfo(query.id);
-    return {
-      status: 200,
-      body: await buildFEBundleFromBundleInfo(bundle)
-    }
-  }
-  console.log(query);
+export const bundle_query = newHandler({}, async ({query}) => {
+  const result = await searchBundles(query)
 
+  return {
+    status: 200,
+    body: result
+  }
+})
+
+export const bundles_mine = newHandler({
+  requireUser: true
+}, async ({query, user}) => {
+  query.user_id = user.id
+  const result = await searchBundles(query)
+
+  return {
+    status: 200,
+    body: result
+  }
+})
+
+async function searchBundles(query: any) {
   let _query: any = {}
-  _query  = {
-    "bool": {
-      "must": [],
-      "filter": [
-        {
-          "match": {
-            "user_id" : user.id
+  if (query.user_id) {
+    _query = {
+      "bool": {
+        "must": [],
+        "filter": [
+          {
+            "match": {
+              "user_id": query.user_id
+            }
           }
-        }
-      ]
+        ]
+      }
     }
   }
 
   if (query.creator_id){
     _query = {
       "bool": {
-        "must": [        ],
+        "must": [],
         "filter": [
           {
             "match": {
@@ -254,12 +265,8 @@ export const bundle_query = newHandler({
     FEBundles.push(doc._source)
     //FEBundles.push(await buildFEBundleFromBundleInfo(doc._source));
   }
-
   return {
-    status: 200,
-    body: {
-      bundles: FEBundles,
-      total: results.body.hits.total.value
-    }
+    bundles: FEBundles,
+    total: results.body.hits.total.value
   }
-})
+}

@@ -201,3 +201,13 @@ bundle_query:
         cors: true
   environment:
     ${file(src/dynamic-environment.js):database}
+
+bundles_mine:
+  handler: src/api/assets/bundles.bundles_mine
+  events:
+    - http:
+        method: get
+        path: /bundles/mine
+        cors: true
+  environment:
+    ${file(src/dynamic-environment.js):database}

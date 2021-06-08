@@ -1,4 +1,4 @@
-import {search} from "../api/common/elastic";
+import {bulkIndex, clearIndex, search} from "../api/common/elastic";
 import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
@@ -40,6 +40,15 @@ export async function searchAsset (id: string) : Promise<Asset> {
 		throw new Error(`${id} doesn't exist in Index`);
 	}
 }
+
+export async function searchAssets (ids: string[]) : Promise<Asset[]> {
+	const doc = await search.get({
+		index: process.env.INDEX_ASSETDB,
+		id: ids
+	})
+	return doc.body._source
+}
+
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
 	const rows = await query<Asset>(`SELECT a.*, c.name as creator_name
@@ -189,55 +198,14 @@ export async function indexAssetSearch (asset: Asset) {
 // This bulk update is based on the example here:
 // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/bulk_examples.html
 export async function indexAssetsSearch (assets: Asset[]) {
-	const body = assets.flatMap((doc) => {
-		return [{
-			index: {
-				_index: process.env.INDEX_ASSETDB,
-				_id: doc.id
-			}
-		}, getAssetSearchBody(doc)]
-	})
-
-
-	const result = await search.bulk({
-		refresh: true,
-		body
-	})
-
-	if (result.body.errors) {
-		throw new Error(`Search index returned errors` + JSON.stringify(result.body.items))
-	}
-
-	return result
+	return bulkIndex(process.env.INDEX_ASSETDB, assets, getAssetSearchBody)
 }
 
-/*
-// This will search our dynamo db for ALL assets and sync each one
-// to elastic search
-// This is useful for development to reset elastic search before running
-// route tests
-export async function syncAllAssets () : Promise<any[]> {
-	let params : any = {
-		TableName: process.env.NAME_ASSETDB
-	};
-
-	let items;
-	const assets : Asset[] = []
-
-	do {
-		items = await dyn.scan(params).promise();
-		items.Items.forEach((item) => {
-			console.log('Adding asset ' + item.name)
-			assets.push(item)
-		});
-		params.ExclusiveStartKey = items.LastEvaluatedKey;
-	} while (typeof items.LastEvaluatedKey != "undefined");
-
-	await indexAssetsSearch(assets)
-
-	return assets
+export async function reindexAssetsSearch (assets: Asset[]) {
+	await clearIndex(process.env.INDEX_ASSETDB)
+	return bulkIndex(process.env.INDEX_ASSETDB, assets, getAssetSearchBody)
 }
-*/
+
 
 export function validateAsset (asset: Asset) {
 	const val = new Validation()
