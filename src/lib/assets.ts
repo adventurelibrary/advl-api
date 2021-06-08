@@ -41,15 +41,6 @@ export async function searchAsset (id: string) : Promise<Asset> {
 	}
 }
 
-export async function searchAssets (ids: string[]) : Promise<Asset[]> {
-	const doc = await search.get({
-		index: process.env.INDEX_ASSETDB,
-		id: ids
-	})
-	return doc.body._source
-}
-
-
 export async function getAsset (id: string) : Promise<Asset | undefined> {
 	const rows = await query<Asset>(`SELECT a.*, c.name as creator_name
 FROM assets a, creators c

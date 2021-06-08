@@ -1,7 +1,6 @@
 import { Asset } from "../../interfaces/IAsset";
 import { Bundle, BundleAsset, GetBundle, REQ_Bundle_Create, REQ_Bundle_Update } from "../../interfaces/IBundle";
 import { searchAsset } from "../../lib/assets";
-import { getBundleInfo } from "../../lib/bundle";
 import { isMemberOfCreatorPage } from "../../lib/creator";
 import { search } from "../common/elastic";
 import { newHandler } from "../common/handlers";
@@ -12,7 +11,6 @@ import {User} from "../../interfaces/IUser";
 import {APIError} from "../../lib/errors";
 
 async function verifyUserIsCreatorMember (user: User, creatorId: string) {
-  console.log('verify that', user, creatorId)
   const isMember = await isMemberOfCreatorPage(creatorId, user.id)
   if (!isMember) {
     throw new APIError({
