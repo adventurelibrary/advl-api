@@ -15,17 +15,15 @@ import {
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
-import { getCreatorByID } from '../../lib/creator';
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
- * @param asset 
- * @returns 
+ * @param asset
+ * @returns
  */
-export async function transformAsset (asset : Asset) : Promise<Asset> {
+export function transformAsset (asset : Asset) : Asset {
   asset.previewLink = b2.GetURL('watermarked', asset);
   asset.thumbnail =  b2.GetURL('thumbnail', asset);
-  asset.creator_name = (await getCreatorByID(asset.creator_id)).name;
   return asset
 }
 
@@ -176,8 +174,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     }
     let searchResults = await search.search(params)
 
-    let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map(async (doc:any) => {
-      doc._source = await transformAsset(doc._source)
+    let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
+      doc._source = transformAsset(doc._source)
       return doc._source
     })
 

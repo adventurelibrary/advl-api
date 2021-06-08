@@ -68,7 +68,8 @@ export const bundle_create = newHandler({
 export const bundle_update = newHandler({
   requireUser: true,
   takesJSON: true,
-  requireBundle: true
+  requireBundle: true,
+  requireBundlePermission: true
 }, async ({user, json, bundle}) => {
   //check if the user/creator is actually owner of the bundle
   let reqBundleUpdate: REQ_Bundle_Update = <REQ_Bundle_Update> json;
@@ -105,7 +106,9 @@ export const bundle_update = newHandler({
     bundle.public = reqBundleUpdate.public;
   }
 
-  await db.updateObj(process.env.DB_BUNDLE_INFO, bundle.id, updates);
+  if (Object.keys(updates).length > 0) {
+    await db.updateObj(process.env.DB_BUNDLE_INFO, bundle.id, updates);
+  }
 
   await search.update({
     index: process.env.INDEX_BUNDLEINFO,
@@ -136,8 +139,7 @@ export const bundle_update = newHandler({
   }
 
   return {
-    status: 200,
-    body: {success:true}
+    status: 204,
   }
 })
 
@@ -153,7 +155,8 @@ export const bundle_get = newHandler({
 export const bundle_delete = newHandler({
   requireUser: true,
   requireBundle: true,
-  takesJSON: true
+  takesJSON: true,
+  requireBundlePermission: true
 }, async ({user, bundle}) => {
   await verifyUserIsCreatorMember(user, bundle.creator_id)
 
@@ -167,10 +170,7 @@ export const bundle_delete = newHandler({
   })
 
   return {
-    status: 200,
-    body: {
-      success: true
-    }
+    status: 204
   }
 })
 

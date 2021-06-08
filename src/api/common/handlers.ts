@@ -49,6 +49,7 @@ export type HandlerOpts = {
   requireCreatorPermission?: boolean
 
   requireBundle?: boolean
+  requireBundlePermission?: boolean
 }
 
 // A very simple response for our handlers to give us
@@ -72,6 +73,11 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
     if (opts.requireCreatorPermission) {
       opts.requireCreator = true
       opts.requireUser = true
+    }
+
+    if (opts.requireBundlePermission) {
+      opts.requireUser = true
+      opts.requireBundle = true
     }
 
     const query : Record<string, string> = {}
@@ -149,7 +155,14 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         const bundle = await getBundleInfo(_evt.pathParameters.bundleID)
         if(!bundle){
           return errorResponse(_evt, new Error("Could not find bundle"), 404)
-        } 
+        }
+
+        if (opts.requireBundlePermission) {
+          if (bundle.user_id !== ctx.user.id) {
+            return errorResponse(_evt, new Error('Not your bundle'), 403)
+          }
+        }
+
         ctx.bundle = bundle
       }
 
