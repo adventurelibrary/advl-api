@@ -15,5 +15,9 @@ export const users = {
   ADMIN1: {
     username: 'test-admin-1',
     password: 'test-password'
+  },
+  CREATOR1: {
+    username: 'test-creator-1',
+    password: 'test-password'
   }
 }

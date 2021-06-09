@@ -1,28 +1,34 @@
 import { Asset } from "../../interfaces/IAsset";
 import { Bundle, BundleAsset, GetBundle, REQ_Bundle_Create, REQ_Bundle_Update } from "../../interfaces/IBundle";
 import { searchAsset } from "../../lib/assets";
-import { getBundleInfo } from "../../lib/bundle";
-import { getCreatorByID, isMemberOfCreatorPage } from "../../lib/creator";
-import { getUserByID } from "../../lib/user";
+import { isMemberOfCreatorPage } from "../../lib/creator";
 import { search } from "../common/elastic";
 import { newHandler } from "../common/handlers";
 import { idgen } from "../common/nanoid";
 import * as db from '../common/postgres';
 import { transformAsset } from "./asset";
+import {User} from "../../interfaces/IUser";
+import {APIError} from "../../lib/errors";
+
+async function verifyUserIsCreatorMember (user: User, creatorId: string) {
+  const isMember = await isMemberOfCreatorPage(creatorId, user.id)
+  if (!isMember) {
+    throw new APIError({
+      status: 403,
+      message: "User doesn't have permissions to create a bundle on behalf of the creator specified."
+    })
+  }
+}
 
 export const bundle_create = newHandler({
   requireUser: true,
   takesJSON: true,
 }, async ({user, json}) => {
   let newBundleInfo: REQ_Bundle_Create = <REQ_Bundle_Create> json;
-  if(newBundleInfo.creator_id && !(await isMemberOfCreatorPage(newBundleInfo.creator_id, user.id))){
-    //check if the user actually has permissions to do things as that creator
-    return {
-      status: 401,
-      body: {error: "User doesn't have permissions to create a bundle on behalf of the creator specified."}
-    }
+  if(newBundleInfo.creator_id){
+    await verifyUserIsCreatorMember(user, newBundleInfo.creator_id)
   }
-  
+
   let newBundle: Bundle = {
     id: idgen(),
     name: newBundleInfo.name,
@@ -46,7 +52,7 @@ export const bundle_create = newHandler({
         asset_id: assetID,
         time_added: new Date()
       }
-  
+
       await db.insertObj(process.env.DB_BUNDLE_ASSETS, newBundleAsset)
     }
   }
@@ -60,18 +66,15 @@ export const bundle_create = newHandler({
 export const bundle_update = newHandler({
   requireUser: true,
   takesJSON: true,
-  requireBundle: true
+  requireBundle: true,
+  requireBundlePermission: true
 }, async ({user, json, bundle}) => {
   //check if the user/creator is actually owner of the bundle
   let reqBundleUpdate: REQ_Bundle_Update = <REQ_Bundle_Update> json;
-  
+
   //if creatorID is passed in, check that the user actually has permissions to pass it in
-  if(reqBundleUpdate.creator_id && !isMemberOfCreatorPage(reqBundleUpdate.creator_id, user.id)){
-    //check if the user actually has permissions to do things as that creator
-    return {
-      status: 401,
-      body: {error: "User doesn't have permissions to create a bundle on behalf of the creator specified."}
-    }
+  if(reqBundleUpdate.creator_id){
+    await verifyUserIsCreatorMember(user, reqBundleUpdate.creator_id)
   }
 
   //check that the bundle can be editted by the user/creator
@@ -83,8 +86,8 @@ export const bundle_update = newHandler({
     return {
       status: 401,
       body: {error: "User/Creator doesn't have permission to edit this bundle"}
-    }    
-  } 
+    }
+  }
 
   //update the bundle
   let updates: Record<string, any> = {};
@@ -101,7 +104,9 @@ export const bundle_update = newHandler({
     bundle.public = reqBundleUpdate.public;
   }
 
-  await db.updateObj(process.env.DB_BUNDLE_INFO, bundle.id, updates);
+  if (Object.keys(updates).length > 0) {
+    await db.updateObj(process.env.DB_BUNDLE_INFO, bundle.id, updates);
+  }
 
   await search.update({
     index: process.env.INDEX_BUNDLEINFO,
@@ -132,8 +137,7 @@ export const bundle_update = newHandler({
   }
 
   return {
-    status: 200,
-    body: {success:true}
+    status: 204,
   }
 })
 
@@ -149,45 +153,22 @@ export const bundle_get = newHandler({
 export const bundle_delete = newHandler({
   requireUser: true,
   requireBundle: true,
-  takesJSON: true
-}, async ({user, bundle, json}) => {
-  //check if user has permission to delete bundle
-  //if creator id is passed in the json, check if the user has permissions on the creator
-    // and if creator has permission to delete bundle
-  //if creatorID is passed in, check that the user actually has permissions to pass it in
-  if(json.creator_id && !isMemberOfCreatorPage(json.creator_id, user.id)){
-    //check if the user actually has permissions to do things as that creator
-    return {
-      status: 401,
-      body: {error: "User doesn't have permissions to create a bundle on behalf of the creator specified."}
-    }
-  }
-  //check that the bundle can be editted by the user/creator
-  if(
-    (json.creator_id && bundle.creator_id != json.creator_id) ||
-    (user.id != bundle.user_id)
-    )
-  {
-    return {
-      status: 403,
-      body: {error: "User/Creator doesn't have permission to edit this bundle"}
-    }    
-  }
-  
+  takesJSON: true,
+  requireBundlePermission: true
+}, async ({user, bundle}) => {
+  await verifyUserIsCreatorMember(user, bundle.creator_id)
+
   //delete from Postgres
   await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = ?`, [bundle.id])
   await db.query(`DELETE FROM ${process.env.DB_BUNDLE_INFO} WHERE id = ?`, [bundle.id])
-  //delete from Elastic  
+  //delete from Elastic
   await search.delete({
     index: process.env.INDEX_BUNDLEINFO,
     id: bundle.id
   })
 
   return {
-    status: 200,
-    body: {
-      success: true
-    }
+    status: 204
   }
 })
 
@@ -202,43 +183,45 @@ async function buildFEBundleFromBundleInfo(bundle:Bundle){
     bundleAssets.push(await transformAsset(await searchAsset(id)));
   }
 
-  let bOwnerName = "";
-  if(bundle.creator_id){
-    bOwnerName = (await getCreatorByID(bundle.creator_id)).name
-  } else if (bundle.user_id){
-    bOwnerName = (await getUserByID(bundle.user_id)).username
-  }
-
   let returnedBundle: GetBundle = {
     ...bundle,
-    owner_name: bOwnerName,
     assets: bundleAssets
   }
 
   return returnedBundle;
 }
 
-//export const bundle_query
 export const bundle_query = newHandler({}, async ({query}) => {
-  if(query.id){
-    let bundle = await getBundleInfo(query.id);
-    return {
-      status: 200,
-      body: await buildFEBundleFromBundleInfo(bundle)
-    }
+  const result = await searchBundles(query)
+
+  return {
+    status: 200,
+    body: result
   }
-  console.log(query);
+})
 
+export const bundles_mine = newHandler({
+  requireUser: true
+}, async ({query, user}) => {
+  query.user_id = user.id
+  const result = await searchBundles(query)
+
+  return {
+    status: 200,
+    body: result
+  }
+})
+
+async function searchBundles(query: any) {
   let _query: any = {}
-
-  if (query.user_id){
-    _query  = {
+  if (query.user_id) {
+    _query = {
       "bool": {
-        "must": [        ],
+        "must": [],
         "filter": [
           {
             "match": {
-              "user_id" : query.user_id
+              "user_id": query.user_id
             }
           }
         ]
@@ -249,7 +232,7 @@ export const bundle_query = newHandler({}, async ({query}) => {
   if (query.creator_id){
     _query = {
       "bool": {
-        "must": [        ],
+        "must": [],
         "filter": [
           {
             "match": {
@@ -262,14 +245,14 @@ export const bundle_query = newHandler({}, async ({query}) => {
   }
 
   if (query.text){
-    //search by fuzzy text match of title or description 
+    //search by fuzzy text match of title or description
   }
 
   let results = await search.search({
     index: process.env.INDEX_BUNDLEINFO,
     body: {
       from: query.from ? query.from : 0,
-      size: query.size ? query.size: 10,      
+      size: query.size ? query.size: 10,
       query: _query
     }
   })
@@ -277,14 +260,11 @@ export const bundle_query = newHandler({}, async ({query}) => {
   let FEBundles:GetBundle[] = [];
 
   for(let doc of results.body.hits.hits){
-    FEBundles.push(await buildFEBundleFromBundleInfo(doc._source));
+    FEBundles.push(doc._source)
+    //FEBundles.push(await buildFEBundleFromBundleInfo(doc._source));
   }
-
   return {
-    status: 200,
-    body: {
-      bundles: FEBundles,
-      total: results.body.hits.total.value
-    }
-  } 
-})
+    bundles: FEBundles,
+    total: results.body.hits.total.value
+  }
+}

@@ -18,15 +18,11 @@ export type GetCreatorOpts = {
 }
 
 export async function isMemberOfCreatorPage(creator_id: string, user_id: string){
-	try{
-		let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id= ? and user_id= ?`, [creator_id, user_id])
-		if(result.length == 0){
-			return false;
-		} else {
-			return true;
-		}
-	} catch (e){
+	let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id= ? and user_id= ? LIMIT 1`, [creator_id, user_id])
+	if(result.length == 0){
 		return false;
+	} else {
+		return true;
 	}
 }
 
@@ -40,6 +36,38 @@ export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
 		limit: opts.limit,
 		skip: opts.skip,
 		orderBy: 'name ASC'
+	})
+
+	return result
+}
+
+
+export async function getTotalUserCreators(user: User) {
+	const res = <{total: number}[]> await db.query(`
+SELECT COUNT(*) as total
+FROM creators c, creatormembers cm
+WHERE cm.user_id = ?
+AND cm.creator_id = c.id`, [user.id])
+	return res[0].total
+}
+
+
+export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promise<Creator[]> {
+	const limit = isNaN(opts.limit) || !opts.limit ? 20 : opts.limit
+	const skip = isNaN(opts.skip) ? 0 : opts.skip
+
+	const result = <Creator[]>await db.query(`
+SELECT c.*
+FROM creators c, creatormembers cm
+WHERE cm.user_id = :userId
+AND cm.creator_id = c.id
+ORDER BY :orderBy
+LIMIT :limit
+OFFSET :skip`, {
+		limit: limit,
+		skip: skip,
+		orderBy: 'name ASC',
+		userId: user.id
 	})
 
 	return result
