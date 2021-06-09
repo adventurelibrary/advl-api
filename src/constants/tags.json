@@ -1,978 +1,699 @@
 [
   {
-    "name": "abomination/aberration",
+    "name": "abomination",
     "aliases": [
-      "Abomination/Aberration"
+      "aberration"
     ]
   },
   {
     "name": "alien",
-    "aliases": [
-      "Alien"
-    ]
+    "aliases": []
   },
   {
     "name": "angel",
-    "aliases": [
-      "Angel"
-    ]
+    "aliases": []
   },
   {
     "name": "anime",
-    "aliases": [
-      "Anime"
-    ]
+    "aliases": []
   },
   {
     "name": "archery",
-    "aliases": [
-      "Archery"
-    ]
+    "aliases": []
   },
   {
     "name": "arctic",
-    "aliases": [
-      "Arctic"
-    ]
+    "aliases": []
   },
   {
     "name": "armor",
-    "aliases": [
-      "Armor"
-    ]
+    "aliases": []
   },
   {
     "name": "artificer",
-    "aliases": [
-      "Artificer"
-    ]
+    "aliases": []
   },
   {
     "name": "assassin",
-    "aliases": [
-      "Assassin"
-    ]
+    "aliases": []
   },
   {
     "name": "axe",
-    "aliases": [
-      "Axe"
-    ]
+    "aliases": []
   },
   {
     "name": "barbarian",
-    "aliases": [
-      "Barbarian"
-    ]
+    "aliases": []
   },
   {
     "name": "bard",
-    "aliases": [
-      "Bard"
-    ]
+    "aliases": []
   },
   {
     "name": "bat",
-    "aliases": [
-      "Bat"
-    ]
+    "aliases": []
   },
   {
     "name": "bear",
-    "aliases": [
-      "Bear"
-    ]
+    "aliases": []
   },
   {
     "name": "beast",
-    "aliases": [
-      "Beast"
-    ]
+    "aliases": []
   },
   {
     "name": "bird",
-    "aliases": [
-      "Bird"
-    ]
+    "aliases": []
   },
   {
     "name": "boat",
-    "aliases": [
-      "Boat"
-    ]
+    "aliases": []
   },
   {
     "name": "bow",
-    "aliases": [
-      "Bow"
-    ]
+    "aliases": []
   },
   {
     "name": "car",
-    "aliases": [
-      "Car"
-    ]
+    "aliases": []
   },
   {
     "name": "cart",
-    "aliases": [
-      "Cart"
-    ]
+    "aliases": []
   },
   {
     "name": "cat",
-    "aliases": [
-      "Cat"
-    ]
+    "aliases": []
   },
   {
     "name": "centaur",
-    "aliases": [
-      "Centaur"
-    ]
+    "aliases": []
   },
   {
-    "name": "city / town",
+    "name": "city",
     "aliases": [
-      "City / Town"
+      "town"
     ]
   },
   {
     "name": "cleric",
-    "aliases": [
-      "Cleric"
-    ]
+    "aliases": []
   },
   {
     "name": "construct",
-    "aliases": [
-      "Construct"
-    ]
+    "aliases": []
   },
   {
     "name": "cow",
-    "aliases": [
-      "Cow"
-    ]
+    "aliases": []
   },
   {
     "name": "crossbow",
-    "aliases": [
-      "Crossbow"
-    ]
+    "aliases": []
   },
   {
     "name": "cultist",
-    "aliases": [
-      "Cultist"
-    ]
+    "aliases": []
   },
   {
     "name": "cyberpunk",
-    "aliases": [
-      "Cyberpunk"
-    ]
+    "aliases": []
   },
   {
     "name": "dagger",
-    "aliases": [
-      "Dagger"
-    ]
+    "aliases": []
   },
   {
     "name": "day",
-    "aliases": [
-      "Day"
-    ]
+    "aliases": []
   },
   {
     "name": "desert",
-    "aliases": [
-      "Desert"
-    ]
+    "aliases": []
   },
   {
     "name": "dinosaur",
-    "aliases": [
-      "Dinosaur"
-    ]
+    "aliases": []
   },
   {
     "name": "dog",
-    "aliases": [
-      "Dog"
-    ]
+    "aliases": []
   },
   {
     "name": "door",
-    "aliases": [
-      "Door"
-    ]
+    "aliases": []
   },
   {
     "name": "dragon",
-    "aliases": [
-      "Dragon"
-    ]
+    "aliases": []
   },
   {
     "name": "dragonborn",
-    "aliases": [
-      "Dragonborn"
-    ]
+    "aliases": []
   },
   {
     "name": "druid",
-    "aliases": [
-      "Druid"
-    ]
+    "aliases": []
   },
   {
     "name": "dungeon",
-    "aliases": [
-      "Dungeon"
-    ]
+    "aliases": []
   },
   {
     "name": "dwarf",
-    "aliases": [
-      "Dwarf"
-    ]
+    "aliases": []
   },
   {
     "name": "elemental",
-    "aliases": [
-      "Dlemental"
-    ]
+    "aliases": []
   },
   {
     "name": "elf",
-    "aliases": [
-      "Elf"
-    ]
+    "aliases": []
   },
   {
     "name": "entertainer",
-    "aliases": [
-      "Entertainer"
-    ]
+    "aliases": []
   },
   {
-    "name": "fall/autumn",
+    "name": "fall",
     "aliases": [
-      "Fall/Autumn"
+      "autumn"
     ]
   },
   {
     "name": "fantasy",
-    "aliases": [
-      "Fantasy"
-    ]
+    "aliases": []
   },
   {
-    "name": "farm/rural",
+    "name": "farm",
     "aliases": [
-      "Farm/Rural"
+      "rural"
     ]
   },
   {
     "name": "female",
+    "aliases": []
+  },
+  {
+    "name": "fairy",
     "aliases": [
-      "Female"
+      "fey"
     ]
   },
   {
-    "name": "fey/fairy",
+    "name": "devil",
     "aliases": [
-      "Fey/Fairy"
+      "demon",
+      "fiend"
     ]
   },
   {
-    "name": "fiend/demon/devil",
+    "name": "combat",
     "aliases": [
-      "Fiend/Demon/Devil"
-    ]
-  },
-  {
-    "name": "fight/battle/combat",
-    "aliases": [
-      "Fight/Battle/Combat"
+      "fight",
+      "battle"
     ]
   },
   {
     "name": "fighter",
     "aliases": [
-      "Fighter"
+      "combatant"
     ]
   },
   {
     "name": "fish",
-    "aliases": [
-      "Fish"
-    ]
+    "aliases": []
   },
   {
     "name": "gargoyle",
-    "aliases": [
-      "Gargoyle"
-    ]
+    "aliases": []
   },
   {
     "name": "gear",
-    "aliases": [
-      "Gear"
-    ]
+    "aliases": []
   },
   {
     "name": "ghost",
-    "aliases": [
-      "Ghost"
-    ]
+    "aliases": []
   },
   {
     "name": "ghoul",
-    "aliases": [
-      "Ghoul"
-    ]
+    "aliases": []
   },
   {
     "name": "giant",
-    "aliases": [
-      "Giant"
-    ]
+    "aliases": []
   },
   {
     "name": "gnome",
-    "aliases": [
-      "Gnome"
-    ]
+    "aliases": []
   },
   {
     "name": "goat",
-    "aliases": [
-      "Goat"
-    ]
+    "aliases": []
   },
   {
     "name": "goblin",
-    "aliases": [
-      "Goblin"
-    ]
+    "aliases": []
   },
   {
     "name": "gothic",
-    "aliases": [
-      "Gothic"
-    ]
+    "aliases": []
   },
   {
     "name": "grassland",
-    "aliases": [
-      "Grassland"
-    ]
+    "aliases": []
   },
   {
     "name": "guard",
-    "aliases": [
-      "Guard"
-    ]
+    "aliases": []
   },
   {
     "name": "gun",
-    "aliases": [
-      "Gun"
-    ]
-  },
-  {
-    "name": "hag",
-    "aliases": [
-      "Hag"
-    ]
-  },
-  {
-    "name": "half-elf",
-    "aliases": [
-      "Half-Elf"
-    ]
-  },
-  {
-    "name": "half-orc",
-    "aliases": [
-      "Half-Orc"
-    ]
-  },
-  {
-    "name": "halfling",
-    "aliases": [
-      "Halfling"
-    ]
-  },
-  {
-    "name": "hills",
-    "aliases": [
-      "Hills"
-    ]
-  },
-  {
-    "name": "historical",
-    "aliases": [
-      "Historical"
-    ]
-  },
-  {
-    "name": "horror",
-    "aliases": [
-      "Horror"
-    ]
-  },
-  {
-    "name": "horse",
-    "aliases": [
-      "Horse"
-    ]
-  },
-  {
-    "name": "human",
-    "aliases": [
-      "Human"
-    ]
-  },
-  {
-    "name": "insect/bug",
-    "aliases": [
-      "Insect/Bug"
-    ]
-  },
-  {
-    "name": "interior",
-    "aliases": [
-      "Interior"
-    ]
-  },
-  {
-    "name": "jungle",
-    "aliases": [
-      "Jungle"
-    ]
-  },
-  {
-    "name": "king/queen",
-    "aliases": [
-      "King/Queen"
-    ]
-  },
-  {
-    "name": "knight",
-    "aliases": [
-      "Knight"
-    ]
-  },
-  {
-    "name": "kobold",
-    "aliases": [
-      "Kobold"
-    ]
-  },
-  {
-    "name": "kraken",
-    "aliases": [
-      "Kraken"
-    ]
-  },
-  {
-    "name": "laser",
-    "aliases": [
-      "Laser"
-    ]
-  },
-  {
-    "name": "lizardfolk",
-    "aliases": [
-      "Lizardfolk"
-    ]
-  },
-  {
-    "name": "mace",
-    "aliases": [
-      "Mace"
-    ]
-  },
-  {
-    "name": "magic",
-    "aliases": [
-      "Magic"
-    ]
-  },
-  {
-    "name": "male",
-    "aliases": [
-      "Male"
-    ]
-  },
-  {
-    "name": "marsh/bog",
-    "aliases": [
-      "Marsh/Bog"
-    ]
-  },
-  {
-    "name": "merchant",
-    "aliases": [
-      "Merchant"
-    ]
-  },
-  {
-    "name": "modern",
-    "aliases": [
-      "Modern"
-    ]
-  },
-  {
-    "name": "monk",
-    "aliases": [
-      "Monk"
-    ]
-  },
-  {
-    "name": "monochrome",
-    "aliases": [
-      "Monochrome"
-    ]
-  },
-  {
-    "name": "monster",
-    "aliases": [
-      "Monster"
-    ]
-  },
-  {
-    "name": "monstrosity",
-    "aliases": [
-      "Monstrosity"
-    ]
-  },
-  {
-    "name": "mountain",
-    "aliases": [
-      "Mountain"
-    ]
-  },
-  {
-    "name": "mummy",
-    "aliases": [
-      "Mummy"
-    ]
-  },
-  {
-    "name": "mythology",
-    "aliases": [
-      "Mythology"
-    ]
-  },
-  {
-    "name": "night",
-    "aliases": [
-      "Night"
-    ]
-  },
-  {
-    "name": "noble",
-    "aliases": [
-      "Noble"
-    ]
-  },
-  {
-    "name": "nonbinary",
-    "aliases": [
-      "Nonbinary"
-    ]
-  },
-  {
-    "name": "ocean/sea",
-    "aliases": [
-      "Ocean/Sea"
-    ]
-  },
-  {
-    "name": "ogre",
-    "aliases": [
-      "Ogre"
-    ]
-  },
-  {
-    "name": "ooze/slime",
-    "aliases": [
-      "Ooze/Slime"
-    ]
-  },
-  {
-    "name": "orc",
-    "aliases": [
-      "Orc"
-    ]
-  },
-  {
-    "name": "paladin",
-    "aliases": [
-      "Paladin"
-    ]
-  },
-  {
-    "name": "panel",
-    "aliases": [
-      "Panel"
-    ]
-  },
-  {
-    "name": "pastoral",
-    "aliases": [
-      "Pastoral"
-    ]
-  },
-  {
-    "name": "peasant",
-    "aliases": [
-      "Peasant"
-    ]
-  },
-  {
-    "name": "pirate",
-    "aliases": [
-      "Pirate"
-    ]
-  },
-  {
-    "name": "plant creature",
-    "aliases": [
-      "Plant Creature"
-    ]
-  },
-  {
-    "name": "ranger",
-    "aliases": [
-      "Ranger"
-    ]
-  },
-  {
-    "name": "rat",
-    "aliases": [
-      "Rat"
-    ]
-  },
-  {
-    "name": "ring",
-    "aliases": [
-      "Ring"
-    ]
-  },
-  {
-    "name": "road/street",
-    "aliases": [
-      "Road/Street"
-    ]
-  },
-  {
-    "name": "rogue",
-    "aliases": [
-      "Rogue"
-    ]
-  },
-  {
-    "name": "ruin",
-    "aliases": [
-      "Ruin"
-    ]
-  },
-  {
-    "name": "sailor",
-    "aliases": [
-      "Sailor"
-    ]
-  },
-  {
-    "name": "sci-fi/science_fiction/SF",
-    "aliases": [
-      "Sci-Fi/Science_Fiction/SF"
-    ]
-  },
-  {
-    "name": "scout",
-    "aliases": [
-      "Scout"
-    ]
-  },
-  {
-    "name": "sheep",
-    "aliases": [
-      "Sheep"
-    ]
-  },
-  {
-    "name": "shield",
-    "aliases": [
-      "Shield"
-    ]
-  },
-  {
-    "name": "ship",
-    "aliases": [
-      "Ship"
-    ]
-  },
-  {
-    "name": "shore/coastal",
-    "aliases": [
-      "Shore/Coastal"
-    ]
-  },
-  {
-    "name": "skeleton",
-    "aliases": [
-      "Skeleton"
-    ]
-  },
-  {
-    "name": "snake",
-    "aliases": [
-      "Snake"
-    ]
-  },
-  {
-    "name": "sorcerer",
-    "aliases": [
-      "Sorcerer"
-    ]
-  },
-  {
-    "name": "space ship/spaceship",
-    "aliases": [
-      "Space Ship/Spaceship"
-    ]
-  },
-  {
-    "name": "spear",
-    "aliases": [
-      "Spear"
-    ]
-  },
-  {
-    "name": "spell",
-    "aliases": [
-      "Spell"
-    ]
-  },
-  {
-    "name": "spider",
-    "aliases": [
-      "Spider"
-    ]
-  },
-  {
-    "name": "spring",
-    "aliases": [
-      "Spring"
-    ]
-  },
-  {
-    "name": "staff",
-    "aliases": [
-      "Staff"
-    ]
-  },
-  {
-    "name": "steampunk",
-    "aliases": [
-      "Steampunk"
-    ]
-  },
-  {
-    "name": "subterranean/underdark",
-    "aliases": [
-      "Subterranean/Underdark"
-    ]
-  },
-  {
-    "name": "summer",
-    "aliases": [
-      "Summer"
-    ]
-  },
-  {
-    "name": "swamp",
-    "aliases": [
-      "Swamp"
-    ]
-  },
-  {
-    "name": "sword",
-    "aliases": [
-      "Sword"
-    ]
-  },
-  {
-    "name": "tabaxi/cat folk",
-    "aliases": [
-      "Tabaxi/Cat Folk"
-    ]
-  },
-  {
-    "name": "talisman/amulet",
-    "aliases": [
-      "Talisman/Amulet"
-    ]
-  },
-  {
-    "name": "tech",
-    "aliases": [
-      "Tech"
-    ]
-  },
-  {
-    "name": "temple",
-    "aliases": [
-      "Temple"
-    ]
-  },
-  {
-    "name": "thug",
-    "aliases": [
-      "Thug"
-    ]
-  },
-  {
-    "name": "tiefling",
-    "aliases": [
-      "Tiefling"
-    ]
-  },
-  {
-    "name": "train",
-    "aliases": [
-      "Train"
-    ]
-  },
-  {
-    "name": "troll",
-    "aliases": [
-      "Troll"
-    ]
-  },
-  {
-    "name": "undead",
-    "aliases": [
-      "Undead"
-    ]
-  },
-  {
-    "name": "unicorn",
-    "aliases": [
-      "Unicorn"
-    ]
-  },
-  {
-    "name": "urban/city",
-    "aliases": [
-      "Urban/City"
-    ]
-  },
-  {
-    "name": "urban_fantasy",
-    "aliases": [
-      "Urban_Fantasy"
-    ]
-  },
-  {
-    "name": "urchin",
-    "aliases": [
-      "Urchin"
-    ]
-  },
-  {
-    "name": "vampire",
-    "aliases": [
-      "Vampire"
-    ]
-  },
-  {
-    "name": "wand",
-    "aliases": [
-      "Wand"
-    ]
-  },
-  {
-    "name": "warlock",
-    "aliases": [
-      "Warlock"
-    ]
-  },
-  {
-    "name": "wilderness nature",
-    "aliases": [
-      "Wilderness Nature"
-    ]
-  },
-  {
-    "name": "winter",
-    "aliases": [
-      "Winter"
-    ]
+    "aliases": []
   },
   {
     "name": "witch",
     "aliases": [
-      "Witch"
+      "hag"
     ]
+  },
+  {
+    "name": "half-elf",
+    "aliases": []
+  },
+  {
+    "name": "half-orc",
+    "aliases": []
+  },
+  {
+    "name": "halfling",
+    "aliases": []
+  },
+  {
+    "name": "hills",
+    "aliases": []
+  },
+  {
+    "name": "historical",
+    "aliases": []
+  },
+  {
+    "name": "horror",
+    "aliases": []
+  },
+  {
+    "name": "horse",
+    "aliases": [
+      "pony"
+    ]
+  },
+  {
+    "name": "human",
+    "aliases": []
+  },
+  {
+    "name": "insect/bug",
+    "aliases": []
+  },
+  {
+    "name": "interior",
+    "aliases": []
+  },
+  {
+    "name": "jungle",
+    "aliases": []
+  },
+  {
+    "name": "king",
+    "aliases": []
+  },
+  {
+    "name": "queen",
+    "aliases": []
+  },
+  {
+    "name": "knight",
+    "aliases": []
+  },
+  {
+    "name": "kobold",
+    "aliases": []
+  },
+  {
+    "name": "kraken",
+    "aliases": []
+  },
+  {
+    "name": "laser",
+    "aliases": []
+  },
+  {
+    "name": "lizardfolk",
+    "aliases": []
+  },
+  {
+    "name": "mace",
+    "aliases": []
+  },
+  {
+    "name": "magic",
+    "aliases": []
+  },
+  {
+    "name": "male",
+    "aliases": []
+  },
+  {
+    "name": "marsh",
+    "aliases": [
+      "bog"
+    ]
+  },
+  {
+    "name": "merchant",
+    "aliases": []
+  },
+  {
+    "name": "modern",
+    "aliases": []
+  },
+  {
+    "name": "monk",
+    "aliases": []
+  },
+  {
+    "name": "monochrome",
+    "aliases": []
+  },
+  {
+    "name": "monster",
+    "aliases": []
+  },
+  {
+    "name": "monstrosity",
+    "aliases": []
+  },
+  {
+    "name": "mountain",
+    "aliases": []
+  },
+  {
+    "name": "mummy",
+    "aliases": []
+  },
+  {
+    "name": "mythology",
+    "aliases": []
+  },
+  {
+    "name": "night",
+    "aliases": []
+  },
+  {
+    "name": "noble",
+    "aliases": []
+  },
+  {
+    "name": "nonbinary",
+    "aliases": []
+  },
+  {
+    "name": "ocean/sea",
+    "aliases": []
+  },
+  {
+    "name": "ogre",
+    "aliases": []
+  },
+  {
+    "name": "ooze",
+    "aliases": [
+      "slime"
+    ]
+  },
+  {
+    "name": "orc",
+    "aliases": []
+  },
+  {
+    "name": "paladin",
+    "aliases": []
+  },
+  {
+    "name": "panel",
+    "aliases": []
+  },
+  {
+    "name": "pastoral",
+    "aliases": []
+  },
+  {
+    "name": "peasant",
+    "aliases": []
+  },
+  {
+    "name": "pirate",
+    "aliases": []
+  },
+  {
+    "name": "plant creature",
+    "aliases": []
+  },
+  {
+    "name": "ranger",
+    "aliases": []
+  },
+  {
+    "name": "rat",
+    "aliases": []
+  },
+  {
+    "name": "ring",
+    "aliases": []
+  },
+  {
+    "name": "road",
+    "aliases": [
+      "street"
+    ]
+  },
+  {
+    "name": "rogue",
+    "aliases": []
+  },
+  {
+    "name": "ruin",
+    "aliases": []
+  },
+  {
+    "name": "sailor",
+    "aliases": []
+  },
+  {
+    "name": "sci-fi",
+    "aliases": [
+      "Science Fiction"
+    ]
+  },
+  {
+    "name": "scout",
+    "aliases": []
+  },
+  {
+    "name": "sheep",
+    "aliases": []
+  },
+  {
+    "name": "shield",
+    "aliases": []
+  },
+  {
+    "name": "ship",
+    "aliases": []
+  },
+  {
+    "name": "coastal",
+    "aliases": [
+      "shore"
+    ]
+  },
+  {
+    "name": "skeleton",
+    "aliases": []
+  },
+  {
+    "name": "snake",
+    "aliases": []
+  },
+  {
+    "name": "sorcerer",
+    "aliases": []
+  },
+  {
+    "name": "spaceship",
+    "aliases": []
+  },
+  {
+    "name": "spear",
+    "aliases": []
+  },
+  {
+    "name": "spell",
+    "aliases": []
+  },
+  {
+    "name": "spider",
+    "aliases": []
+  },
+  {
+    "name": "spring",
+    "aliases": []
+  },
+  {
+    "name": "staff",
+    "aliases": []
+  },
+  {
+    "name": "steampunk",
+    "aliases": []
+  },
+  {
+    "name": "subterranean",
+    "aliases": [
+      "underdark"
+    ]
+  },
+  {
+    "name": "summer",
+    "aliases": []
+  },
+  {
+    "name": "swamp",
+    "aliases": []
+  },
+  {
+    "name": "sword",
+    "aliases": []
+  },
+  {
+    "name": "cat folk",
+    "aliases": [
+      "tabaxi"
+    ]
+  },
+  {
+    "name": "talisman",
+    "aliases": [
+      "amulet"
+    ]
+  },
+  {
+    "name": "tech",
+    "aliases": []
+  },
+  {
+    "name": "temple",
+    "aliases": []
+  },
+  {
+    "name": "thug",
+    "aliases": []
+  },
+  {
+    "name": "tiefling",
+    "aliases": []
+  },
+  {
+    "name": "train",
+    "aliases": []
+  },
+  {
+    "name": "troll",
+    "aliases": []
+  },
+  {
+    "name": "undead",
+    "aliases": []
+  },
+  {
+    "name": "unicorn",
+    "aliases": []
+  },
+  {
+    "name": "city",
+    "aliases": [
+      "urban"
+    ]
+  },
+  {
+    "name": "urban fantasy",
+    "aliases": []
+  },
+  {
+    "name": "urchin",
+    "aliases": []
+  },
+  {
+    "name": "vampire",
+    "aliases": []
+  },
+  {
+    "name": "wand",
+    "aliases": []
+  },
+  {
+    "name": "warlock",
+    "aliases": []
+  },
+  {
+    "name": "wilderness nature",
+    "aliases": []
+  },
+  {
+    "name": "winter",
+    "aliases": []
+  },
+  {
+    "name": "witch",
+    "aliases": []
   },
   {
     "name": "wizard",
-    "aliases": [
-      "Wizard"
-    ]
+    "aliases": []
   },
   {
     "name": "wolf",
-    "aliases": [
-      "Wolf"
-    ]
+    "aliases": []
   },
   {
-    "name": "world (map)",
-    "aliases": [
-      "World (Map)"
-    ]
+    "name": "world",
+    "aliases": []
   },
   {
     "name": "worm",
-    "aliases": [
-      "Worm"
-    ]
+    "aliases": []
   },
   {
     "name": "ww2",
     "aliases": [
-      "WW2"
+      "World War 2"
     ]
   },
   {
     "name": "young",
-    "aliases": [
-      "Young"
-    ]
+    "aliases": []
   },
   {
-    "name": "yuan-ti/snake folk",
+    "name": "snake folk",
     "aliases": [
-      "Yuan-Ti/Snake Folk"
+      "Yuan-Ti"
     ]
   },
   {
     "name": "zombie",
-    "aliases": [
-      "Zombie"
-    ]
+    "aliases": []
   }
 ]
-
-
-
 

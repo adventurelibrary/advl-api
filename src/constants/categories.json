@@ -5,7 +5,7 @@
   },
   {
     "name": "token",
-    "description": "used to depict PCs or NPCs, top down, isometric or flat round."
+    "description": "Used to depict PCs or NPCs, top down, isometric or flat round."
   },
   {
     "name": "Character",

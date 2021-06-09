@@ -23,10 +23,10 @@ export const Categories:Category[] = require('./categories.json');
  */
 export function GetTag(potentialTag:string):Tag{
   return Tags.find(tag => {
-    if (tag.name == potentialTag) {
+    if (tag.name.toLowerCase() == potentialTag.toLowerCase()) {
       return true
     }
-    if (tag.aliases && tag.aliases.includes[potentialTag]) {
+    if (tag.aliases && tag.aliases.filter( src => src.toLowerCase().includes(potentialTag.toLowerCase())).length > 0 ) { //case insensitive lookup of tag aliases
       return true
     }
     return false
