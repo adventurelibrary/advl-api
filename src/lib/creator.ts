@@ -32,7 +32,7 @@ export async function getTotalCreators() {
 }
 
 export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
-	const result = <Creator[]>await db.getObjects(process.env.DB_CREATORS, {
+	const result = <Creator[]>await db.getTableObjects(process.env.DB_CREATORS, {
 		limit: opts.limit,
 		skip: opts.skip,
 		orderBy: 'name ASC'

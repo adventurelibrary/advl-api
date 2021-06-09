@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Serverless webpack example using Typescript",
   "scripts": {
-    "test": "ts-node tests/test.ts"
+    "test": "ts-node tests/test.ts",
+    "reset": "ts-node reset.ts"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.11.0",

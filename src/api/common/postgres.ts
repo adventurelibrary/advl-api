@@ -287,18 +287,26 @@ export async function getObj (tableName:string, id:string) {
 }
 
 export type GetObjectsOpts = {
-  limit: number,
-  skip: number,
+  limit?: number,
+  skip?: number,
   orderBy?: string,
+  params?: Record<string, any>
 }
 
-export async function getObjects (tableName:string, {
+export async function getTableObjects<T>(tableName: string, opts: GetObjectsOpts) : Promise<T[]> {
+  const sql = `SELECT * FROM ${tableName} `
+  return await getObjects(sql, opts)
+}
+
+export async function getObjects<T>(sql:string, {
   limit,
   skip,
   orderBy,
-} : GetObjectsOpts) {
-  const params : QueryParams = {}
-  let sql = `SELECT * FROM ${tableName} `
+  params
+} : GetObjectsOpts) : Promise<T[]> {
+  if (!params) {
+    params = {}
+  }
 
   if (orderBy) {
     sql += ' ORDER BY ' + orderBy
@@ -315,8 +323,7 @@ export async function getObjects (tableName:string, {
     params.skip = skip
   }
 
-
-  const rows = await query(sql, params)
+  const rows = await query<T>(sql, params)
   return rows
 }
 
