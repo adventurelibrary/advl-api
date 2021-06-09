@@ -1,6 +1,22 @@
 [
   {
     "name": "map",
-    "description": "Maps are cool"
+    "description": "Depicting a place, that can be used for reference or tactical play."
+  },
+  {
+    "name": "token",
+    "description": "used to depict PCs or NPCs, top down, isometric or flat round."
+  },
+  {
+    "name": "Character",
+    "description": "Figures, pawns, portraits."
+  },
+  {
+    "name": "Panel",
+    "description": "For comics (often 3-panel spreads or full pages)."
+  },
+  {
+    "name": "Scene",
+    "description": "Art that includes a background, possibly with figures in it, more \"traditional\" art - not usually used for tactical purposes."
   }
 ]
