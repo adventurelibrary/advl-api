@@ -3,9 +3,8 @@ import { idgen } from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
   getCreators, getTotalCreators, getTotalUserCreators, getUserCreators,
-  insertCreator,
+  insertCreator, isMemberOfCreatorPage,
   updateCreator,
-  userHasCreatorPermission,
   validateCreator
 } from "../../lib/creator";
 
@@ -14,7 +13,10 @@ export const creator_get = newHandler({
   includeUser: true,
 }, async ({user, creator}) => {
   let body : any = {}
-  const hasPerm = await userHasCreatorPermission(user, creator)
+  let hasPerm = false
+  if (user) {
+    hasPerm = await isMemberOfCreatorPage(creator.id, user.id)
+  }
   if (hasPerm) {
     body = creator
   } else {

@@ -73,16 +73,6 @@ OFFSET :skip`, {
 	return result
 }
 
-// Async so that later this can do a DB query to check permissions
-// Something like SELECT EXISTS(SELECT id FROM creator_users WHERE user_id = ? AND creator_id = ?))
-export async function userHasCreatorPermission (user: User, creator: Creator) : Promise<boolean> {
-	if (!user) {
-		return false
-	}
-	return user.is_admin || creator.owner_id == user.id
-}
-
-
 export function creatorToDatabaseWrite (creator: Creator) : any {
 	const dbwrite = <any>creator
 	// falsy owner should just be saved as null

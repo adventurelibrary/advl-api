@@ -172,8 +172,7 @@ export const bundle_delete = newHandler({
   requireBundle: true,
   takesJSON: true,
   requireBundlePermission: true
-}, async ({user, bundle}) => {
-  await verifyUserIsCreatorMember(user, bundle.creator_id)
+}, async ({bundle}) => {
   await deleteBundle(bundle.id)
 
   return {

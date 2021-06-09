@@ -48,9 +48,17 @@ test.serial('bundle:create:as test user', async (t) => {
     t.fail('Wrong user was created')
   }
 
-  // Test cleanup
-  await deleteBundle(bundle.id)
-
+  // Test cleanup (and bonus delete test)
+  const url = 'bundles/' + bundle.id + '/delete'
+  console.log('url', url)
+  res = await request(url, {
+    method: 'POST',
+    userKey: 'TEST1'
+  });
+  err = await testResStatus(res, 204)
+  if(err){
+    t.fail(err);
+  }
   t.pass('Bundle created by test-user-01.');
 })
 
@@ -68,7 +76,7 @@ test.serial('bundle:create: a new creator bundle as test user', async (t) => {
     },
     userKey: 'TEST1'
   }
-  const res = await request('bundles/create', createOpts);
+  let res = await request('bundles/create', createOpts);
   let err = await testResStatus(res, 201)
   if(err){
     t.fail(err);
@@ -77,7 +85,7 @@ test.serial('bundle:create: a new creator bundle as test user', async (t) => {
   const bundle = await getBundleByName(name)
   t.is(bundle.creator_id, CREATOR_1, `Wrong creator was assigned`)
 
-  // Test cleanup
+  // Cleanup
   await deleteBundle(bundle.id)
 
   t.pass('Bundle created by creator (Adventure Library 2).');
