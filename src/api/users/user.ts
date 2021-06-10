@@ -39,7 +39,6 @@ export const user_get = newHandler({
       body: newUser
     }
   } else if (user) {
-    // TODO: updateUserLastSeen()
     await updateUser(user, {last_seen: new Date()})
   }
   return {

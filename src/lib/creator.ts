@@ -32,7 +32,7 @@ export async function getTotalCreators() {
 }
 
 export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
-	const result = <Creator[]>await db.getObjects(process.env.DB_CREATORS, {
+	const result = <Creator[]>await db.getTableObjects(process.env.DB_CREATORS, {
 		limit: opts.limit,
 		skip: opts.skip,
 		orderBy: 'name ASC'
@@ -51,7 +51,19 @@ AND cm.creator_id = c.id`, [user.id])
 	return res[0].total
 }
 
+export async function getUserCreatorIds(id: string) : Promise<string[]> {
+	const results = <{creator_id: string}[]>await db.query(`
+SELECT cm.creator_id
+FROM creatormembers cm
+WHERE cm.user_id = :userId
+`, {
+		userId: id
+	})
 
+	return results.map((row) => {
+		return row.creator_id
+	})
+}
 export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promise<Creator[]> {
 	const limit = isNaN(opts.limit) || !opts.limit ? 20 : opts.limit
 	const skip = isNaN(opts.skip) ? 0 : opts.skip
@@ -72,16 +84,6 @@ OFFSET :skip`, {
 
 	return result
 }
-
-// Async so that later this can do a DB query to check permissions
-// Something like SELECT EXISTS(SELECT id FROM creator_users WHERE user_id = ? AND creator_id = ?))
-export async function userHasCreatorPermission (user: User, creator: Creator) : Promise<boolean> {
-	if (!user) {
-		return false
-	}
-	return user.is_admin || creator.owner_id == user.id
-}
-
 
 export function creatorToDatabaseWrite (creator: Creator) : any {
 	const dbwrite = <any>creator

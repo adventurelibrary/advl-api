@@ -9,6 +9,7 @@ import * as db from '../common/postgres';
 import { transformAsset } from "./asset";
 import {User} from "../../interfaces/IUser";
 import {APIError} from "../../lib/errors";
+import {deleteBundle, userCanViewBundle} from "../../lib/bundle";
 
 async function verifyUserIsCreatorMember (user: User, creatorId: string) {
   const isMember = await isMemberOfCreatorPage(creatorId, user.id)
@@ -19,6 +20,17 @@ async function verifyUserIsCreatorMember (user: User, creatorId: string) {
     })
   }
 }
+
+async function verifyUserBundleCanView(user: User | undefined, bundle : Bundle) {
+  const canView = userCanViewBundle(user, bundle)
+  if (!canView) {
+    throw new APIError({
+      status: 403,
+      message: "User does not have permission to view that bundle."
+    })
+  }
+}
+
 
 export const bundle_create = newHandler({
   requireUser: true,
@@ -142,8 +154,10 @@ export const bundle_update = newHandler({
 })
 
 export const bundle_get = newHandler({
-  requireBundle: true
-}, async ({bundle}) => {
+  requireBundle: true,
+  includeUser: true
+}, async ({bundle, user}) => {
+  await verifyUserBundleCanView(user, bundle)
   return {
     status: 200,
     body: await buildFEBundleFromBundleInfo(bundle)
@@ -155,17 +169,8 @@ export const bundle_delete = newHandler({
   requireBundle: true,
   takesJSON: true,
   requireBundlePermission: true
-}, async ({user, bundle}) => {
-  await verifyUserIsCreatorMember(user, bundle.creator_id)
-
-  //delete from Postgres
-  await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = ?`, [bundle.id])
-  await db.query(`DELETE FROM ${process.env.DB_BUNDLE_INFO} WHERE id = ?`, [bundle.id])
-  //delete from Elastic
-  await search.delete({
-    index: process.env.INDEX_BUNDLEINFO,
-    id: bundle.id
-  })
+}, async ({bundle}) => {
+  await deleteBundle(bundle.id)
 
   return {
     status: 204

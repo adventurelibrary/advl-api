@@ -5,9 +5,13 @@ import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
 import { Admin } from '../interfaces/IAdmin';
 
-export async function getUserByID(_sub: string): Promise<User> {
+export async function getUserByID(id: string): Promise<User> {
   try{
-    const user = <User> await db.getObj(process.env.DB_USERS, _sub);
+    const user = await db.queryOne<User>(`
+SELECT u.*, EXISTS(SELECT creator_id FROM creatormembers WHERE user_id= u.id LIMIT 1) as is_creator
+FROM users u
+WHERE u.id = ?
+`, [id])
     return user;
   } catch (e){
     return undefined;
