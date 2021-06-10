@@ -1,11 +1,9 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { errorResponse, newResponse } from "../common/response";
 import {query} from "../common/postgres";
-import {indexAssetsSearch, reindexAssetsSearch} from "../../lib/assets";
+import {reindexAssetsSearch} from "../../lib/assets";
 import {Asset} from "../../interfaces/IAsset";
-import {search} from "../api/common/elastic";
-import {bulkIndex, clearIndex} from "../common/elastic";
-import {indexBundles, reindexBundles} from "../../lib/bundle";
+import { reindexBundles} from "../../lib/bundle";
 import {Bundle} from "../../interfaces/IBundle";
 
 export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
@@ -52,5 +50,28 @@ ON u.id = b.user_id`)
     return response;
   } catch (e) {
     return errorResponse(_evt,e);
+  }
+}
+
+import { Client } from 'pg';
+
+export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
+  let response = newResponse();
+  try{
+    console.log("Attempting connection");
+    const client = new Client({
+      user: 'advl',
+      password: 'f*4MxH8p8Tcz',
+      host: 'advl-production.cluster-cyynasj2ssh4.us-east-1.rds.amazonaws.com',
+      database: 'adventurelibrary'
+    })
+    client.connect();
+    let res = await client.query('select * from information_schema.tables')
+    console.log(res);
+    response.body = JSON.stringify(res);
+    return response;
+  } catch (e){
+    console.error(e);
+    return errorResponse(_evt, e);
   }
 }

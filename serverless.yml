@@ -7,6 +7,9 @@ custom:
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
+  cors:
+    v1: true
+    prod: false
 
 plugins:
   - serverless-webpack
@@ -25,8 +28,9 @@ provider:
       Action:
         - "rds-data:ExecuteStatement"
         - "secretsmanager:*"
+        - "ec2:*"
       Resource:
-        ${file(src/.env.yml):iam}
+        - "*"
   environment:
     ${file(src/.env.yml):common}
     

@@ -5,7 +5,7 @@ export function newResponse ()  {
 		statusCode: 500,
 		headers: {
 			'content-type': "application/json",
-			'Access-Control-Allow-Origin': "*",
+			'Access-Control-Allow-Origin': process.env.IS_OFFLINE == "true" ? "*" : `https://${process.env.STAGE}.adventurelibrary.art`,
 			'Access-Control-Allow-Credentials': true
 		},
 		body: JSON.stringify({error:"Something went wrong!"})

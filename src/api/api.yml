@@ -5,7 +5,7 @@ debug_rds:
     - http:
         method: post
         path: /database
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 debug_sync:
@@ -14,9 +14,19 @@ debug_sync:
     - http:
         method: post
         path: /database/sync
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+debug_vpc:
+  handler: src/api/debug/rds.rds_vpc
+  events:
+    - http: 
+        method: get
+        path: /database/vpc
         cors: true
   environment:
     ${file(src/dynamic-environment.js):database}
+
 ################## USERS  #########################
 user_get:
   handler: src/api/users/user.user_get
@@ -24,7 +34,7 @@ user_get:
     - http: # GET session or create new user if it doesn't exist
         method: get
         path: /users
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):user}
 
@@ -34,7 +44,7 @@ user_put:
     - http: # PUT updates the currently logged in user
         method: put
         path: /users
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):user}
 
@@ -46,7 +56,7 @@ creators_get_mine:
     - http:
         method: get
         path: /creators/mine
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js)):creator}
 
@@ -57,7 +67,7 @@ creator_get:
     - http:
         method: get
         path: /creator/{creatorID}
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js)):creator}
 
@@ -67,7 +77,7 @@ creators_get:
     - http:
         method: get
         path: /creators
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js)):creator}
 
@@ -77,7 +87,7 @@ creator_post:
     - http:
         method: post
         path: /creator
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js)):creator}
 
@@ -87,7 +97,7 @@ creator_put:
     - http:
         method: put
         path: /creator/{creatorID}
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js)):creator}
 
@@ -98,7 +108,7 @@ get_upload_signature:
     - http:
         method: post
         path: /assets/get_signature
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):transloadit}
 
@@ -108,7 +118,7 @@ transloadit_notify:
     - http:
         method: post
         path: /assets/transloadit
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):transloadit}
 
@@ -118,7 +128,7 @@ query_assets:
     - http:
         method: get
         path: /assets
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):query_assets}
 
@@ -128,7 +138,7 @@ asset_download_link:
     - http:
         method: get
         path: /assets/{assetID}/download
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):asset_download_link}
 
@@ -138,7 +148,7 @@ update_asset:
     - http:
         method: put
         path: /assets/update
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
@@ -148,7 +158,7 @@ get_asset:
     - http:
         method: get
         path: /assets/{assetID}
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):query_assets}
 ################## Bundles #########################
@@ -158,7 +168,7 @@ bundle_create:
     - http:
         method: post
         path: /bundles/create
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
@@ -168,7 +178,7 @@ bundle_update:
     - http:
         method: put
         path: /bundles/{bundleID}
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
@@ -178,7 +188,7 @@ bundle_get:
     - http:
         method: get
         path: /bundles/{bundleID}
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
@@ -188,7 +198,7 @@ bundle_delete:
     - http:
         method: post
         path: /bundles/{bundleID}/delete
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
@@ -198,7 +208,7 @@ bundle_query:
     - http:
         method: get
         path: /bundles
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
@@ -208,6 +218,6 @@ bundles_mine:
     - http:
         method: get
         path: /bundles/mine
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
