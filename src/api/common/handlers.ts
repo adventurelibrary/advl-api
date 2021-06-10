@@ -9,9 +9,8 @@ import {errorResponse, newResponse} from "./response";
 import {getAsset} from "../../lib/assets";
 import {User} from "../../interfaces/IUser";
 import {getEventUser} from "./events";
-import {getCreatorByID} from "../../lib/creator";
+import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
 import {Creator} from "../../interfaces/ICreator";
-import {userHasCreatorPermission} from "../../lib/creator";
 import { Bundle } from "../../interfaces/IBundle";
 import { getBundleInfo } from "../../lib/bundle";
 
@@ -145,9 +144,13 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.creator = creator
 
         if (opts.requireCreatorPermission) {
-          const hasPerm = await userHasCreatorPermission(ctx.user, ctx.creator)
-          if (!hasPerm)
-            return errorResponse(_evt, new Error('You do not have permission'), 403)
+          if (!ctx.user.is_admin) {
+            const hasPerm = await isMemberOfCreatorPage(ctx.creator.id, ctx.user.id)
+            if (!hasPerm) {
+              return errorResponse(_evt, new Error('You do not have permission'), 403)
+            }
+
+          }
         }
       }
 
@@ -158,7 +161,11 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         }
 
         if (opts.requireBundlePermission) {
-          if (bundle.user_id !== ctx.user.id) {
+          let hasPermission = bundle.user_id == ctx.user.id
+          if (!hasPermission && bundle.creator_id) {
+            hasPermission = await isMemberOfCreatorPage(bundle.creator_id, ctx.user.id)
+          }
+          if (!hasPermission) {
             return errorResponse(_evt, new Error('Not your bundle'), 403)
           }
         }

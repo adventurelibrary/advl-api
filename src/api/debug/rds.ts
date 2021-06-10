@@ -1,10 +1,8 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { errorResponse, newResponse } from "../common/response";
 import {query} from "../common/postgres";
-import {reindexAssetsSearch} from "../../lib/assets";
-import {Asset} from "../../interfaces/IAsset";
-import { reindexBundles} from "../../lib/bundle";
-import {Bundle} from "../../interfaces/IBundle";
+import {resetAssets} from "../../lib/assets";
+import {resetBundles} from "../../lib/bundle";
 
 export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
   try{
@@ -29,23 +27,8 @@ export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
 export const debug_sync:APIGatewayProxyHandler = async(_evt, _ctx) => {
   let response = newResponse();
   try{
-    const sql = `SELECT a.*, c.name as creator_name
-FROM assets a
-JOIN creators c 
-ON c.id = a.creator_id`
-    const assets = await query<Asset>(sql)
-    await reindexAssetsSearch(assets)
-
-
-    // Delete and re-index the bundles
-    const bundles = await query<Bundle>(`
-SELECT b.*, c.name as creator_name, u.username
-FROM bundleinfo b
-LEFT JOIN creators c 
-ON c.id = b.creator_id
-LEFT JOIN users u
-ON u.id = b.user_id`)
-    await reindexBundles(bundles)
+    await resetAssets()
+    await resetBundles()
     response.statusCode = 204
     return response;
   } catch (e) {
