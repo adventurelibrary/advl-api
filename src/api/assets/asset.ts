@@ -69,8 +69,15 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     // If ID then just do a GET on the ID, search params don't matter
     if(queryObj.id) {
-      let FrontEndAsset:Asset = await searchAsset(queryObj.id);
-      response.body = JSON.stringify(await transformAsset(FrontEndAsset));
+      let FrontEndAsset:Asset;
+      try{
+        FrontEndAsset = await searchAsset(queryObj.id);
+      } catch (e) {
+        response.statusCode = 400;
+        response.body = JSON.stringify({error: `ID (${queryObj.id}) doesn't exist in Index`})
+        return response;
+      }
+      response.body = JSON.stringify(transformAsset(FrontEndAsset));
       response.statusCode = 200;
       return response;
     }
@@ -79,8 +86,16 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     if(queryObj.ids && queryObj.ids.length) {
       let FEAssets:Asset[] = [];
       for(let id of queryObj.ids){
-        let FrontEndAsset:Asset = await searchAsset(id);
-        FEAssets.push(await transformAsset(FrontEndAsset));
+        let FrontEndAsset:Asset;
+        try{
+          FrontEndAsset = await searchAsset(id);
+        } catch(e){
+          response.statusCode = 400;
+          response.body = JSON.stringify({error: `ID (${id}) not found in Index`});
+          return response;
+        }
+        
+        FEAssets.push(transformAsset(FrontEndAsset));
       }
       response.body = JSON.stringify(FEAssets);
       response.statusCode = 200;

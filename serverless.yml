@@ -32,7 +32,7 @@ provider:
       Resource:
         - "*"
   environment:
-    ${file(src/.env.yml):$${opt:stage, self:provider.stage}:common}
+    ${file(src/.env.yml):${opt:stage, self:provider.stage}.common}
     
 functions:
   - ${file(src/api/api.yml)}
