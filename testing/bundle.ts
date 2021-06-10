@@ -1,10 +1,12 @@
 import test from 'ava';
-import { ASSET_1, BUNDLE_1 } from './lib/fixtures';
+import '../load-yaml-env'
+import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, CREATOR_2, USER1} from './lib/fixtures';
 import { request, requestAs, testResStatus } from "./lib/lib";
-//import { BUNDLE_1} from './lib/fixtures'
+import {deleteBundle, getBundleByName} from "../src/lib/bundle";
+import {query} from "../src/api/common/postgres";
 
 //Create a new bundle as not logged in user
-test.serial('Bundle: Try to create a bundle without being logged in', async (t) => {
+test.serial('bundle:create:without being logged in', async (t) => {
   const createOpts = {
     method: "post",
     body: {
@@ -22,11 +24,12 @@ test.serial('Bundle: Try to create a bundle without being logged in', async (t) 
 })
 
 //Create a new bundle as user
-test.serial('Bundle: Create a new bundle as test user', async (t) => {
+test.serial('bundle:create:as test user', async (t) => {
+  const name = "Newly Created Bundle"
   const createOpts = {
     method: "post",
     body: {
-      name: "Bundling Bundles 2",
+      name: name,
       public: false,
       description: "The bundliest bundle",
       added_assets: [ASSET_1]
@@ -39,35 +42,58 @@ test.serial('Bundle: Create a new bundle as test user', async (t) => {
   if(err){
     t.fail(err);
   }
-  t.pass('Bundle created by test-user-01.');
 
+  const bundle = await getBundleByName(name)
+  if (bundle.user_id != USER1) {
+    t.fail('Wrong user was created')
+  }
+
+  // Test cleanup (and bonus delete test)
+  const url = 'bundles/' + bundle.id + '/delete'
+  console.log('url', url)
+  res = await request(url, {
+    method: 'POST',
+    userKey: 'TEST1'
+  });
+  err = await testResStatus(res, 204)
+  if(err){
+    t.fail(err);
+  }
+  t.pass('Bundle created by test-user-01.');
 })
 
 //Create a new bundle as a creator
-test.serial('Bundle: Create a new creator bundle as test user', async (t) => {
+test.serial('bundle:create: a new creator bundle as creator user', async (t) => {
+  const name = "Creatorest Bundle"
   const createOpts = {
     method: "post",
     body: {
-      name: "Bundling Bundles 3",
+      name: name,
       public: false,
       description: "The bundliest bundle BY A CREATOR",
       added_assets: [ASSET_1],
-      creator_id: '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1'
+      creator_id: CREATOR_2
     },
-    userKey: 'TEST1'
+    userKey: 'CREATOR1'
   }
   let res = await request('bundles/create', createOpts);
-
   let err = await testResStatus(res, 201)
   if(err){
     t.fail(err);
   }
+
+  const bundle = await getBundleByName(name)
+  t.is(bundle.creator_id, CREATOR_2, `Wrong creator was assigned`)
+
+  // Cleanup
+  await deleteBundle(bundle.id)
+
   t.pass('Bundle created by creator (Adventure Library 2).');
 })
 
 //attempt to create a bundle for a creator you don't have access too
 //Create a new bundle as a creator
-test.serial('Bundle: Create a new bundle as with wrong creator', async (t) => {
+test.serial('bundle:create:wrong creator', async (t) => {
   const createOpts = {
     method: "post",
     body: {
@@ -75,7 +101,7 @@ test.serial('Bundle: Create a new bundle as with wrong creator', async (t) => {
       public: false,
       description: "The bundliest bundle BY A CREATOR",
       added_assets: [ASSET_1],
-      creator_id: '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1'
+      creator_id: CREATOR_1
     },
     userKey: 'ADMIN1'
   }
@@ -90,52 +116,119 @@ test.serial('Bundle: Create a new bundle as with wrong creator', async (t) => {
 
 
 //Update bundle to public
-test.serial('Bundle: Update a bundle to public', async (t) => {
+test.serial('bundle:update:to public', async (t) => {
   const opts = {
-    method: "put",
+    method: 'PUT',
     body: {
       public:  true,
     },
     userKey: 'TEST1'
   }
 
-  let res = await request(`bundles/${BUNDLE_1}`, opts);
-  let err = await testResStatus(res, 200)
+  let res = await request(`bundles/${BUNDLE_PRIVATE}`, opts);
+  let err = await testResStatus(res, 204)
   if(err){
     t.fail(err)
   }
+
+  // Confirm access now
+  res = await request(`bundles/${BUNDLE_PRIVATE}`)
+  await testResStatus(res, 200)
+  if(err){
+    t.fail(err)
+  }
+
+  // Reset the database
+  await query(`UPDATE bundleinfo SET public = false WHERE id = ?`, [BUNDLE_PRIVATE])
 
   t.pass("Bundle updated to public")
 })
 
 
 //Get a bundle
-test('Bundle: GET a bundle', async (t) => {
-  const opts = {
-    method: 'get',
+test('bundle:get', async (t) => {
+  type AccessTest = {
+    id: string
+    userKey?: string
+    status: number
+    name?: string
   }
-  let res = await request (`bundles/${BUNDLE_1}`, opts)
-  let bundle = await res.json();
-  console.log(bundle);
+  const tests : AccessTest[] = [
+    {
+      // Public bundle, not logged in = OKAY
+      id: BUNDLE_PUBLIC,
+      name: 'My Public Bundle',
+      status: 200
+    },
+    {
+      // Public bundle and it's your bundle = OKAY
+      id: BUNDLE_PUBLIC,
+      name: 'My Public Bundle',
+      userKey: 'TEST1',
+      status: 200
+    },
+    {
+      // Private bundle that is your bundle = OKAY
+      id: BUNDLE_PRIVATE,
+      name: 'My Private Bundle',
+      userKey: 'TEST1',
+      status: 200
+    },
+    {
+      // Private bundle that is NOT your bundle = ERROR
+      id: BUNDLE_PRIVATE,
+      userKey: 'CREATOR1',
+      status: 403
+    },
+    {
+      // Private bundle and not logged in = ERROR
+      id: BUNDLE_PRIVATE,
+      status: 403
+    }
+  ]
 
-  t.pass("Bundle fetched")
+  for (let i = 0; i < tests.length; i++) {
+    const accessTest = tests[i]
+    const res = await request(`/bundles/${accessTest.id}`, {
+      userKey: accessTest.userKey
+    })
+    let err = await testResStatus(res, accessTest.status)
+    if (err) {
+      t.fail(`[${i}] ${accessTest.userKey}@/${accessTest.id} ${err}`)
+    }
+    if (accessTest.name) {
+      const json = await res.json()
+      t.is(accessTest.name, json.name)
+    }
+  }
+  t.pass()
 })
 
-test('Bundle: GET my bundles', async (t) => {
-  const res = await request (`bundles`, {
+test('bundles:get:mine', async (t) => {
+  let res = await request (`bundles/mine`, {
     userKey: 'TEST1'
   })
-  const result = await res.json();
-  console.log('result', result)
-  t.is(result.bundles.length, 8) // TODO Confirm this number
+  let result = await res.json();
+  t.is(result.bundles.length, 3)
+
+  res = await request (`bundles/mine`, {
+    userKey: 'CREATOR1'
+  })
+  result = await res.json();
+  t.is(result.bundles.length, 0)
+
+  res = await request (`bundles/mine`)
+  const err = await testResStatus(res, 401)
+  if (err) {
+    t.fail(err)
+  }
+
 
   t.pass("Bundle fetched")
 })
 
 
-//Search for a bundle
-
-test("Bundle: search for a bundle by user ID", async (t) => {
+test("bundle:search:by creator ID", async (t) => {
   const opts = {
     method: 'get'
   }
@@ -145,4 +238,3 @@ test("Bundle: search for a bundle by user ID", async (t) => {
 
   t.pass();
 })
-//Delete a bundle

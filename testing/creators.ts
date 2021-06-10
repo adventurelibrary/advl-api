@@ -70,9 +70,8 @@ ava('creators:get:mine', async (t) => {
 		t.fail(err)
 	}
 	json = await res.json()
-	t.is(json.creators.length, 1)
-	t.is(json.creators[0].name, 'Adventure Library')
-	t.is(json.total, 1)
+	t.is(json.creators.length, 0)
+	t.is(json.total, 0)
 
 
 	res = await request(`/creators/mine`)

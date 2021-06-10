@@ -2,7 +2,7 @@ import {bulkIndex, clearIndex, search} from "../api/common/elastic";
 import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
-import {getObj, query} from "../api/common/postgres";
+import {query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import CustomSQLParam from "../api/common/customsqlparam";
@@ -197,6 +197,14 @@ export async function reindexAssetsSearch (assets: Asset[]) {
 	return bulkIndex(process.env.INDEX_ASSETDB, assets, getAssetSearchBody)
 }
 
+export async function resetAssets () {
+	const sql = `SELECT a.*, c.name as creator_name
+FROM assets a
+JOIN creators c 
+ON c.id = a.creator_id`
+	const assets = await query<Asset>(sql)
+	await reindexAssetsSearch(assets)
+}
 
 export function validateAsset (asset: Asset) {
 	const val = new Validation()
