@@ -29,7 +29,7 @@ export async function updateUser(user:User, updates:any){
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json
 //const jwks = JSON.parse(fs.readFileSync("src/api/users/us-east-1_029QsJhTM.json").toString())
 //key 0 is for IdTokens and key 1 is for Access Tokens
-const jwks = require('./us-east-1_029QsJhTM.json').keys[0]
+const jwks = require(`./${process.env.STAGE}.json`).keys[0]
 export function validateUserToken(userToken:string){
   if (!userToken) {
     throw new Error(`Provided user token was blank`)

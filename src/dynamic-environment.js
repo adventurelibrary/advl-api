@@ -1,5 +1,6 @@
 const YAML = require('yamljs');
-const env = YAML.load('src/.env.yml');
+console.log(process.env.SLS_STAGE)
+const env = (YAML.load('src/.env.yml'))['dev']; //CHANGE THIS WHEN DEPLOYING
 
 module.exports = {
   transloadit: {
