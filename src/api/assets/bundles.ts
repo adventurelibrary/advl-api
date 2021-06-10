@@ -23,9 +23,6 @@ async function verifyUserIsCreatorMember (user: User, creatorId: string) {
 
 async function verifyUserBundleCanView(user: User | undefined, bundle : Bundle) {
   const canView = userCanViewBundle(user, bundle)
-  console.log('user', user)
-  console.log('bundle', bundle)
-  console.log('canView', canView)
   if (!canView) {
     throw new APIError({
       status: 403,

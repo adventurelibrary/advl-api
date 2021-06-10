@@ -9,10 +9,40 @@ test('searchassets: get assets', async (t) => {
 	t.pass()
 })
 
+test('searchassets: get my assets', async (t) => {
+	// User with no assets because they don't belong to any creators
+	let body = await getJSON('assets?mine', {
+		userKey: 'TEST1'
+	})
+	t.is(body.assets.length, 0)
+	t.is(body.total, 0)
+
+	body = await getJSON('assets?mine', {
+		userKey: 'CREATOR1'
+	})
+	t.is(body.assets.length, 2)
+	t.is(body.total, 2)
+	t.is(body.assets[0].name, 'House')
+	t.is(body.assets[1].name, 'First Kill')
+
+
+	body = await getJSON('assets?mine&visibility=all', {
+		userKey: 'CREATOR1'
+	})
+	t.is(body.assets.length, 4)
+	t.is(body.total, 4)
+	t.is(body.assets[0].name, 'House')
+	t.is(body.assets[1].name, 'First Kill')
+	t.is(body.assets[2].name, 'Killion')
+	t.is(body.assets[3].name, 'Hope Keyshot')
+	t.pass()
+	return
+})
+
 test('searchassets: get assets by tag', async (t) => {
-	const body = await getJSON('assets?tags=House')
-	t.is(body.assets.length, 1)
-	t.is(body.total, 1)
+	const body = await getJSON('assets?tags=Barbarian')
+	t.is(body.assets.length, 2)
+	t.is(body.total, 2)
 	t.pass()
 })
 

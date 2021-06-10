@@ -51,7 +51,19 @@ AND cm.creator_id = c.id`, [user.id])
 	return res[0].total
 }
 
+export async function getUserCreatorIds(id: string) : Promise<string[]> {
+	const results = <{creator_id: string}[]>await db.query(`
+SELECT cm.creator_id
+FROM creatormembers cm
+WHERE cm.user_id = :userId
+`, {
+		userId: id
+	})
 
+	return results.map((row) => {
+		return row.creator_id
+	})
+}
 export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promise<Creator[]> {
 	const limit = isNaN(opts.limit) || !opts.limit ? 20 : opts.limit
 	const skip = isNaN(opts.skip) ? 0 : opts.skip

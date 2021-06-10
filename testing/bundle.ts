@@ -1,6 +1,6 @@
 import test from 'ava';
 import '../load-yaml-env'
-import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, USER1} from './lib/fixtures';
+import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, CREATOR_2, USER1} from './lib/fixtures';
 import { request, requestAs, testResStatus } from "./lib/lib";
 import {deleteBundle, getBundleByName} from "../src/lib/bundle";
 import {query} from "../src/api/common/postgres";
@@ -63,7 +63,7 @@ test.serial('bundle:create:as test user', async (t) => {
 })
 
 //Create a new bundle as a creator
-test.serial('bundle:create: a new creator bundle as test user', async (t) => {
+test.serial('bundle:create: a new creator bundle as creator user', async (t) => {
   const name = "Creatorest Bundle"
   const createOpts = {
     method: "post",
@@ -72,9 +72,9 @@ test.serial('bundle:create: a new creator bundle as test user', async (t) => {
       public: false,
       description: "The bundliest bundle BY A CREATOR",
       added_assets: [ASSET_1],
-      creator_id: CREATOR_1
+      creator_id: CREATOR_2
     },
-    userKey: 'TEST1'
+    userKey: 'CREATOR1'
   }
   let res = await request('bundles/create', createOpts);
   let err = await testResStatus(res, 201)
@@ -83,7 +83,7 @@ test.serial('bundle:create: a new creator bundle as test user', async (t) => {
   }
 
   const bundle = await getBundleByName(name)
-  t.is(bundle.creator_id, CREATOR_1, `Wrong creator was assigned`)
+  t.is(bundle.creator_id, CREATOR_2, `Wrong creator was assigned`)
 
   // Cleanup
   await deleteBundle(bundle.id)

@@ -279,6 +279,11 @@ export async function query<T>(sql: string, params: QueryParams = []) : Promise<
   return res.records.map(mapFromColumns(res.columnMetadata))
 }
 
+export async function queryOne<T>(sql: string, params: QueryParams = []) : Promise<T> {
+  const rows = await query<T>(sql, params)
+  return rows[0]
+}
+
 // Returns a single object from a table
 export async function getObj (tableName:string, id:string) {
   const sql = `SELECT * FROM ${tableName} WHERE id = :id LIMIT 1`
