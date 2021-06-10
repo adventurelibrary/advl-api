@@ -6,6 +6,7 @@ export interface User {
   notification_preferences: NotificationPreferences,
   last_seen: Date,
   join_date: Date,
+  is_creator?: boolean
 }
 
 //type UserType = "USER" | "MODERATOR" | "ADMIN" //Permissions

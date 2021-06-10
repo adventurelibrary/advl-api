@@ -15,6 +15,8 @@ import {
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
+import {getUserCreatorIds, getUserCreators} from "../../lib/creator";
+import {getEventUser} from "../common/events";
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -61,6 +63,7 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
 export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse();
   let params;
+
   try{
     const queryObj = getEvtQuery(_evt.queryStringParameters)
 
@@ -95,7 +98,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     let _query : any = {
       "bool": {
-        "must": [        ],
+        "must": [],
         "filter": [
           {
             "match": {
@@ -106,9 +109,33 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }
     }
 
+    // TODO: Only admins and people getting their own assets should be able to remove the PUBLIC filter
     if(queryObj['visibility'] == 'all'){
       _query.bool.filter = [];
     }
+
+    // For searching for assets that you have access to
+    if(queryObj.hasOwnProperty('mine')) {
+      const user = await getEventUser(_evt)
+      const creatorIds = await getUserCreatorIds(user.id)
+      if (!creatorIds.length) {
+        response.body = JSON.stringify({
+          total: 0,
+          assets: []
+        })
+        response.statusCode = 200
+        return response
+      }
+      _query.bool.should = creatorIds.map((id) => {
+        return {
+          match: {
+            creator_id: id
+          }
+        }
+      })
+      _query.bool.minimum_should_match = 1
+    }
+
 
     // Performs a text search on 'name' and 'description' and sorts by score
     // Fuzzy search means that "froze" will match "Frozen" and "kings" will match "King"
