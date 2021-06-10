@@ -58,7 +58,7 @@ creators_get_mine:
         path: /creators/mine
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js)):creator}
+    ${file(src/dynamic-environment.js):creator}
 
 
 creator_get:
@@ -69,7 +69,7 @@ creator_get:
         path: /creator/{creatorID}
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js)):creator}
+    ${file(src/dynamic-environment.js):creator}
 
 creators_get:
   handler: src/api/creators/creator.creators_get
@@ -79,7 +79,7 @@ creators_get:
         path: /creators
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js)):creator}
+    ${file(src/dynamic-environment.js):creator}
 
 creator_post:
   handler: src/api/creators/creator.creator_post
@@ -89,7 +89,7 @@ creator_post:
         path: /creator
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js)):creator}
+    ${file(src/dynamic-environment.js):creator}
 
 creator_put:
   handler: src/api/creators/creator.creator_put
@@ -99,7 +99,7 @@ creator_put:
         path: /creator/{creatorID}
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js)):creator}
+    ${file(src/dynamic-environment.js):creator}
 
 ################## ASSETS #########################
 get_upload_signature:

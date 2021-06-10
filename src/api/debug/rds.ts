@@ -61,11 +61,12 @@ export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
     console.log("Attempting connection");
     const client = new Client({
       user: 'advl',
-      password: 'f*4MxH8p8Tcz',
-      host: 'advl-production.cluster-cyynasj2ssh4.us-east-1.rds.amazonaws.com',
+      password: process.env.POSTGRES_PASSWORD,
+      host: '23.21.39.93',
       database: 'adventurelibrary'
     })
     client.connect();
+    console.log("connected")
     let res = await client.query('select * from information_schema.tables')
     console.log(res);
     response.body = JSON.stringify(res);
