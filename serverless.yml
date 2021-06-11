@@ -9,6 +9,7 @@ custom:
     includeModules: true
   cors:
     dev: true
+    staging: true
     prod: false
 
 plugins:

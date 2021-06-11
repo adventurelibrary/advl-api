@@ -13,6 +13,10 @@ PUT /assets
       "description": {
         "type": "text",
         "fielddata": true
+      },
+      "uploaded": {
+        "type": "text",
+        "fielddata": true
       }
     }
   }
