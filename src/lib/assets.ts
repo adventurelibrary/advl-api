@@ -223,18 +223,35 @@ export function validateAsset (asset: Asset) {
 	val.throwIfErrors()
 }
 
-export function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
+export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
 	if (user.is_admin) {
 		return
 	}
 
 	console.log('asset ids to check', assetIds)
 
-	// TODO: Perform a query that joins user to creator to asset and checks user's permission
+	// Count how many rows exist where this user is a member of the creator
+	// of the asset
+	// If there is an asset in here that they aren't a member of the creator of,
+	// it won't be totalled up by the COUNT()
+	const rows : any[] = await db.query(`
+SELECT COUNT(*) as num
+FROM assets a, creatormembers cm
+WHERE a.creator_id = cm.creator_id
+AND cm.user_id = ?
+AND a.id IN (?)
+	`, [user.id, assetIds])
+
+	console.log('rows', rows)
+	// If the number equals the assetIds then this user has access to all of them
+	const total = rows[0].num
+	if (total == assetIds.length) {
+		return
+	}
 
 	throw new APIError({
 		status: 403,
 		key: 'no_asset_access',
-		message: 'You do not have permission to access thos assets'
+		message: 'You do not have permission to access those assets'
 	})
 }

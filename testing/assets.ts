@@ -1,6 +1,6 @@
 import test from 'ava'
 import {request, testResStatus} from "./lib/lib";
-import {ASSET_1} from "./lib/fixtures";
+import {ASSET_1, ASSET_3} from "./lib/fixtures";
 
 test('asset: get asset with wrong id', async (t) => {
 	const res = await request(`asset/id-does-not-exit`)
@@ -47,7 +47,7 @@ test('asset: get an asset download link with wrong id', async (t) => {
 	t.pass()
 })
 
-test.serial('asset:put update an asset', async (t) => {
+test.serial('asset:put update an asset as admin', async (t) => {
 	let res = await request(`assets/${ASSET_1}`)
 	let err = await testResStatus(res, 200)
 	if (err) {
@@ -75,6 +75,68 @@ test.serial('asset:put update an asset', async (t) => {
 		body: [asset]
 	})
 	err = await testResStatus(res, 204)
+	if (err) {
+		t.fail(err)
+	}
+
+	t.pass()
+})
+
+
+test.serial('asset:put update an asset as creator', async (t) => {
+	let res = await request(`assets/${ASSET_3}`)
+	let err = await testResStatus(res, 200)
+	if (err) {
+		t.fail(err)
+	}
+	let json = await res.json()
+	const asset = json
+	t.is(asset.id, ASSET_3)
+
+	res = await request(`assets/update`, {
+		userKey: 'CREATOR1',
+		method: 'PUT',
+		body: [{
+			...asset,
+			name: 'New Name'
+		}]
+	})
+	err = await testResStatus(res, 204)
+	if (err) {
+		t.fail(err)
+	}
+
+	// Confirm name has changed
+	res = await request(`assets/${ASSET_3}`)
+	json = await res.json()
+	t.is(json.name, 'New Name')
+
+
+	// This cleans up the data
+	res = await request(`assets/update`, {
+		userKey: 'CREATOR1',
+		method: 'PUT',
+		body: [asset]
+	})
+	err = await testResStatus(res, 204)
+	if (err) {
+		t.fail(err)
+	}
+
+	t.pass()
+})
+
+
+test.serial('asset:put update an asset as regular user', async (t) => {
+	let res = await request(`assets/update`, {
+		userKey: 'TEST1',
+		method: 'PUT',
+		body: [{
+			id: ASSET_3,
+			name: 'New Name'
+		}]
+	})
+	let err = await testResStatus(res, 403)
 	if (err) {
 		t.fail(err)
 	}

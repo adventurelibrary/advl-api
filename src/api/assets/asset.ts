@@ -287,7 +287,7 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
   }
 
   const assetIds = reqAssets.map(asset => asset.id)
-  verifyUserHasAssetAccess(user, assetIds)
+  await verifyUserHasAssetAccess(user, assetIds)
 
   for (let i = 0; i < reqAssets.length; i++) {
     const reqAsset = reqAssets[i]
