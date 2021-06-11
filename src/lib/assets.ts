@@ -2,7 +2,7 @@ import {bulkIndex, clearIndex, search} from "../api/common/elastic";
 import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
-import {getObj, query} from "../api/common/postgres";
+import {query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import CustomSQLParam from "../api/common/customsqlparam";
@@ -197,6 +197,14 @@ export async function reindexAssetsSearch (assets: Asset[]) {
 	return bulkIndex(process.env.INDEX_ASSETDB, assets, getAssetSearchBody)
 }
 
+export async function resetAssets () {
+	const sql = `SELECT a.*, c.name as creator_name
+FROM assets a
+JOIN creators c 
+ON c.id = a.creator_id`
+	const assets = await query<Asset>(sql)
+	await reindexAssetsSearch(assets)
+}
 
 export function validateAsset (asset: Asset) {
 	const val = new Validation()
@@ -215,18 +223,35 @@ export function validateAsset (asset: Asset) {
 	val.throwIfErrors()
 }
 
-export function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
+export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
 	if (user.is_admin) {
 		return
 	}
 
 	console.log('asset ids to check', assetIds)
 
-	// TODO: Perform a query that joins user to creator to asset and checks user's permission
+	// Count how many rows exist where this user is a member of the creator
+	// of the asset
+	// If there is an asset in here that they aren't a member of the creator of,
+	// it won't be totalled up by the COUNT()
+	const rows : any[] = await db.query(`
+SELECT COUNT(*) as num
+FROM assets a, creatormembers cm
+WHERE a.creator_id = cm.creator_id
+AND cm.user_id = ?
+AND a.id IN (?)
+	`, [user.id, assetIds])
+
+	console.log('rows', rows)
+	// If the number equals the assetIds then this user has access to all of them
+	const total = rows[0].num
+	if (total == assetIds.length) {
+		return
+	}
 
 	throw new APIError({
 		status: 403,
 		key: 'no_asset_access',
-		message: 'You do not have permission to access thos assets'
+		message: 'You do not have permission to access those assets'
 	})
 }
