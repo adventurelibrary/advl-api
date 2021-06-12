@@ -70,7 +70,7 @@ test.serial('bundle:create: a new creator bundle as creator user', async (t) => 
     body: {
       name: name,
       public: false,
-      description: "The bundliest bundle BY A CREATOR",
+      description: null,
       added_assets: [ASSET_1],
       creator_id: CREATOR_2
     },

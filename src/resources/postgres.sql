@@ -58,18 +58,19 @@ create table assets (
     CONSTRAINT fk_creator FOREIGN KEY (creator_id) REFERENCES creators(id)
 );
 
-create table creatormembers ( 
+create table creatormembers (
   creator_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
   CONSTRAINT fk_creator FOREIGN KEY (creator_id) REFERENCES creators(id),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX creatormembers_id ON creatormembers (creator_id, user_id);
 
 create table bundleinfo (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
   name TEXT NOT NULL,
-  description TEXT NOT NULL,
-  public BOOLEAN NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  public BOOLEAN NOT NULL DEFAULT FALSE,
   creator_id TEXT,
   user_id TEXT,
   CONSTRAINT fk_creator_id FOREIGN KEY (creator_id) REFERENCES creators(id),
