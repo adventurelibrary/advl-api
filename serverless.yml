@@ -1,5 +1,4 @@
-service:
-  name: advl-api
+service: advl-api
 
 frameworkVersion: "2"
 
@@ -22,6 +21,7 @@ provider:
   runtime: nodejs12.x
   memorySize: 128
   timeout: 30
+  lambdaHashingVersion: 20201221
   apiGateway:
     minimumCompressionSize: 1024
   iamRoleStatements:
