@@ -48,9 +48,22 @@ test.serial('bundle:create:as test user', async (t) => {
     t.fail('Wrong user was created')
   }
 
+  // Confirm that the bundle was properly added to the search index
+  res = await request('bundles/mine', {
+    userKey: 'TEST1'
+  });
+  err = await testResStatus(res, 200)
+  if(err){
+    t.fail(err);
+  }
+
+  const json = await res.json()
+  t.truthy(json.bundles[json.bundles.length-1].cover_thumbnail.indexOf('http') == 0, `The last bundle should have a cover`)
+  //t.is(json.bundles.length, 4) // 3 in our test data + the one we just added
+
+
   // Test cleanup (and bonus delete test)
   const url = 'bundles/' + bundle.id + '/delete'
-  console.log('url', url)
   res = await request(url, {
     method: 'POST',
     userKey: 'TEST1'
@@ -70,7 +83,7 @@ test.serial('bundle:create: a new creator bundle as creator user', async (t) => 
     body: {
       name: name,
       public: false,
-      description: "The bundliest bundle BY A CREATOR",
+      description: null,
       added_assets: [ASSET_1],
       creator_id: CREATOR_2
     },
@@ -151,26 +164,35 @@ test('bundle:get', async (t) => {
     id: string
     userKey?: string
     status: number
-    name?: string
+    fieldTests?: Record<string, any>
+    checkThumbnail?: boolean
   }
   const tests : AccessTest[] = [
     {
       // Public bundle, not logged in = OKAY
       id: BUNDLE_PUBLIC,
-      name: 'My Public Bundle',
-      status: 200
+      fieldTests: {
+        name: 'My Public Bundle',
+        cover_asset_id: 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw'
+      },
+      status: 200,
+      checkThumbnail: true
     },
     {
       // Public bundle and it's your bundle = OKAY
       id: BUNDLE_PUBLIC,
-      name: 'My Public Bundle',
+      fieldTests: {
+        name: 'My Public Bundle'
+      },
       userKey: 'TEST1',
       status: 200
     },
     {
       // Private bundle that is your bundle = OKAY
       id: BUNDLE_PRIVATE,
-      name: 'My Private Bundle',
+      fieldTests: {
+        name: 'My Private Bundle'
+      },
       userKey: 'TEST1',
       status: 200
     },
@@ -196,9 +218,15 @@ test('bundle:get', async (t) => {
     if (err) {
       t.fail(`[${i}] ${accessTest.userKey}@/${accessTest.id} ${err}`)
     }
-    if (accessTest.name) {
-      const json = await res.json()
-      t.is(accessTest.name, json.name)
+    const json = await res.json()
+    if (accessTest.fieldTests) {
+      for (let field in accessTest.fieldTests) {
+        t.is(json[field], accessTest.fieldTests[field])
+      }
+    }
+    if (accessTest.checkThumbnail) {
+      t.truthy(json.cover_thumbnail.indexOf('https') === 0)
+      t.truthy(json.cover_thumbnail.indexOf('undefined') === -1)
     }
   }
   t.pass()
@@ -210,6 +238,7 @@ test('bundles:get:mine', async (t) => {
   })
   let result = await res.json();
   t.is(result.bundles.length, 3)
+  t.truthy(result.bundles[0].cover_thmbnail.indexOf('http') === 0) // Confirm the public bundle has a thumb
 
   res = await request (`bundles/mine`, {
     userKey: 'CREATOR1'

@@ -9,7 +9,7 @@ import * as db from '../common/postgres';
 import { transformAsset } from "./asset";
 import {User} from "../../interfaces/IUser";
 import {APIError} from "../../lib/errors";
-import {deleteBundle, userCanViewBundle} from "../../lib/bundle";
+import {deleteBundle, indexBundle, userCanViewBundle} from "../../lib/bundle";
 
 async function verifyUserIsCreatorMember (user: User, creatorId: string) {
   const isMember = await isMemberOfCreatorPage(creatorId, user.id)
@@ -45,17 +45,12 @@ export const bundle_create = newHandler({
     id: idgen(),
     name: newBundleInfo.name,
     public: newBundleInfo.public,
-    description: newBundleInfo.description,
+    description: newBundleInfo.description || '',
     creator_id: newBundleInfo.creator_id ? newBundleInfo.creator_id : null,
     user_id: newBundleInfo.creator_id ? null : user.id
   }
 
   await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
-  await search.index({
-    index: process.env.INDEX_BUNDLEINFO,
-    id: newBundle.id,
-    body: newBundle
-  })
 
   if(newBundleInfo.added_assets){
     for (let assetID of newBundleInfo.added_assets){
@@ -68,6 +63,8 @@ export const bundle_create = newHandler({
       await db.insertObj(process.env.DB_BUNDLE_ASSETS, newBundleAsset)
     }
   }
+
+  await indexBundle(newBundle.id)
 
   return {
     status: 201,
