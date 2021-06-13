@@ -24,3 +24,6 @@ INSERT INTO creatormembers (creator_id, user_id) VALUES ('224d9090-2c19-4d3c-b43
 
 insert into bundleinfo (id, name, description, public, creator_id, user_id) values ('0ZqVg1MSpHFSkyvj9yWAyDfC1sjwQAxQ', 'Bundling Bundles 3', 'The bundliest bundle BY A CREATOR', false, '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', null);
 insert into bundleinfo (id, name, description, public, creator_id, user_id) values ('ALJMgJbpNUxzzaGgx1PQzx0RpUNTZziS', 'Bundling Bundles 2', 'The bundliest bundle', false, null, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b');
+
+INSERT INTO bundleassets (id, asset_id) VALUES
+('083e16ae-8f1d-4fd8-af48-e71bf757efd2', 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw');

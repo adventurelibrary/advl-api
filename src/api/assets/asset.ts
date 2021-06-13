@@ -15,7 +15,7 @@ import {
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
-import {getUserCreatorIds, getUserCreators} from "../../lib/creator";
+import {getUserCreatorIds} from "../../lib/creator";
 import {getEventUser} from "../common/events";
 
 /**
@@ -94,7 +94,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
           response.body = JSON.stringify({error: `ID (${id}) not found in Index`});
           return response;
         }
-        
+
         FEAssets.push(transformAsset(FrontEndAsset));
       }
       response.body = JSON.stringify(FEAssets);

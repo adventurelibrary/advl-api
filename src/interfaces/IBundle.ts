@@ -9,6 +9,10 @@ export interface Bundle {
   user_id: string //FK to Users, nullable
   creator_name?: string
   username?: string
+  cover_thumbnail?: string // From a join and from B2.GetURL
+  cover_asset_id?: string
+  cover_creator_id?: string
+  cover_original_file_ext?: string
 }
 
 export interface BundleAsset {

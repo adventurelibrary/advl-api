@@ -80,7 +80,7 @@ create table bundleinfo (
 create table bundleassets (
   id TEXT NOT NULL,
   asset_id TEXT NOT NULL ,
-  time_added TIMESTAMP NOT NULL,
+  time_added TIMESTAMP NOT NULL DEFAULT NOW(),
   CONSTRAINT fk_bundle_id FOREIGN KEY (id) REFERENCES bundleinfo(id),
   CONSTRAINT fk_asset_id FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
