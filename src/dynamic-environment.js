@@ -21,6 +21,7 @@ module.exports = {
   user: {
     ...env.elastic,
     ...env.postgres,
+	  ...env.backblaze,
   },
   creator: {
     ...env.elastic,
