@@ -7,11 +7,12 @@ import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfac
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import {
+  deleteAsset,
   getAsset,
   searchAsset,
   updateAssetAndIndex,
-  validateAssetQuery,
-  verifyUserHasAssetAccess
+  validateAssetQuery, verifyUserHasAssetAccess,
+  verifyUserHasAssetsAccess
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
@@ -113,7 +114,11 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     let _query : any = {
       "bool": {
-        "must": [],
+        "must": [{
+          "match": {
+            "deleted": false
+          }
+        }],
         "filter": [
           {
             "match": {
@@ -271,6 +276,21 @@ export const get_asset : APIGatewayProxyHandler = newHandler({
   }
 })
 
+export const delete_asset : APIGatewayProxyHandler = newHandler({
+  requireAsset: true,
+}, async (ctx : HandlerContext) : Promise<HandlerResult> => {
+  await verifyUserHasAssetAccess(ctx.user, ctx.asset.id)
+  // Result will be either 'deleted' or 'hidden', depending on if the asset
+  // was purchased ('hidden') or not ('deleted')
+  const result = await deleteAsset(ctx.asset)
+  return {
+    status: 200,
+    body: {
+      result: result
+    }
+  }
+})
+
 // Takes in an array of asset data as the body and updates each of them
 export const update_asset : APIGatewayProxyHandler = newHandler({
   requireUser: true,
@@ -287,7 +307,7 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
   }
 
   const assetIds = reqAssets.map(asset => asset.id)
-  await verifyUserHasAssetAccess(user, assetIds)
+  await verifyUserHasAssetsAccess(user, assetIds)
 
   for (let i = 0; i < reqAssets.length; i++) {
     const reqAsset = reqAssets[i]

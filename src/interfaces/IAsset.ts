@@ -20,18 +20,19 @@ interface UserDefinedAssetInfo {
 export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC"
 
 export interface Asset extends UserDefinedAssetInfo{
-  id: string,
-  slug: string,
-  size_in_bytes: number,
-  uploaded: Date,
-  visibility: visibility_types,
-  unlock_count: number,
-  filetype: "IMAGE" | "PDF" | "ZIP",
-  original_file_ext: string,
+  deleted: boolean,
   creator_id: string,
   creator_name?: string, //Used when returning it to Front End
+  filetype: "IMAGE" | "PDF" | "ZIP",
+  id: string,
+  original_file_ext: string,
   previewLink?: string, //Used when returning to Front End
+  size_in_bytes: number,
+  slug: string,
   thumbnail?: string //Used when returning to Front End
+  unlock_count: number,
+  uploaded: Date,
+  visibility: visibility_types,
 }
 
 interface RevenueShare {

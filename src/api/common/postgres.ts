@@ -286,9 +286,14 @@ export async function queryOne<T>(sql: string, params: QueryParams = []) : Promi
 
 // Returns a single object from a table
 export async function getObj (tableName:string, id:string) {
-  const sql = `SELECT * FROM ${tableName} WHERE id = :id LIMIT 1`
-  const rows = await query(sql, {id: id})
-  return rows[0]
+	const sql = `SELECT * FROM ${tableName} WHERE id = :id LIMIT 1`
+	const rows = await query(sql, {id: id})
+	return rows[0]
+}
+
+export async function destroyObj (tableName:string, id:string) {
+	const sql = `DELETE FROM ${tableName} WHERE id = :id`
+	return await query(sql, {id: id})
 }
 
 export type GetObjectsOpts = {

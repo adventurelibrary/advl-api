@@ -40,23 +40,26 @@ CREATE UNIQUE INDEX creators_slug ON creators (slug);
 
 create table assets (
     id TEXT NOT NULL UNIQUE PRIMARY KEY,
-    slug TEXT NOT NULL,
-    size_in_bytes int NOT NULL,
-    uploaded TIMESTAMP NOT NULL,
-    visibility visibility NOT NULL,
-    unlock_count int NOT NULL DEFAULT 0,
-    filetype filetype NOT NULL,
-    original_file_ext TEXT NOT NULL,
-    creator_id TEXT NOT NULL,
 
-    name TEXT NOT NULL,
-    description TEXT NOT NULL,
     category category NOT NULL DEFAULT 'map',
-    tags TEXT[],
-    unlock_price int NOT NULL DEFAULT 0,
+    creator_id TEXT NOT NULL,
+    description TEXT NOT NULL,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    filetype filetype NOT NULL,
+    name TEXT NOT NULL,
+    original_file_ext TEXT NOT NULL,
     revenue_share JSON DEFAULT '{}'::jsonb,
+    size_in_bytes int NOT NULL,
+    slug TEXT NOT NULL,
+    tags TEXT[],
+    uploaded TIMESTAMP NOT NULL,
+    unlock_count int NOT NULL DEFAULT 0,
+    unlock_price int NOT NULL DEFAULT 0,
+    visibility visibility NOT NULL,
+
     CONSTRAINT fk_creator FOREIGN KEY (creator_id) REFERENCES creators(id)
 );
+CREATE IDNEX assets_deleted ON assets (deleted);
 
 create table creatormembers (
   creator_id TEXT NOT NULL,
