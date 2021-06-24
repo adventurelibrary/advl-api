@@ -203,7 +203,8 @@ export async function resetAssets () {
   const sql = `SELECT a.*, c.name as creator_name
 FROM assets a
 JOIN creators c 
-ON c.id = a.creator_id`
+ON c.id = a.creator_id
+WHERE a.deleted = false`
   const assets = await query<Asset>(sql)
   await reindexAssetsSearch(assets)
 }
