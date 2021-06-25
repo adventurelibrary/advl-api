@@ -21,7 +21,7 @@ debug_vpc:
   handler: src/api/debug/rds.rds_vpc
   events:
     - http: 
-        method: get
+        method: post
         path: /database/vpc
         cors: true
   environment:

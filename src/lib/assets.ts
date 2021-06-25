@@ -42,14 +42,17 @@ export async function searchAsset (id: string) : Promise<Asset> {
 }
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
-	const rows = await query<Asset>(`SELECT a.*, c.name as creator_name
+	const rows:Asset[] = await query(`SELECT a.*, c.name as creator_name
 FROM assets a, creators c
 WHERE a.creator_id = c.id
-AND a.id = :id
-	`, {id: id})
+AND a.id = $1
+	`, [id], false)
 	if (!rows || !rows[0]) {
 		return undefined
 	}
+	return rows[0];
+
+	//HOLDOVER FROM OLD CODE MIGHT NOT BE NEEDED
 	return mapAssetRow(rows[0])
 }
 
@@ -113,9 +116,8 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 	}
 
 	const dbWrite = assetToDatabaseWrite(newAsset, true)
-	const id = await db.insertObj(process.env.DB_ASSETS, dbWrite);
+	await db.insertObj(process.env.DB_ASSETS, dbWrite);
 	console.log(`PENDING ASSET CREATED\n`, newAsset);
-	newAsset.id = id
 	return newAsset;
 }
 
@@ -202,7 +204,7 @@ export async function resetAssets () {
 FROM assets a
 JOIN creators c 
 ON c.id = a.creator_id`
-	const assets = await query<Asset>(sql)
+	const assets:Asset[] = await query(sql, [], false)
 	await reindexAssetsSearch(assets)
 }
 

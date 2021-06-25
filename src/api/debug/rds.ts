@@ -40,7 +40,12 @@ import { Client } from 'pg';
 
 export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse();
+
+
   try{
+  
+    let q = JSON.parse(_evt.body)['query']
+    console.log("Query: ", q);
     console.log("Attempting connection");
     const client = new Client({
       user: 'advl',
@@ -48,11 +53,20 @@ export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
       host: 'advl-dev-db.cluster-cyynasj2ssh4.us-east-1.rds.amazonaws.com',
       database: 'adventurelibrary'
     })
-    client.connect();
-    console.log("connected")
-    let res = await client.query('select * from information_schema.tables')
+    await client.connect();
+    console.log("connected");
+    client.connect()
+      .then(() => {
+        console.log("Connected Again?")
+      })
+      .catch( (e) => {
+        console.error("Connecting Problems: ", e)
+      })
+    
+    let res = await client.query(q)
     console.log(res);
     response.body = JSON.stringify(res);
+    client.end();
     return response;
   } catch (e){
     console.error(e);
