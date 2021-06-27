@@ -1,7 +1,7 @@
 import test from 'ava';
 import '../load-yaml-env'
 import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, CREATOR_2, USER1} from './lib/fixtures';
-import { request, requestAs, testResStatus } from "./lib/lib";
+import { request, testResStatus } from "./lib/lib";
 import {deleteBundle, getBundleByName} from "../src/lib/bundle";
 import {query} from "../src/api/common/postgres";
 
@@ -15,7 +15,7 @@ test.serial('bundle:create:without being logged in', async (t) => {
       description: "The bundliest",
     }
   }
-  let res = await requestAs('bundles/create', null, createOpts);
+  let res = await request('bundles/create', createOpts);
   let err = await testResStatus(res, 401) //You need to be logged in to do that
   if(err){
     t.fail(err)

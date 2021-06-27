@@ -59,7 +59,7 @@ create table assets (
 
     CONSTRAINT fk_creator FOREIGN KEY (creator_id) REFERENCES creators(id)
 );
-CREATE IDNEX assets_deleted ON assets (deleted);
+CREATE INDEX assets_deleted ON assets (deleted);
 
 create table creatormembers (
   creator_id TEXT NOT NULL,

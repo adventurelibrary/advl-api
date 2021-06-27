@@ -7,11 +7,11 @@ import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfac
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import {
-  deleteAsset,
+  deleteAsset, ErrAssetNotFound,
   getAsset,
   searchAsset,
   updateAssetAndIndex,
-  validateAssetQuery, verifyUserHasAssetAccess,
+  validateAssetQuery,
   verifyUserHasAssetsAccess
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
@@ -61,187 +61,163 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
   return queryObj
 }
 
-export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse();
+export const query_assets: APIGatewayProxyHandler = newHandler({
+}, async ({event: _evt}) => {
   let params;
 
-  try{
-    const queryObj = getEvtQuery(_evt.queryStringParameters)
+  const queryObj = getEvtQuery(_evt.queryStringParameters)
 
-    // If ID then just do a GET on the ID, search params don't matter
-    if(queryObj.id) {
+  // If ID then just do a GET on the ID, search params don't matter
+  if(queryObj.id) {
+    const FrontEndAsset:Asset = await searchAsset(queryObj.id);
+    return {
+      status: 200,
+      body: transformAsset(FrontEndAsset)
+    }
+  }
+
+  // Multiple ids
+  if(queryObj.ids && queryObj.ids.length) {
+    let FEAssets:Asset[] = [];
+    for(let id of queryObj.ids){
       let FrontEndAsset:Asset;
-      try{
-        FrontEndAsset = await searchAsset(queryObj.id);
-      } catch (e) {
-        response.statusCode = 400;
-        response.body = JSON.stringify({error: `ID (${queryObj.id}) doesn't exist in Index`})
-        return response;
-      }
-      response.body = JSON.stringify(transformAsset(FrontEndAsset));
-      response.statusCode = 200;
-      return response;
+      FrontEndAsset = await searchAsset(id);
+      FEAssets.push(transformAsset(FrontEndAsset));
     }
+    return {
+      status: 200,
+      body: FEAssets
+    }
+  }
 
-    // Multiple ids
-    if(queryObj.ids && queryObj.ids.length) {
-      let FEAssets:Asset[] = [];
-      for(let id of queryObj.ids){
-        let FrontEndAsset:Asset;
-        try{
-          FrontEndAsset = await searchAsset(id);
-        } catch(e){
-          response.statusCode = 400;
-          response.body = JSON.stringify({error: `ID (${id}) not found in Index`});
-          return response;
+  // Will check for things like invalid tags or negative limits
+  validateAssetQuery(queryObj)
+
+  const text = queryObj.text
+
+  let _query : any = {
+    "bool": {
+      "must": [{
+        "match": {
+          "deleted": false
         }
-
-        FEAssets.push(transformAsset(FrontEndAsset));
-      }
-      response.body = JSON.stringify(FEAssets);
-      response.statusCode = 200;
-      return response;
-    }
-
-    // Will check for things like invalid tags or negative limits
-    try {
-      validateAssetQuery(queryObj)
-    } catch (ex) {
-      return errorResponse(_evt, ex)
-    }
-
-    const text = queryObj.text
-
-    let _query : any = {
-      "bool": {
-        "must": [{
+      }],
+      "filter": [
+        {
           "match": {
-            "deleted": false
+            "visibility" : "PUBLIC"
           }
-        }],
-        "filter": [
+        }
+      ]
+    }
+  }
+
+  // TODO: Only admins and people getting their own assets should be able to remove the PUBLIC filter
+  if(queryObj['visibility'] == 'all'){
+    _query.bool.filter = [];
+  }
+
+  // For searching for assets that you have access to
+  if(queryObj.hasOwnProperty('mine')) {
+    const user = await getEventUser(_evt)
+    const creatorIds = await getUserCreatorIds(user.id)
+    if (!creatorIds.length) {
+      return {
+        body: {
+          total: 0,
+          assets: []
+        },
+        status: 200
+      }
+    }
+    _query.bool.should = creatorIds.map((id) => {
+      return {
+        match: {
+          creator_id: id
+        }
+      }
+    })
+    _query.bool.minimum_should_match = 1
+  }
+
+
+  // Performs a text search on 'name' and 'description' and sorts by score
+  // Fuzzy search means that "froze" will match "Frozen" and "kings" will match "King"
+  if (text) {
+    _query.bool.must.push({
+      "dis_max": {
+        "tie_breaker": 0.7,
+        "queries": [
           {
-            "match": {
-              "visibility" : "PUBLIC"
+            "fuzzy": {
+              'name': text
+            }
+          },
+          {
+            "fuzzy": {
+              'description': text
             }
           }
         ]
       }
-    }
-
-    // TODO: Only admins and people getting their own assets should be able to remove the PUBLIC filter
-    if(queryObj['visibility'] == 'all'){
-      _query.bool.filter = [];
-    }
-
-    // For searching for assets that you have access to
-    if(queryObj.hasOwnProperty('mine')) {
-      const user = await getEventUser(_evt)
-      const creatorIds = await getUserCreatorIds(user.id)
-      if (!creatorIds.length) {
-        response.body = JSON.stringify({
-          total: 0,
-          assets: []
-        })
-        response.statusCode = 200
-        return response
-      }
-      _query.bool.should = creatorIds.map((id) => {
-        return {
-          match: {
-            creator_id: id
-          }
-        }
-      })
-      _query.bool.minimum_should_match = 1
-    }
-
-
-    // Performs a text search on 'name' and 'description' and sorts by score
-    // Fuzzy search means that "froze" will match "Frozen" and "kings" will match "King"
-    if (text) {
-      _query.bool.must.push({
-        "dis_max": {
-          "tie_breaker": 0.7,
-          "queries": [
-            {
-              "fuzzy": {
-                'name': text
-              }
-            },
-            {
-              "fuzzy": {
-                'description': text
-              }
-            }
-          ]
-        }
-      })
-    }
-
-    // Asset must match ALL provided tags
-    // This the equivalent of ' AND 'Archer' IN asset.tags AND 'Barbarian' IN asset.tags
-    if (queryObj.tags.length) {
-      queryObj.tags.forEach((tag) => {
-        _query.bool.must.push({
-          "match": {
-            "tags": tag
-          }
-        })
-      })
-    }
-
-    // Asset must match ONE of the provided categories
-    // This is the equivalent of " AND category IN ('maps', 'scenes')"
-    if (queryObj.categories.length) {
-      _query.bool.must.push({
-        "terms": {
-          "category": queryObj.categories
-        }
-      })
-    }
-
-
-    // Query doesn't include ID
-    params = {
-      index: process.env.INDEX_ASSETDB,
-      body: {
-        from: queryObj['from'] ? queryObj['from'] : 0,
-        size: queryObj['size'] ? queryObj['size'] : 10,
-        sort: queryObj['sort'] ?
-        [{
-          [queryObj['sort']] : queryObj['sort_type']
-        }]
-        :
-        [{
-          "_score": "desc"
-        }],
-        query: _query
-      }
-    }
-    let searchResults = await search.search(params)
-
-    let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
-      doc._source = transformAsset(doc._source)
-      return doc._source
     })
+  }
 
-    response.body = JSON.stringify({
+  // Asset must match ALL provided tags
+  // This the equivalent of ' AND 'Archer' IN asset.tags AND 'Barbarian' IN asset.tags
+  if (queryObj.tags.length) {
+    queryObj.tags.forEach((tag) => {
+      _query.bool.must.push({
+        "match": {
+          "tags": tag
+        }
+      })
+    })
+  }
+
+  // Asset must match ONE of the provided categories
+  // This is the equivalent of " AND category IN ('maps', 'scenes')"
+  if (queryObj.categories.length) {
+    _query.bool.must.push({
+      "terms": {
+        "category": queryObj.categories
+      }
+    })
+  }
+
+
+  // Query doesn't include ID
+  params = {
+    index: process.env.INDEX_ASSETDB,
+    body: {
+      from: queryObj['from'] ? queryObj['from'] : 0,
+      size: queryObj['size'] ? queryObj['size'] : 10,
+      sort: queryObj['sort'] ?
+      [{
+        [queryObj['sort']] : queryObj['sort_type']
+      }]
+      :
+      [{
+        "_score": "desc"
+      }],
+      query: _query
+    }
+  }
+  let searchResults = await search.search(params)
+
+  let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
+    doc._source = transformAsset(doc._source)
+    return doc._source
+  })
+  return {
+    body: {
       assets: FrontEndAssets,
       total: searchResults.body.hits.total.value,
       params: params,
-    });
-    response.statusCode = 200;
-    return response;
-  } catch (E){
-    const response = errorResponse(_evt, E)
-    response.body = JSON.stringify({
-      error: E,
-      params: params
-    })
-    return response
+    },
+    status: 200
   }
-}
+})
 
 
 /**
@@ -277,9 +253,8 @@ export const get_asset : APIGatewayProxyHandler = newHandler({
 })
 
 export const delete_asset : APIGatewayProxyHandler = newHandler({
-  requireAsset: true,
+  requireAssetPermission: true,
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
-  await verifyUserHasAssetAccess(ctx.user, ctx.asset.id)
   // Result will be either 'deleted' or 'hidden', depending on if the asset
   // was purchased ('hidden') or not ('deleted')
   const result = await deleteAsset(ctx.asset)

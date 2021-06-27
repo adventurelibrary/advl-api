@@ -9,6 +9,18 @@ import CustomSQLParam from "../api/common/customsqlparam";
 import {APIError, Validation} from "./errors";
 import {User} from "../interfaces/IUser";
 
+export const ErrNoAssetPermission = new APIError({
+  status: 403,
+  key: 'no_asset_access',
+  message: 'You do not have permission to access those assets'
+})
+
+export const ErrAssetNotFound = new APIError({
+  status: 404,
+  key: 'asset_not_found',
+  message: 'Could not find that asset'
+})
+
 export function validateTags(tags : string[]) {
   if (!tags) {
     return
@@ -37,7 +49,10 @@ export async function searchAsset (id: string) : Promise<Asset> {
     })
     return doc.body._source
   } catch (e) {
-    throw new Error(`${id} doesn't exist in Index`);
+    if (e && e.meta && e.meta.statusCode === 404) {
+      throw ErrAssetNotFound
+    }
+    throw e
   }
 }
 
@@ -271,6 +286,9 @@ export async function verifyUserHasAssetAccess (user: User, assetId: string) {
 }
 
 export async function verifyUserHasAssetsAccess (user: User, assetIds: string[]) {
+  if (!user) {
+    throw ErrNoAssetPermission
+  }
   if (user.is_admin) {
     return
   }
@@ -287,16 +305,11 @@ AND cm.user_id = ?
 AND a.id IN (?)
   `, [user.id, assetIds])
 
-  console.log('rows', rows)
   // If the number equals the assetIds then this user has access to all of them
   const total = rows[0].num
   if (total == assetIds.length) {
     return
   }
 
-  throw new APIError({
-    status: 403,
-    key: 'no_asset_access',
-    message: 'You do not have permission to access those assets'
-  })
+  throw ErrNoAssetPermission
 }

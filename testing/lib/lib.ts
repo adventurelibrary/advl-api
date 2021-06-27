@@ -54,21 +54,8 @@ export async function request (url: string, opts: any = {}) {
   return fetch(testURL + url, opts)
 }
 
-export async function requestAs (url: string, userId: string | null, opts : any = {})  {
-  const jwt = await getUserFakeJWT(userId)
-  opts.headers = opts.headers || {}
-  opts.headers['Authorization'] = 'JWT ' + jwt
-  return request(url, opts)
-}
-
 export async function getJSON (url: string, opts : any = {}) {
   const res = await request(url, opts)
-  const json = await res.json()
-  return json
-}
-
-export async function getJSONAs (url: string, userId: string) {
-  const res = await requestAs(url, userId)
   const json = await res.json()
   return json
 }
@@ -89,24 +76,33 @@ export async function testResStatus (res: any, status : number) : Promise<string
 
 export type AccessTest = {
   path?: string
-  userId: string | null
+  userKey: string | null
   expectedStatus: number
   method?: string
 }
 
-export async function testPathAccess (path: string, tests: AccessTest[]) : Promise<string | null> {
+export async function testPathAccess (path: string, tests: AccessTest[], defaults?: object) : Promise<string | null> {
   for (let i = 0; i < tests.length; i++) {
-    const test = tests[i]
+    const test = {
+      ...defaults,
+      ...tests[i]
+    }
     test.path = path
-    const opts = {
+    const opts : any = {
       method: test.method || 'GET'
     }
-    const res = await requestAs(test.path, test.userId, opts)
+    if (test.userKey) {
+      opts.headers = {
+        userKey: test.userKey
+      }
+    }
+    const res = await request(test.path, opts)
     const err = await testResStatus(res, test.expectedStatus)
     if (err) {
-      return `[${i}] Failed with user ${test.userId}: ${err}`
+      return `[${i}] Failed with user ${test.userKey}: ${err}`
     }
   }
 
   return null
 }
+
