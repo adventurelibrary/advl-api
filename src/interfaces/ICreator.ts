@@ -7,8 +7,8 @@ export interface Creator {
 }
 
 export interface UserCreatorRelation {
-  creatorID: string,
-  userID: string
+  creator_id: string,
+  user_id: string
 }
 
 export interface REQ_NewCreator{

@@ -23,7 +23,16 @@ debug_vpc:
     - http: 
         method: post
         path: /database/vpc
-        cors: true
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+debug_creator_create:
+  handler: src/api/debug/creator.debug_newcreator
+  events:
+    - http:
+        method: post
+        path: /creator/create
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 

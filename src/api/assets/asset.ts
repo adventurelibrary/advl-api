@@ -94,7 +94,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
           response.body = JSON.stringify({error: `ID (${id}) not found in Index`});
           return response;
         }
-        
+
         FEAssets.push(transformAsset(FrontEndAsset));
       }
       response.body = JSON.stringify(FEAssets);
@@ -267,7 +267,7 @@ export const get_asset : APIGatewayProxyHandler = newHandler({
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
   return {
     status: 200,
-    body: await transformAsset(ctx.asset)
+    body: transformAsset(ctx.asset)
   }
 })
 

@@ -1,5 +1,5 @@
 import {Credentials, S3, Endpoint} from 'aws-sdk';
-import { Asset, image_file_resolutions } from '../../interfaces/IAsset';
+import { image_file_resolutions } from '../../interfaces/IAsset';
 
 const linkExpiryInSeconds = 60*60 //1 hr
 const b2 = new S3({
@@ -8,7 +8,13 @@ const b2 = new S3({
   signatureVersion: "v4"
 })
 
-export function GetURL(type:image_file_resolutions, asset:Asset){
+export interface AssetImage {
+  id: string
+  creator_id: string
+  original_file_ext: string
+}
+
+export function GetURL(type:image_file_resolutions, asset:AssetImage){
   let ext = type == 'original' ? asset.original_file_ext : 'webp'
   let bucket = '';
   switch(type){

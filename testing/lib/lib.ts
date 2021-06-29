@@ -3,7 +3,7 @@ import {signInUser} from "./cognito";
 import fetch from 'node-fetch';
 import {users} from "./fixtures"
 
-export const testURL = process.env.TEST_URL || 'http://localhost:3000/v1/'
+export const testURL = process.env.TEST_URL || 'http://localhost:3000/dev/'
 
 // For testing purposes, this wil generate a JWT with the user's info from our database
 // To avoid having to actually use cognito for unit tests we COULD have the server

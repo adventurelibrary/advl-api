@@ -41,3 +41,21 @@ export function userCanViewBundle(user: User | undefined, bundle: Bundle) : bool
 
   return user.id === bundle.user_id
 }
+
+export async function indexBundle (id: string) {
+  const bundle = await getBundleByID(id)
+  await search.index({
+    index: process.env.INDEX_BUNDLEINFO,
+    id: id,
+    body: getBundlePublicBody(bundle)
+  })
+}
+
+/**
+ * Returns a transformed version of the bundle body for public purposes
+ * @param bundle 
+ * @returns 
+ */
+function getBundlePublicBody(bundle:Bundle){
+  return bundle
+}
