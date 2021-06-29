@@ -10,6 +10,7 @@ import {
   updateAssetAndIndex,
   validateAsset
 } from "../../lib/assets";
+import { clientRelease } from '../common/postgres';
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
@@ -39,9 +40,10 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     response.statusCode = 200
     response.body = JSON.stringify(_res)
-
+    clientRelease();
     return response;
-  }catch (E){
+  }catch (E){  
+    clientRelease();
     return errorResponse(_evt, E)
   }
 }
@@ -87,7 +89,7 @@ async function getParams(asset: Asset): Promise<string> {
   if (!params.fields.assetID) {
     throw new Error('WHERE IS TEH ASSET ID?')
   }
-
+  clientRelease();
   return JSON.stringify(params);
 }
 
@@ -139,8 +141,10 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
       }
     }
     response.statusCode = 200;
+    clientRelease();
     return response;
   } catch (E){
+    clientRelease();
     return errorResponse(_evt, E)
   }
 }

@@ -65,7 +65,7 @@ export const bundle_create = newHandler({
   }
 
   await indexBundle(newBundle.id)
-
+  db.clientRelease();
   return {
     status: 201,
     body: {bundle_id: newBundle.id}

@@ -12,7 +12,8 @@ import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
 import {Creator} from "../../interfaces/ICreator";
 import { Bundle } from "../../interfaces/IBundle";
-import { getBundleInfo } from "../../lib/bundle";
+import { getBundleByID } from "../../lib/bundle";
+import { clientRelease } from "./postgres";
 
 // This context we build ourselves and pass to our handlers
 // It contains the basic event and context provided by serverless
@@ -155,7 +156,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       }
 
       if (opts.requireBundle) {
-        const bundle = await getBundleInfo(_evt.pathParameters.bundleID)
+        const bundle = await getBundleByID(_evt.pathParameters.bundleID)
         if(!bundle){
           return errorResponse(_evt, new Error("Could not find bundle"), 404)
         }
@@ -182,8 +183,10 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         res.body = JSON.stringify(handleResult.body)
       }
     } catch (ex) {
+      clientRelease();
       return errorResponse(_evt, ex)
     }
+    clientRelease();
     return res
   }
 }

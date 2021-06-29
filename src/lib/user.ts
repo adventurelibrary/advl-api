@@ -10,7 +10,7 @@ export async function getUserByID(id: string): Promise<User> {
     const _sql = `
     SELECT u.*, EXISTS(SELECT creator_id FROM ${process.env.DB_CREATORMEMBERS} WHERE user_id = u.id LIMIT 1) as is_creator
     FROM ${process.env.DB_USERS} u
-    WHERE u.id = ?
+    WHERE u.id = $1
     `
     const user = <User>(await db.query(_sql, [id], false)[0])
     return user;

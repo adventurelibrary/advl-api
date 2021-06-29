@@ -2,7 +2,6 @@ import { APIGatewayProxyHandler } from "aws-lambda";
 import { errorResponse, newResponse } from "../common/response";
 import {query} from "../common/postgres";
 import {resetAssets} from "../../lib/assets";
-import {resetBundles} from "../../lib/bundle";
 
 export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
   try{
@@ -28,7 +27,7 @@ export const debug_sync:APIGatewayProxyHandler = async(_evt, _ctx) => {
   let response = newResponse();
   try{
     await resetAssets()
-    await resetBundles()
+    //await resetBundles()
     response.statusCode = 204
     return response;
   } catch (e) {

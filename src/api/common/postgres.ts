@@ -13,8 +13,6 @@ const pg_write = new Client({
   database: process.env.POSTGRES_DB_NAME
 })
 
-
-
 /**
  * Runs the query against the Postgres DB we have in the background.
  * The last param determines if the query should use the writer, or if can just use the reader
@@ -102,7 +100,7 @@ export async function deleteObj(tableName:string, id:string) {
   return await executeStatement(_sql, [id], true);
 }
 
-export async function clientRelease(){
+export function clientRelease(){
   pg_read.end();
   pg_write.end();
 }
