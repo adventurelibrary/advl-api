@@ -7,11 +7,12 @@ import { Admin } from '../interfaces/IAdmin';
 
 export async function getUserByID(id: string): Promise<User> {
   try{
-    const user = await db.queryOne<User>(`
-SELECT u.*, EXISTS(SELECT creator_id FROM creatormembers WHERE user_id= u.id LIMIT 1) as is_creator
-FROM users u
-WHERE u.id = ?
-`, [id])
+    const _sql = `
+    SELECT u.*, EXISTS(SELECT creator_id FROM ${process.env.DB_CREATORMEMBERS} WHERE user_id = u.id LIMIT 1) as is_creator
+    FROM ${process.env.DB_USERS} u
+    WHERE u.id = ?
+    `
+    const user = <User>(await db.query(_sql, [id], false)[0])
     return user;
   } catch (e){
     return undefined;

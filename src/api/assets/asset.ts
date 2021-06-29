@@ -15,7 +15,7 @@ import {
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
-import {getUserCreatorIds, getUserCreators} from "../../lib/creator";
+import {getUserCreatorIds } from "../../lib/creator";
 import {getEventUser} from "../common/events";
 
 /**
