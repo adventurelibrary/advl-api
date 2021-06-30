@@ -5,7 +5,6 @@ import * as db from '../api/common/postgres';
 import {query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
-import CustomSQLParam from "../api/common/customsqlparam";
 import {APIError, Validation} from "./errors";
 import {User} from "../interfaces/IUser";
 
@@ -88,9 +87,7 @@ export async function updateAsset (original:Asset, updates: any) {
 	original.size_in_bytes = updates.hasOwnProperty('size_in_bytes') ? updates.size_in_bytes : original.size_in_bytes;
 	original.original_file_ext = updates.hasOwnProperty('original_file_ext') ? updates.original_file_ext : original.original_file_ext;
 
-	const sets = assetToDatabaseWrite(original,false)
-	console.log("Updated Asset: ", sets)
-	await db.updateObj(process.env.DB_ASSETS, original.id, sets)
+	await db.updateObj(process.env.DB_ASSETS, original.id, original)
 }
 
 export async function updateAssetAndIndex (original: Asset, updates: any) {
@@ -117,48 +114,10 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 		revenue_share: req.revenue_share
 	}
 
-	const dbWrite = assetToDatabaseWrite(newAsset, true)
-	await db.insertObj(process.env.DB_ASSETS, dbWrite);
+	await db.insertObj(process.env.DB_ASSETS, newAsset);
 	console.log(`PENDING ASSET CREATED\n`, newAsset);
 	return newAsset;
 }
-
-export function assetToDatabaseWrite (asset: Asset, isInsert: boolean) : any {
-	// We have to pass the parameter to the Data API as a string
-	// So we have to change our query to cast it in the db from string
-	// to our custom type
-	const dbwrite = <any>Object.assign({}, asset)
-	dbwrite.visibility = new CustomSQLParam({
-		value: asset.visibility,
-		castTo: 'visibility'
-	})
-
-	dbwrite.filetype = new CustomSQLParam({
-		value: asset.filetype,
-		castTo: 'filetype'
-	})
-
-	dbwrite.category = new CustomSQLParam({
-		value: asset.category,
-		castTo: 'category'
-	})
-
-	// TODO: Protected against SQL injection
-	dbwrite.tags = new CustomSQLParam({
-		value: '{' + asset.tags.map(t => '"' + t + '"').join(',') + '}',
-		castTo: 'TEXT[]',
-	})
-
-	// Delete any fields that might sneak int
-	delete dbwrite.creator_name
-
-	if (!isInsert) {
-		delete dbwrite.id
-	}
-
-	return dbwrite
-}
-
 
 export async function indexAssetSearch (asset: Asset) {
 	// Update ES. This will insert it to ES if it's not on elasticsearch
@@ -203,9 +162,9 @@ export async function reindexAssetsSearch (assets: Asset[]) {
 
 export async function resetAssets () {
 	const sql = `SELECT a.*, c.name as creator_name
-FROM assets a
-JOIN creators c 
-ON c.id = a.creator_id`
+		FROM ${process.env.DB_ASSETS} a
+		JOIN ${process.env.DB_CREATORS} c 
+		ON c.id = a.creator_id`
 	const assets:Asset[] = await query(sql, [], false)
 	await reindexAssetsSearch(assets)
 }
@@ -239,18 +198,16 @@ export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) 
 	// If there is an asset in here that they aren't a member of the creator of,
 	// it won't be totalled up by the COUNT()
 	const rows : any[] = await db.query(`
-SELECT COUNT(*) as num
-FROM assets a, creatormembers cm
-WHERE a.creator_id = cm.creator_id
-AND cm.user_id = ?
-AND a.id IN (?)
+		SELECT COUNT(*) as num
+		FROM ${process.env.DB_ASSETS} a, ${process.env.DB_CREATORMEMBERS} cm
+		WHERE a.creator_id = cm.creator_id
+		AND cm.user_id = $1
+		AND a.id IN ($2)
 	`, [user.id, assetIds])
 
-	console.log('rows', rows)
 	// If the number equals the assetIds then this user has access to all of them
-	const total = rows[0].num
-	if (total == assetIds.length) {
-		return
+	if (rows.length == assetIds.length) {
+		return;
 	}
 
 	throw new APIError({

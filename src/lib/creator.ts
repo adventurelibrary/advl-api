@@ -54,7 +54,7 @@ export async function getTotalUserCreators(user: User) {
 export async function getUserCreatorIds(id: string) : Promise<string[]> {
 	const results = await db.query(`
 		SELECT cm.creator_id
-		FROM ${process.env.creatormembers} cm
+		FROM ${process.env.DB_CREATORMEMBERS} cm
 		WHERE cm.user_id = $1`,
 		[id]
 	)
@@ -73,7 +73,7 @@ export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promi
 		`
 		SELECT c.*
 		FROM ${process.env.DB_CREATORS} c, ${process.env.DB_CREATORMEMBERS} cm
-		WHERE cm.user_id = $1,
+		WHERE cm.user_id = $1
 		`,
 		[user.id],
 		skip,

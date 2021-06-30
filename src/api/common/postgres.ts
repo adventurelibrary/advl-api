@@ -114,13 +114,13 @@ export async function getObjects(sql: string, values:any[] = [], skip:number = 0
   }
 
   if(limit){
-    sql += ` LIMIT $${values.length}`
     values.push(limit);
+    sql += ` LIMIT $${values.length}`
   }
   
   if(skip){
-    sql += ` OFFSET $${values.length}`
     values.push(skip)
+    sql += ` OFFSET $${values.length}`
   }
 
   return await query(sql, values, false);

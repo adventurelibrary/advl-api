@@ -7,7 +7,6 @@ import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfac
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import {
-  getAsset,
   searchAsset,
   updateAssetAndIndex,
   validateAssetQuery,
@@ -17,7 +16,7 @@ import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
 import {getUserCreatorIds } from "../../lib/creator";
 import {getEventUser} from "../common/events";
-import { clientRelease } from '../common/postgres';
+import * as db from '../common/postgres';
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -76,12 +75,12 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       } catch (e) {
         response.statusCode = 400;
         response.body = JSON.stringify({error: `ID (${queryObj.id}) doesn't exist in Index`})
-        clientRelease();
+        db.clientRelease();
         return response;
       }
       response.body = JSON.stringify(transformAsset(FrontEndAsset));
       response.statusCode = 200;
-      clientRelease();
+      db.clientRelease();
       return response;
     }
 
@@ -95,7 +94,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         } catch(e){
           response.statusCode = 400;
           response.body = JSON.stringify({error: `ID (${id}) not found in Index`});
-          clientRelease();
+          db.clientRelease();
           return response;
         }
 
@@ -103,7 +102,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       }
       response.body = JSON.stringify(FEAssets);
       response.statusCode = 200;
-      clientRelease();
+      db.clientRelease();
       return response;
     }
 
@@ -144,7 +143,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
           assets: []
         })
         response.statusCode = 200
-        clientRelease();
+        db.clientRelease();
         return response
       }
       _query.bool.should = creatorIds.map((id) => {
@@ -233,7 +232,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       params: params,
     });
     response.statusCode = 200;
-    clientRelease();
+    db.clientRelease();
     return response;
   } catch (E){
     const response = errorResponse(_evt, E)
@@ -241,7 +240,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
       error: E,
       params: params
     })
-    clientRelease();
+    db.clientRelease();
     return response
   }
 }
@@ -304,10 +303,9 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
       throw new Error(`No id provided at index ${i}`)
     }
 
-    const asset = await getAsset(id);
+    const asset = await db.getObj(process.env.DB_ASSETS, id);
     await updateAssetAndIndex(asset, reqAsset)
   }
-  clientRelease();
   return {
     status: 204,
   }

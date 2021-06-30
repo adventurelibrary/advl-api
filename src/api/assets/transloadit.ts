@@ -6,11 +6,10 @@ import {errorResponse, newResponse} from "../common/response";
 import {getEventUser} from "../common/events";
 import {
   createNewAsset,
-  getAsset,
   updateAssetAndIndex,
   validateAsset
 } from "../../lib/assets";
-import { clientRelease } from '../common/postgres';
+import * as db from '../common/postgres';
 
 export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
   let response = newResponse()
@@ -21,7 +20,7 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
       throw new Error("You must be logged in to upload a new asset");
     }
     const newAsset = <Asset>JSON.parse(_evt.body);
-    await validateAsset(newAsset)
+    validateAsset(newAsset)
 
     const created = await createNewAsset(newAsset);
 
@@ -40,10 +39,10 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
 
     response.statusCode = 200
     response.body = JSON.stringify(_res)
-    clientRelease();
+    db.clientRelease();
     return response;
   }catch (E){  
-    clientRelease();
+    db.clientRelease();
     return errorResponse(_evt, E)
   }
 }
@@ -89,7 +88,6 @@ async function getParams(asset: Asset): Promise<string> {
   if (!params.fields.assetID) {
     throw new Error('WHERE IS TEH ASSET ID?')
   }
-  clientRelease();
   return JSON.stringify(params);
 }
 
@@ -128,23 +126,26 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
       if (!assetId) {
         throw new Error('Missing assetID from params')
       }
-      let asset = await getAsset(params.fields.assetID)
+      let asset = await db.getObj(process.env.DB_ASSETS, params.fields.assetID);
       if(asset && asset.visibility == "PENDING"){
         const update = {
           size_in_bytes: notification.bytes_received,
           visibility: 'HIDDEN',
           original_file_ext: notification.uploads[0].ext
         }
+
+        console.log("ASSET TO UPDATE: ", asset);
+        console.log("ASSET_UPDATES: ", update);
         await updateAssetAndIndex(asset,  update)
 
         console.log(`${asset.id} moved from PENDING to HIDDEN.`);
       }
     }
     response.statusCode = 200;
-    clientRelease();
+    db.clientRelease();
     return response;
   } catch (E){
-    clientRelease();
+    db.clientRelease();
     return errorResponse(_evt, E)
   }
 }
