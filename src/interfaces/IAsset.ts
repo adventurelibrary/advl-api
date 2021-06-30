@@ -5,12 +5,12 @@ export interface RES_Get_Signature{
   assetID: string
 }
 
-export type category = 'map' | 'character' | 'scene' | 'token'
+export type Category = 'map' | 'character' | 'scene' | 'token'
 
 interface UserDefinedAssetInfo {
   name: string,
   description: string,
-  category: category,
+  category: Category,
   creator_id: string,
   tags: string[],
   unlock_price: number,
@@ -57,7 +57,7 @@ export interface REQ_Query {
   creator_name?: string, // Can come from join queries
   collectionID?: string,
   tags?: string[],
-  categories?: category[],
+  categories?: Category[],
 }
 
 export interface REQ_DownloadLink {

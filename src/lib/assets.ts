@@ -42,7 +42,7 @@ export async function searchAsset (id: string) : Promise<Asset> {
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
 	const _sql = `SELECT a.*, c.name as creator_name
-	FROM assets a, creators c
+	FROM ${process.env.DB_ASSETS} a, ${process.env.DB_CREATORS} c
 	WHERE a.creator_id = c.id
 	AND a.id = $1
 	`
@@ -52,19 +52,6 @@ export async function getAsset (id: string) : Promise<Asset | undefined> {
 		return undefined
 	}
 	return rows[0];
-
-	//HOLDOVER FROM OLD CODE MIGHT NOT BE NEEDED
-	return mapAssetRow(rows[0])
-}
-
-// The data we get back from the DB might not be in a form that we want our javascript
-// to work with, so we transfer it here
-// For example, string dates need to become dates, JSON fields need to become objects
-function mapAssetRow (row: any) : Asset {
-	const asset = <Asset>row
-	asset.uploaded = new Date(row.uploaded)
-	asset.revenue_share = JSON.parse(row.revenue_share)
-	return asset
 }
 
 export async function updateAsset (original:Asset, updates: any) {

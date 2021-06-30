@@ -3,7 +3,7 @@ import {
   APIGatewayProxyHandler
 } from 'aws-lambda';
 import { search } from '../common/elastic';
-import {Asset, category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
+import {Asset, Category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import {
@@ -24,8 +24,10 @@ import * as db from '../common/postgres';
  * @returns
  */
 export function transformAsset (asset : Asset) : Asset {
-  asset.previewLink = b2.GetURL('watermarked', asset);
-  asset.thumbnail =  b2.GetURL('thumbnail', asset);
+  asset.previewLink = b2.GetURL('optimized', asset);
+  asset.thumbnail =  b2.GetURL('optimized', asset);
+  //asset.previewLink = b2.GetURL('watermarked', asset);
+  //asset.thumbnail =  b2.GetURL('thumbnail', asset);
   return asset
 }
 
@@ -39,6 +41,7 @@ function getCSVParam (params: APIGatewayProxyEventQueryStringParameters, key: st
 // Converts the query string parameters that serverless has, into our custom type
 // that we use to query assets
 function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : REQ_Query {
+  console.log(eventParams);
   const queryObj:REQ_Query = {};
 
   if(eventParams){
@@ -50,7 +53,8 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
 
   // Certain fields are comma delimited, which we override here
   queryObj.tags = getCSVParam(eventParams, 'tags')
-  queryObj.categories = <category[]>getCSVParam(eventParams, 'categories')
+  queryObj.categories = <Category[]>getCSVParam(eventParams, 'categories')
+  //queryObj.categories = eventParams.category != "" ? <Category[]>eventParams.category.split(",") : [];
   queryObj.ids = getCSVParam(eventParams, 'ids')
 
   if (isNaN(queryObj.size) || queryObj.size <= 0) {
@@ -162,7 +166,7 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
     if (text) {
       _query.bool.must.push({
         "dis_max": {
-          "tie_breaker": 0.7,
+          "tie_breaker": 0.9,
           "queries": [
             {
               "fuzzy": {
@@ -219,6 +223,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         query: _query
       }
     }
+
+    console.log("SEARCH PARAMS: ", JSON.stringify(params));
     let searchResults = await search.search(params)
 
     let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {

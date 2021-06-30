@@ -15,7 +15,7 @@ export async function getBundleByID(bundle_id:string) : Promise<Bundle> {
     ON c.id = b.creator_id
     LEFT JOIN ${process.env.DB_USERS} u
     ON u.id = b.user_id
-    WHERE id = $1
+    WHERE b.id = $1
   `
   return <Bundle>(await db.query(_sql, [bundle_id],false))[0]
 }

@@ -13,7 +13,7 @@ DROP TYPE IF EXISTS filetype;
 DROP TYPE IF EXISTS category;
 create type visibility as ENUM ('PENDING', 'HIDDEN', 'PUBLIC', 'ALL');
 create type filetype as ENUM ('IMAGE', 'PDF', 'ZIP');
-create type category as ENUM ('map', 'token', 'character', 'scene');
+create type category as ENUM ('map', 'token', 'character', 'scene', 'item', 'panel');
 
 create table users (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,

@@ -1,10 +1,10 @@
 [
   {
-    "name": "map",
+    "name": "Map",
     "description": "Depicting a place, that can be used for reference or tactical play."
   },
   {
-    "name": "token",
+    "name": "Token",
     "description": "Used to depict PCs or NPCs, top down, isometric or flat round."
   },
   {
@@ -18,5 +18,9 @@
   {
     "name": "Scene",
     "description": "Art that includes a background, possibly with figures in it, more \"traditional\" art - not usually used for tactical purposes."
+  },
+  {
+    "name": "Item",
+    "description": "Art of inanimate objects"
   }
 ]

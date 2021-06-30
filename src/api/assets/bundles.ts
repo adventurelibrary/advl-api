@@ -65,7 +65,6 @@ export const bundle_create = newHandler({
   }
 
   await indexBundle(newBundle.id)
-  db.clientRelease();
   return {
     status: 201,
     body: {bundle_id: newBundle.id}
@@ -128,7 +127,7 @@ export const bundle_update = newHandler({
   if(reqBundleUpdate.removed_assets){
     //update the removed assets
     for(let assetID of reqBundleUpdate.removed_assets){
-      await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = ? AND asset_id = ?`, [bundle.id, assetID])
+      await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1 AND asset_id = $2`, [bundle.id, assetID])
     }
   }
 
@@ -176,13 +175,13 @@ export const bundle_delete = newHandler({
 
 async function buildFEBundleFromBundleInfo(bundle:Bundle){
   let bundleAssets: Asset[] = [];
-  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id= ?`, [bundle.id])).map((record) => {
+  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1`, [bundle.id], false)).map((record) => {
     let bundleAsset:BundleAsset = <BundleAsset> record;
     return bundleAsset.asset_id;
   })
 
   for(let id of bundleAssetIDs) {
-    bundleAssets.push(await transformAsset(await searchAsset(id)));
+    bundleAssets.push(transformAsset(await searchAsset(id)));
   }
 
   let returnedBundle: GetBundle = {
