@@ -18,7 +18,7 @@ export type GetCreatorOpts = {
 }
 
 export async function isMemberOfCreatorPage(creator_id: string, user_id: string){
-	let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id= ? and user_id= ? LIMIT 1`, [creator_id, user_id])
+	let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id= $1 and user_id= $2 LIMIT 1`, [creator_id, user_id])
 	if(result.length == 0){
 		return false;
 	} else {
@@ -27,61 +27,59 @@ export async function isMemberOfCreatorPage(creator_id: string, user_id: string)
 }
 
 export async function getTotalCreators() {
-	const res = <{total: number}[]> await db.query(`SELECT COUNT(*) as total FROM ${process.env.DB_CREATORS}`)
-	return res[0].total
+	const res = (await db.query(`SELECT COUNT(*) as total FROM ${process.env.DB_CREATORS}`)).length;
+	return res
 }
 
 export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
-	const result = <Creator[]>await db.getTableObjects(process.env.DB_CREATORS, {
-		limit: opts.limit,
-		skip: opts.skip,
-		orderBy: 'name ASC'
-	})
-
+	const result = <Creator[]>await db.getObjects(
+		`SELECT * FROM ${process.env.DB_CREATORS}`,
+		[], 
+		opts.skip,
+		opts.limit,
+		'name ASC')
 	return result
 }
 
 
 export async function getTotalUserCreators(user: User) {
-	const res = <{total: number}[]> await db.query(`
-SELECT COUNT(*) as total
-FROM creators c, creatormembers cm
-WHERE cm.user_id = ?
-AND cm.creator_id = c.id`, [user.id])
-	return res[0].total
+	const res = await db.query(`
+	SELECT COUNT(*) as total	
+	FROM ${process.env.DB_CREATORS} c, ${process.env.DB_CREATORMEMBERS} cm
+	WHERE cm.user_id = $1
+	AND cm.creator_id = c.id`, [user.id])
+	return res.length;
 }
 
 export async function getUserCreatorIds(id: string) : Promise<string[]> {
-	const results = <{creator_id: string}[]>await db.query(`
-SELECT cm.creator_id
-FROM creatormembers cm
-WHERE cm.user_id = :userId
-`, {
-		userId: id
-	})
+	const results = await db.query(`
+		SELECT cm.creator_id
+		FROM ${process.env.creatormembers} cm
+		WHERE cm.user_id = $1`,
+		[id]
+	)
 
 	return results.map((row) => {
 		return row.creator_id
 	})
 }
+
+
 export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promise<Creator[]> {
 	const limit = isNaN(opts.limit) || !opts.limit ? 20 : opts.limit
 	const skip = isNaN(opts.skip) ? 0 : opts.skip
 
-	const result = <Creator[]>await db.query(`
-SELECT c.*
-FROM creators c, creatormembers cm
-WHERE cm.user_id = :userId
-AND cm.creator_id = c.id
-ORDER BY :orderBy
-LIMIT :limit
-OFFSET :skip`, {
-		limit: limit,
-		skip: skip,
-		orderBy: 'name ASC',
-		userId: user.id
-	})
-
+	const result:Creator[] = <Creator[]> await db.getObjects(
+		`
+		SELECT c.*
+		FROM ${process.env.DB_CREATORS} c, ${process.env.DB_CREATORMEMBERS} cm
+		WHERE cm.user_id = $1,
+		`,
+		[user.id],
+		skip,
+		limit, 
+		'name ASC'
+	)
 	return result
 }
 

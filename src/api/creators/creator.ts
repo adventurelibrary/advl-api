@@ -96,60 +96,6 @@ export const creator_post = newHandler({
     }
   }
 })
-/*
-
-
-/!**
- * GET returns creator information.
- * POST creates a new CREATOR from a USER (ADMIN)
- * PUT updates the creator (ADMIN or Creator OWNER)
- *!/
-export const creator: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse();
-  try{
-    let user: User = await getEventUser(_evt);
-    let creator = await getCreatorByID(_evt.pathParameters.creatorID)
-    if(_evt.httpMethod == "GET"){
-      if(creator == undefined) {
-        throw new Error ("Creator undefined");
-      }
-      //if no one is logged in return just the basic info about the creator
-      if(!user && creator.owner != user.id && !isAdmin(user.id)){
-        response.statusCode = 200;
-        response.body = JSON.stringify(BasicCreatorInfo(creator));
-        return response;
-      }
-
-      //if the creator owner or an admin is querying send the full info for the creator
-      if(creator.owner == user.id || isAdmin(user.id)){
-        response.statusCode = 200;
-        response.body = JSON.stringify(creator)
-        return response;
-      }
-
-    } else if (_evt.httpMethod == "POST") {
-      if(creator != undefined){
-        throw new Error("A creator already exists for this user");
-      }
-
-      if(!isAdmin(user.id)){
-        throw new Error("Only admins can make new creators")
-      }
-
-    } else if (_evt.httpMethod == "PUT") {
-      if(creator.owner != user.id && !isAdmin(user.id)){
-        throw new Error("Creators can only be updated by their owner or an Admin")
-      }
-
-      response.statusCode = 200;
-      response.body = JSON.stringify(updateCreator(creator, <REQ_UpdateCreator>JSON.parse(_evt.body)));
-    }
-    return response;
-  } catch(e) {
-    return errorResponse(_evt, e);
-  }
-}
-*/
 
 /**
  *

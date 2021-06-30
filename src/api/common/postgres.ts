@@ -99,3 +99,29 @@ export function clientRelease(){
   pg_read.end();
   pg_write.end();
 }
+
+/**
+ * The SQL should include the tablename 
+ * @param sql 
+ * @param values 
+ * @param skip 
+ * @param limit 
+ * @param orderBy 
+ */
+export async function getObjects(sql: string, values:any[] = [], skip:number = 0, limit: number = 10, orderBy?: string){
+  if(orderBy){
+    sql += ` ORDER BY ${orderBy}`
+  }
+
+  if(limit){
+    sql += ` LIMIT $${values.length}`
+    values.push(limit);
+  }
+  
+  if(skip){
+    sql += ` OFFSET $${values.length}`
+    values.push(skip)
+  }
+
+  return await query(sql, values, false);
+}

@@ -1,3 +1,6 @@
+DELETE /assets
+DELETE /bundleinfo
+
 PUT /assets
 {
   "settings": {
