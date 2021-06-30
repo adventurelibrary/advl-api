@@ -1,16 +1,18 @@
-import {Client} from 'pg';
-const pg_read = new Client({
+import {Pool} from 'pg';
+const pg_read = new Pool({
   user: process.env.POSTGRES_USERNAME,
   password: process.env.POSTGRES_PASSWORD,
   host: process.env.POSTGRES_READ_URL,
-  database: process.env.POSTGRES_DB_NAME
+  database: process.env.POSTGRES_DB_NAME,
+  max: 1,
 })
 
-const pg_write = new Client({
+const pg_write = new Pool({
   user: process.env.POSTGRES_USERNAME,
   password: process.env.POSTGRES_PASSWORD,
   host: process.env.POSTGRES_WRITE_URL,
-  database: process.env.POSTGRES_DB_NAME
+  database: process.env.POSTGRES_DB_NAME,
+  max: 1
 })
 
 /**
@@ -26,26 +28,15 @@ async function executeStatement(sql: string, params:any[], isWriteQuery: boolean
   console.debug("SQL: ", sql)
   console.debug("Params: ", JSON.stringify(params));
   console.debug("isWriteQuery:",  isWriteQuery);
-
+ 
   if(isWriteQuery){
-    try{
-      pg_write.connect()
-    } catch (e) {
-      //E just means it's already connected, so just continue
-    }
-    let res = await pg_write.query(sql, params);
-    console.log("EXECUTE RESPONSE: ", res.rows);
+    const res = await pg_write.query(sql, params);
     return res;
   } else {
-    try{
-      pg_read.connect()
-    } catch (e) {
-      //E just means it's already connected so just continue
-    }
-    let res = await pg_read.query(sql, params);
-    console.log("EXECUTE RESPONSE: ", res.rows);
-    return res; 
+    const res = await pg_read.query(sql, params);
+    return res;
   }
+  
 }
 
 export async function query(sql:string, params:any[] = [], isWriteQuery: boolean = true){
