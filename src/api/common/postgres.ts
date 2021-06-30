@@ -24,7 +24,7 @@ const pg_write = new Client({
 async function executeStatement(sql: string, params:any[], isWriteQuery: boolean = true){
   console.debug("======POSTGRES QUERY======");
   console.debug("SQL: ", sql)
-  console.debug("Params: ", params);
+  console.debug("Params: ", JSON.stringify(params));
   console.debug("isWriteQuery:",  isWriteQuery);
 
   if(isWriteQuery){
@@ -33,14 +33,18 @@ async function executeStatement(sql: string, params:any[], isWriteQuery: boolean
     } catch (e) {
       //E just means it's already connected, so just continue
     }
-    return await pg_write.query(sql, params);
+    let res = await pg_write.query(sql, params);
+    console.log("EXECUTE RESPONSE: ", res.rows);
+    return res;
   } else {
     try{
       pg_read.connect()
     } catch (e) {
       //E just means it's already connected so just continue
     }
-    return await pg_read.query(sql, params);
+    let res = await pg_read.query(sql, params);
+    console.log("EXECUTE RESPONSE: ", res.rows);
+    return res; 
   }
 }
 
@@ -60,7 +64,7 @@ export async function insertObj(tableName:string, obj:any) {
 
   //replace ? with $i to match what the library wants
   let paramMarks = "";
-  for(let i=1; i++; i<=values.length){
+  for(let i=1; i<=values.length; i++){
     paramMarks += i == values.length ? `$${i}` : `$${i},`
   }
 
@@ -84,12 +88,12 @@ export async function updateObj(tableName:string, objID: string, updates: Record
   const params: any[] = [];
   const keys = Object.keys(updates)
   for(let i=0; i<keys.length; i++){
-    updateString.push(`${keys[i]} = $${i}`);
+    //have to do the +1 here because pg won't recognize $0 as a parameter
+    updateString.push(`${keys[i]} = $${i+1}`);
     params.push(updates[keys[i]])
   }
   //last param is the object's id for the WHERE clause
   params.push(objID)
-
   const _sql = `UPDATE ${tableName} SET ${updateString.join(",")} WHERE id=$${params.length}`
   await executeStatement(_sql, params, true);
   return true;

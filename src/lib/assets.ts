@@ -42,11 +42,13 @@ export async function searchAsset (id: string) : Promise<Asset> {
 }
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
-	const rows:Asset[] = await query(`SELECT a.*, c.name as creator_name
-FROM assets a, creators c
-WHERE a.creator_id = c.id
-AND a.id = $1
-	`, [id], false)
+	const _sql = `SELECT a.*, c.name as creator_name
+	FROM assets a, creators c
+	WHERE a.creator_id = c.id
+	AND a.id = $1
+	`
+	
+	const rows:Asset[] = await query(_sql, [id], false)
 	if (!rows || !rows[0]) {
 		return undefined
 	}

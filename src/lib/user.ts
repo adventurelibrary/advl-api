@@ -12,7 +12,8 @@ export async function getUserByID(id: string): Promise<User> {
     FROM ${process.env.DB_USERS} u
     WHERE u.id = $1
     `
-    const user = <User>(await db.query(_sql, [id], false)[0])
+    const user = <User>(await db.query(_sql, [id], false))[0];
+    console.log("USER: ", user)
     return user;
   } catch (e){
     return undefined;
@@ -25,10 +26,6 @@ export async function getUserByToken(jwt: string): Promise<User | undefined>{
     return undefined
   }
   return await getUserByID(userToken.sub);
-}
-
-export async function updateUser(user:User, updates:any){
-  await db.updateObj(process.env.DB_USERS, user.id, updates);
 }
 
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json

@@ -17,7 +17,7 @@ export async function getBundleByID(bundle_id:string) : Promise<Bundle> {
     ON u.id = b.user_id
     WHERE id = $1
   `
-  return <Bundle>(await db.query(_sql, [bundle_id],false)[0])
+  return <Bundle>(await db.query(_sql, [bundle_id],false))[0]
 }
 
 export async function deleteBundle(id: string) {

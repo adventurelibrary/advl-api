@@ -1,4 +1,4 @@
-import {updateUser, validateUserToken} from '../../lib/user';
+import {validateUserToken} from '../../lib/user';
 import { User } from '../../interfaces/IUser';
 import * as db from '../common/postgres';
 import {newHandler} from "../common/handlers";
@@ -39,7 +39,7 @@ export const user_get = newHandler({
       body: newUser
     }
   } else if (user) {
-    await updateUser(user, {last_seen: new Date()})
+    await db.updateObj(process.env.DB_USERS, user.id, {last_seen: new Date()});
   }
   return {
     status: 200,
@@ -50,7 +50,7 @@ export const user_get = newHandler({
 export const user_put = newHandler({
   requireUser: true
 }, async ({user, json}) => {
-  await updateUser(user, {
+  await db.updateObj(process.env.DB_USERS, user.id, {
     ...json,
     last_seen: new Date()
   })

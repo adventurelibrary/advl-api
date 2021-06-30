@@ -43,8 +43,9 @@ export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
 
   try{
   
-    let q = JSON.parse(_evt.body)['query']
-    console.log("Query: ", q);
+    let q = JSON.parse(_evt.body)
+    console.log("Query: ", q.query);
+    console.log("Values: ", q.values)
     console.log("Attempting connection");
     const client = new Client({
       user: 'advl',
@@ -62,7 +63,7 @@ export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
         console.error("Connecting Problems: ", e)
       })
     
-    let res = await client.query(q)
+    let res = await client.query(q.query, q.values);
     console.log(res);
     response.body = JSON.stringify(res);
     client.end();
