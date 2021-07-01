@@ -1,14 +1,12 @@
-import {S3, Credentials} from 'aws-sdk';
-import YAML from 'yamljs';
-
-const linkExpiryInSeconds = 60*60 //1 hr
-const env = YAML.load('src/.env.yml').backblaze;
 import test from 'ava'
+import '../load-yaml-env'
+import {S3, Credentials} from 'aws-sdk';
+const linkExpiryInSeconds = 60*60 //1 hr
 
 test('b2: sign url', async (t) => {
   const b2 = new S3({
-    endpoint: env.B2_ENDPOINT,
-    credentials: new Credentials({accessKeyId: env.B2_KEYID, secretAccessKey:env.B2_KEY}),
+    endpoint: process.env.B2_ENDPOINT,
+    credentials: new Credentials({accessKeyId: process.env.B2_KEYID, secretAccessKey:process.env.B2_KEY}),
     signatureVersion: "v4"
   })
 

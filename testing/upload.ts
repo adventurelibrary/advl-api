@@ -6,6 +6,7 @@ import FormData from 'form-data';
 import test from 'ava'
 import {request, testResStatus} from "./lib/lib";
 import {CREATOR_1} from "./lib/fixtures";
+import {query} from "../src/api/common/postgres";
 
 const uploadReq:REQ_Get_Signature = {
   name: "Mountain Dig Site",
@@ -69,22 +70,12 @@ test('upload:get signature', async (t) => {
 
 
   // Cleanup: destroy the new thing
-  res = await request('database', {
-    method: 'POST',
-    body: {
-      query: `
-DELETE FROM assets
-WHERE id = ?
-`,
-      params: [json.assetID]
-    }
-  })
+	await query(`DELETE FROM assets WHERE id = $1`, [json.assetID])
 
   err = await testResStatus(res,200)
   if (err) {
     t.fail(err)
   }
-
 
   t.pass()
 })

@@ -46,7 +46,7 @@ export async function getAsset (id: string) : Promise<Asset | undefined> {
 	WHERE a.creator_id = c.id
 	AND a.id = $1
 	`
-	
+
 	const rows:Asset[] = await query(_sql, [id], false)
 	if (!rows || !rows[0]) {
 		return undefined
@@ -189,11 +189,11 @@ export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) 
 		FROM ${process.env.DB_ASSETS} a, ${process.env.DB_CREATORMEMBERS} cm
 		WHERE a.creator_id = cm.creator_id
 		AND cm.user_id = $1
-		AND a.id IN ($2)
+		AND a.id = ANY ($2)
 	`, [user.id, assetIds])
 
 	// If the number equals the assetIds then this user has access to all of them
-	if (rows.length == assetIds.length) {
+	if (rows[0].num == assetIds.length) {
 		return;
 	}
 

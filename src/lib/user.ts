@@ -25,7 +25,9 @@ export async function getUserByToken(jwt: string): Promise<User | undefined>{
   if (!userToken) {
     return undefined
   }
-  return await getUserByID(userToken.sub);
+  const res = await getUserByID(userToken.sub);
+  console.log('res', res)
+  return res
 }
 
 // Note : You can get jwk from https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json

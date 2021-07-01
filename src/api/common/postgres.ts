@@ -18,9 +18,9 @@ const pg_write = new Pool({
 /**
  * Runs the query against the Postgres DB we have in the background.
  * The last param determines if the query should use the writer, or if can just use the reader
- * The reader can handle a lot more connections because it's Aurora, and it doesn't actually need to connect to the db but rather reads logs to build state
+ * The reader can handle a lot more connetions because it's Aurora, and it doesn't actually need to connect to the db but rather reads logs to build state
  * @param sql The sql to run
- * @param params 
+ * @param params
  * @param isWriteQuery Defaults to true, but should be false where possible
  */
 async function executeStatement(sql: string, params:any[], isWriteQuery: boolean = true){
@@ -28,7 +28,7 @@ async function executeStatement(sql: string, params:any[], isWriteQuery: boolean
   console.debug("SQL: ", sql)
   console.debug("Params: ", JSON.stringify(params));
   console.debug("isWriteQuery:",  isWriteQuery);
- 
+
   if(isWriteQuery){
     const res = await pg_write.query(sql, params);
     return res;
@@ -36,7 +36,7 @@ async function executeStatement(sql: string, params:any[], isWriteQuery: boolean
     const res = await pg_read.query(sql, params);
     return res;
   }
-  
+
 }
 
 export async function query(sql:string, params:any[] = [], isWriteQuery: boolean = true){
@@ -65,7 +65,7 @@ export async function insertObj(tableName:string, obj:any) {
     return true;
   } catch (e) {
     throw e;
-  } 
+  }
 }
 
 export async function getObj(tableName:string, id: string) {
@@ -101,12 +101,12 @@ export function clientRelease(){
 }
 
 /**
- * The SQL should include the tablename 
- * @param sql 
- * @param values 
- * @param skip 
- * @param limit 
- * @param orderBy 
+ * The SQL should include the tablename
+ * @param sql
+ * @param values
+ * @param skip
+ * @param limit
+ * @param orderBy
  */
 export async function getObjects(sql: string, values:any[] = [], skip:number = 0, limit: number = 10, orderBy?: string){
   if(orderBy){
@@ -117,7 +117,7 @@ export async function getObjects(sql: string, values:any[] = [], skip:number = 0
     values.push(limit);
     sql += ` LIMIT $${values.length}`
   }
-  
+
   if(skip){
     values.push(skip)
     sql += ` OFFSET $${values.length}`

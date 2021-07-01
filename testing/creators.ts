@@ -1,6 +1,7 @@
 import ava from 'ava'
 import {getJSON, request, testResStatus} from "./lib/lib";
 import { CREATOR_1} from "./lib/fixtures";
+import {query} from "../src/api/common/postgres";
 
 ava('creators:get a single creator', async (t) => {
 	const json = await getJSON(`/creator/${CREATOR_1}`)
@@ -153,16 +154,10 @@ ava.serial('creators:create success', async (t) => {
 	const id = json.id
 
 	// Cleanup: destroy the new thing
-	res = await request('database', {
-		method: 'POST',
-		body: {
-			query: `
+	await query(`
 DELETE FROM creators
-WHERE id = ?
-`,
-			params: [id]
-		}
-	})
+WHERE id = $1
+`, [id])
 
 	err = await testResStatus(res,200)
 	if (err) {
