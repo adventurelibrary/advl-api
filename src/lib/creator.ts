@@ -34,7 +34,7 @@ export async function getTotalCreators() {
 export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
 	const result = <Creator[]>await db.getObjects(
 		`SELECT * FROM ${process.env.DB_CREATORS}`,
-		[], 
+		[],
 		opts.skip,
 		opts.limit,
 		'name ASC')
@@ -74,10 +74,11 @@ export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promi
 		SELECT c.*
 		FROM ${process.env.DB_CREATORS} c, ${process.env.DB_CREATORMEMBERS} cm
 		WHERE cm.user_id = $1
+		AND cm.creator_id = c.id
 		`,
 		[user.id],
 		skip,
-		limit, 
+		limit,
 		'name ASC'
 	)
 	return result

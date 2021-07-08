@@ -75,14 +75,19 @@ export async function getJSONAs (url: string, userId: string) {
 
 export async function testResStatus (res: any, status : number) : Promise<string | null> {
   let pass = res.status === status
+	let append = ''
   if (!pass) {
-    let body
-    try {
-      body = await res.json()
-    } catch (ex) {
-      body = `Error getting result JSON ${ex.toString()}`
-    }
-    return `Expected ${status} got ${res.status}. Body ${JSON.stringify(body)}`
+  	// If it returns 204 it won't have JSON so there's nothing to parse
+		if (res.status !== 204) {
+	    let body
+			try {
+				body = await res.json()
+			} catch (ex) {
+				body = `Error getting result JSON ${ex.toString()}`
+			}
+			append = ` Body ${JSON.stringify(body)}`
+		}
+    return `Expected ${status} got ${res.status}.` + append
   }
   return null
 }

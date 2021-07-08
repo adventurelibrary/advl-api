@@ -2,8 +2,14 @@ import test from 'ava';
 import '../load-yaml-env'
 import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, CREATOR_2, USER1} from './lib/fixtures';
 import { request, requestAs, testResStatus } from "./lib/lib";
-import {deleteBundle, getBundleByName} from "../src/lib/bundle";
+import {deleteBundle} from "../src/lib/bundle";
 import {query} from "../src/api/common/postgres";
+import {Bundle} from "../../site/modules/bundles/bundle-types";
+
+async function getBundleByName(name: string) : Promise<Bundle> {
+	const rows = await query(`SELECT * FROM bundleinfo WHERE name = $1`, [name])
+	return rows[0]
+}
 
 //Create a new bundle as not logged in user
 test.serial('bundle:create:without being logged in', async (t) => {
@@ -152,7 +158,7 @@ test.serial('bundle:update:to public', async (t) => {
   }
 
   // Reset the database
-  await query(`UPDATE bundleinfo SET public = false WHERE id = ?`, [BUNDLE_PRIVATE])
+  await query(`UPDATE bundleinfo SET public = false WHERE id = $1`, [BUNDLE_PRIVATE])
 
   t.pass("Bundle updated to public")
 })
