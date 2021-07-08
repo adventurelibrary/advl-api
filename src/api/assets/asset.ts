@@ -24,10 +24,10 @@ import * as db from '../common/postgres';
  * @returns
  */
 export function transformAsset (asset : Asset) : Asset {
-  asset.previewLink = b2.GetURL('optimized', asset);
-  asset.thumbnail =  b2.GetURL('optimized', asset);
-  //asset.previewLink = b2.GetURL('watermarked', asset);
-  //asset.thumbnail =  b2.GetURL('thumbnail', asset);
+  //asset.previewLink = b2.GetURL('optimized', asset);
+  //asset.thumbnail =  b2.GetURL('optimized', asset);
+  asset.previewLink = b2.GetURL('watermarked', asset);
+  asset.thumbnail =  b2.GetURL('thumbnail', asset);
   return asset
 }
 

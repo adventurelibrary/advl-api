@@ -2,10 +2,11 @@ import {APIError} from "../../lib/errors";
 
 export function newResponse ()  {
 	return {
-		statusCode: 500,
+		statusCode: 200,
 		headers: {
 			'content-type': "application/json",
-			'Access-Control-Allow-Origin': process.env.STAGE == "prod" ? "https://adventurelibrary.art" : "*",
+			//'Access-Control-Allow-Origin': process.env.STAGE == "prod" ? "https://adventurelibrary.art" : "*",
+			'Access-Control-Allow-Origin': "*",
 			'Access-Control-Allow-Credentials': true
 		},
 		body: JSON.stringify({error:"Something went wrong!"})
