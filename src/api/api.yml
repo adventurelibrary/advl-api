@@ -45,7 +45,7 @@ user_get:
         path: /users
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):user}
+    ${file(src/dynamic-environment.js):database}
 
 user_put:
   handler: src/api/users/user.user_put
@@ -55,7 +55,7 @@ user_put:
         path: /users
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):user}
+    ${file(src/dynamic-environment.js):database}
 
 ################## CREATORS #########################
 
@@ -67,7 +67,7 @@ creators_get_mine:
         path: /creators/mine
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):creator}
+    ${file(src/dynamic-environment.js):database}
 
 
 creator_get:
@@ -78,7 +78,7 @@ creator_get:
         path: /creator/{creatorID}
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):creator}
+    ${file(src/dynamic-environment.js):database}
 
 creators_get:
   handler: src/api/creators/creator.creators_get
@@ -88,7 +88,7 @@ creators_get:
         path: /creators
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):creator}
+    ${file(src/dynamic-environment.js):database}
 
 creator_post:
   handler: src/api/creators/creator.creator_post
@@ -98,7 +98,7 @@ creator_post:
         path: /creator
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):creator}
+    ${file(src/dynamic-environment.js):database}
 
 creator_put:
   handler: src/api/creators/creator.creator_put
@@ -108,7 +108,7 @@ creator_put:
         path: /creator/{creatorID}
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):creator}
+    ${file(src/dynamic-environment.js):database}
 
 ################## ASSETS #########################
 get_upload_signature:
@@ -139,7 +139,7 @@ query_assets:
         path: /assets
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):query_assets}
+    ${file(src/dynamic-environment.js):database}
 
 asset_download_link:
   handler: src/api/assets/asset.asset_download_link
@@ -149,7 +149,7 @@ asset_download_link:
         path: /assets/{assetID}/download
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):asset_download_link}
+    ${file(src/dynamic-environment.js):database}
 
 update_asset:
   handler: src/api/assets/asset.update_asset
@@ -169,7 +169,7 @@ get_asset:
         path: /assets/{assetID}
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
-    ${file(src/dynamic-environment.js):query_assets}
+    ${file(src/dynamic-environment.js):database}
 ################## Bundles #########################
 bundle_create:
   handler: src/api/assets/bundles.bundle_create
