@@ -10,16 +10,7 @@ import {query} from "../api/common/postgres";
  * @param bundle_id
  */
 export async function getBundleByID(bundle_id:string) : Promise<Bundle> {
-  let _sql = `
-    SELECT b.*, c.name as creator_name, u.username
-    FROM ${process.env.DB_BUNDLE_INFO} b
-    LEFT JOIN ${process.env.DB_CREATORS} c
-    ON c.id = b.creator_id
-    LEFT JOIN ${process.env.DB_USERS} u
-    ON u.id = b.user_id
-    WHERE b.id = $1
-  `
-  return <Bundle>(await db.query(_sql, [bundle_id],false))[0]
+	return <Bundle>(await queryBundles(bundle_id))[0]
 }
 
 export async function deleteBundle(id: string) {
@@ -89,7 +80,7 @@ export async function resetBundles () {
 	await reindexBundles(bundles)
 }
 
-export async function queryBundles() : Promise<Bundle[]> {
+export async function queryBundles(id?: string) : Promise<Bundle[]> {
 	let sql = `
     SELECT b.*, c.name as creator_name, u.username, cover.id as cover_asset_id, cover.creator_id as cover_creator_id, original_file_ext as cover_original_file_ext
     FROM bundleinfo b
@@ -108,8 +99,16 @@ export async function queryBundles() : Promise<Bundle[]> {
     LEFT JOIN users u
     ON u.id = b.user_id`
 
+	const params = []
 
-	let objects = await query(sql, [], false)
+	if (id) {
+		sql += `
+		WHERE b.id = $1		
+		`
+		params.push(id)
+	}
+
+	let objects = await query(sql, params, false)
 	objects = objects.map(getBundlePublicBody)
 	return objects
 }
