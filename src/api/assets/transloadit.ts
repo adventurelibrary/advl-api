@@ -41,7 +41,7 @@ export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
     response.body = JSON.stringify(_res)
     db.clientRelease();
     return response;
-  }catch (E){  
+  }catch (E){
     db.clientRelease();
     return errorResponse(_evt, E)
   }

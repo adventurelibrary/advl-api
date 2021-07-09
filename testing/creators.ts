@@ -2,6 +2,7 @@ import ava from 'ava'
 import {getJSON, request, testResStatus} from "./lib/lib";
 import { CREATOR_1} from "./lib/fixtures";
 import {query} from "../src/api/common/postgres";
+import '../load-yaml-env'
 
 ava('creators:get a single creator', async (t) => {
 	const json = await getJSON(`/creator/${CREATOR_1}`)
