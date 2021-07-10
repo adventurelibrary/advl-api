@@ -53,7 +53,6 @@ export const bundle_create = newHandler({
   try {
     await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
   } catch (ex) {
-    console.log('ex from create', ex)
     throw ex
   }
 
@@ -255,8 +254,6 @@ async function searchBundles(query: any) {
   if (query.text){
     //search by fuzzy text match of title or description
   }
-
-  console.log('QUERY QUERY QUERY', _query)
 
   let results = await search.search({
     index: process.env.INDEX_BUNDLEINFO,

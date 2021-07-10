@@ -41,7 +41,7 @@ export async function indexBundle (id: string) {
   const bundle = await getBundleByID(id)
 	const body = getBundlePublicBody(bundle)
 	console.log('body to index', body)
-  await search.index({
+  return await search.index({
     index: process.env.INDEX_BUNDLEINFO,
     id: id,
     body: body

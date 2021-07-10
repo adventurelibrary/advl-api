@@ -48,7 +48,6 @@ export async function bulkIndex(index: string, items: any[], map?: (data) => any
 }
 
 export async function clearIndex (name: string) {
-  console.log('clearing index', name)
   await search.deleteByQuery({
     index: name,
     type: '_doc',
@@ -57,5 +56,16 @@ export async function clearIndex (name: string) {
         match_all: {}
       }
     }
+  })
+}
+
+// When a new document is added to EC, it can take about 1s
+// for the index it is added to to "refresh". This function
+// forces the refresh of the index. This is so in our tests we can add
+// data to the index, then force a refresh, then check if
+// the data was added correctly
+export async function refreshIndex (name: string) {
+  await search.indices.refresh({
+    index: name,
   })
 }
