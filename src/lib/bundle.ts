@@ -18,10 +18,12 @@ export async function deleteBundle(id: string) {
   await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1`, [id])
   await db.query(`DELETE FROM ${process.env.DB_BUNDLE_INFO} WHERE id = $1`, [id])
   //delete from Elastic
+	console.log('id to delete', id)
   await search.delete({
     index: process.env.INDEX_BUNDLEINFO,
     id: id
   })
+	console.log('DONE DELETED BUNDLE')
 }
 
 export function userCanViewBundle(user: User | undefined, bundle: Bundle) : boolean {
@@ -37,10 +39,12 @@ export function userCanViewBundle(user: User | undefined, bundle: Bundle) : bool
 
 export async function indexBundle (id: string) {
   const bundle = await getBundleByID(id)
+	const body = getBundlePublicBody(bundle)
+	console.log('body to index', body)
   await search.index({
     index: process.env.INDEX_BUNDLEINFO,
     id: id,
-    body: getBundlePublicBody(bundle)
+    body: body
   })
 }
 

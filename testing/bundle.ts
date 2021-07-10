@@ -43,7 +43,6 @@ test.serial('bundle:create:as test user', async (t) => {
     userKey: 'TEST1'
   }
   let res = await request('bundles/create', createOpts);
-
   let err = await testResStatus(res, 201)
   if(err){
     t.fail(err);
@@ -53,6 +52,8 @@ test.serial('bundle:create:as test user', async (t) => {
   if (bundle.user_id != USER1) {
     t.fail('Wrong user was created')
   }
+
+  console.log('newly created thing', bundle)
 
   // Confirm that the bundle was properly added to the search index
   res = await request('bundles/mine', {
@@ -64,8 +65,10 @@ test.serial('bundle:create:as test user', async (t) => {
   }
 
   const json = await res.json()
-  t.truthy(json.bundles[json.bundles.length-1].cover_thumbnail.indexOf('http') == 0, `The last bundle should have a cover`)
-  //t.is(json.bundles.length, 4) // 3 in our test data + the one we just added
+  const latest = json.bundles[json.bundles.length-1]
+  console.log('json', json)
+  t.is(json.bundles.length, 4) // This user has 3 in our test data, then we just added one in this test
+  t.truthy(latest.cover_thumbnail.indexOf('http') == 0, `The last bundle should have a cover`)
 
 
   // Test cleanup (and bonus delete test)

@@ -50,7 +50,12 @@ export const bundle_create = newHandler({
     user_id: newBundleInfo.creator_id ? null : user.id
   }
 
-  await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
+  try {
+    await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
+  } catch (ex) {
+    console.log('ex from create', ex)
+    throw ex
+  }
 
   if(newBundleInfo.added_assets){
     for (let assetID of newBundleInfo.added_assets){
@@ -67,7 +72,9 @@ export const bundle_create = newHandler({
   await indexBundle(newBundle.id)
   return {
     status: 201,
-    body: {bundle_id: newBundle.id}
+    body: {
+      bundle_id: newBundle.id
+    }
   }
 })
 
@@ -248,6 +255,8 @@ async function searchBundles(query: any) {
   if (query.text){
     //search by fuzzy text match of title or description
   }
+
+  console.log('QUERY QUERY QUERY', _query)
 
   let results = await search.search({
     index: process.env.INDEX_BUNDLEINFO,
