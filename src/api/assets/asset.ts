@@ -17,6 +17,7 @@ import {APIError} from "../../lib/errors";
 import {getUserCreatorIds } from "../../lib/creator";
 import {getEventUser} from "../common/events";
 import * as db from '../common/postgres';
+import {query} from "../common/postgres";
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -158,6 +159,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         }
       })
       _query.bool.minimum_should_match = 1
+      queryObj.sort = 'uploaded'
+      queryObj.sort_type = 'desc'
     }
 
 
