@@ -10,7 +10,7 @@ import {query} from "../api/common/postgres";
  * @param bundle_id
  */
 export async function getBundleByID(bundle_id:string) : Promise<Bundle> {
-	return <Bundle>(await queryBundles(bundle_id))[0]
+  return <Bundle>(await queryBundles(bundle_id))[0]
 }
 
 export async function deleteBundle(id: string) {
@@ -18,12 +18,10 @@ export async function deleteBundle(id: string) {
   await db.query(`DELETE FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1`, [id])
   await db.query(`DELETE FROM ${process.env.DB_BUNDLE_INFO} WHERE id = $1`, [id])
   //delete from Elastic
-	console.log('id to delete', id)
   await search.delete({
     index: process.env.INDEX_BUNDLEINFO,
     id: id
   })
-	console.log('DONE DELETED BUNDLE')
 }
 
 export function userCanViewBundle(user: User | undefined, bundle: Bundle) : boolean {
@@ -39,8 +37,7 @@ export function userCanViewBundle(user: User | undefined, bundle: Bundle) : bool
 
 export async function indexBundle (id: string) {
   const bundle = await getBundleByID(id)
-	const body = getBundlePublicBody(bundle)
-	console.log('body to index', body)
+  const body = getBundlePublicBody(bundle)
   return await search.index({
     index: process.env.INDEX_BUNDLEINFO,
     id: id,
@@ -54,38 +51,38 @@ export async function indexBundle (id: string) {
  * @returns
  */
 function getBundlePublicBody(data:any) : Bundle{
-	const bundle = <Bundle>data
-	// If the query found an asset and its creator, then we can build a thumbnail for this bundle
-	if (bundle.cover_asset_id && bundle.cover_creator_id) {
-		bundle.cover_thumbnail = b2.GetURL('thumbnail', {
-			original_file_ext: bundle.cover_original_file_ext,
-			id: bundle.cover_asset_id,
-			creator_id: bundle.cover_creator_id
-		});
-	} else {
-		bundle.cover_thumbnail = ''
-	}
-	return bundle
+  const bundle = <Bundle>data
+  // If the query found an asset and its creator, then we can build a thumbnail for this bundle
+  if (bundle.cover_asset_id && bundle.cover_creator_id) {
+    bundle.cover_thumbnail = b2.GetURL('thumbnail', {
+      original_file_ext: bundle.cover_original_file_ext,
+      id: bundle.cover_asset_id,
+      creator_id: bundle.cover_creator_id
+    });
+  } else {
+    bundle.cover_thumbnail = ''
+  }
+  return bundle
 }
 
 export async function reindexBundles(bundles: Bundle[]) {
-	await clearIndex(process.env.INDEX_BUNDLEINFO)
-	return indexBundles(bundles)
+  await clearIndex(process.env.INDEX_BUNDLEINFO)
+  return indexBundles(bundles)
 }
 
 // This bulk update is based on the example here:
 // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/bulk_examples.html
 export async function indexBundles (bundles: Bundle[]) {
-	return bulkIndex(process.env.INDEX_BUNDLEINFO, bundles, getBundlePublicBody)
+  return bulkIndex(process.env.INDEX_BUNDLEINFO, bundles, getBundlePublicBody)
 }
 
 export async function resetBundles () {
-	const bundles = await queryBundles()
-	await reindexBundles(bundles)
+  const bundles = await queryBundles()
+  await reindexBundles(bundles)
 }
 
 export async function queryBundles(id?: string) : Promise<Bundle[]> {
-	let sql = `
+  let sql = `
     SELECT b.*, c.name as creator_name, u.username, cover.id as cover_asset_id, cover.creator_id as cover_creator_id, original_file_ext as cover_original_file_ext
     FROM bundleinfo b
     /* This fetches one and only one asset that is linked to this bundle */
@@ -103,16 +100,16 @@ export async function queryBundles(id?: string) : Promise<Bundle[]> {
     LEFT JOIN users u
     ON u.id = b.user_id`
 
-	const params = []
+  const params = []
 
-	if (id) {
-		sql += `
-		WHERE b.id = $1		
-		`
-		params.push(id)
-	}
+  if (id) {
+    sql += `
+    WHERE b.id = $1
+    `
+    params.push(id)
+  }
 
-	let objects = await query(sql, params, false)
-	objects = objects.map(getBundlePublicBody)
-	return objects
+  let objects = await query(sql, params, false)
+  objects = objects.map(getBundlePublicBody)
+  return objects
 }
