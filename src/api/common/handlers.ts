@@ -6,7 +6,7 @@ import {
 } from "aws-lambda";
 import {Asset} from "../../interfaces/IAsset";
 import {errorResponse, newResponse} from "./response";
-import {getAsset} from "../../lib/assets";
+import {ErrAssetNotFound, getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
 import {User} from "../../interfaces/IUser";
 import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
@@ -39,6 +39,7 @@ export type HandlerOpts = {
   // TODO: Support for DB vs ElastiSearch inclusion
   includeAsset?: boolean
   requireAsset?: boolean
+  requireAssetPermission?: boolean
 
   includeUser?: boolean
   requireUser?: boolean
@@ -68,6 +69,11 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
   return async (_evt, _ctx)  => {
     if (opts.requireAdmin) {
       opts.requireUser = true
+    }
+
+    if (opts.requireAssetPermission) {
+      opts.requireUser = true
+      opts.requireAsset = true
     }
 
     if (opts.requireCreatorPermission) {
@@ -128,9 +134,15 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       if (opts.includeAsset || opts.requireAsset) {
         const asset = await getAsset(_evt.pathParameters.assetID)
         if (!asset && opts.requireAsset) {
-          return errorResponse(_evt, new Error('Could not find asset'), 404)
+          throw ErrAssetNotFound
         }
         ctx.asset = asset
+
+        // If this option is on for this route, then the user needs to be a member of
+        // the asset's creator's creatormembers table
+        if (opts.requireAssetPermission) {
+          await verifyUserHasAssetAccess(ctx.user, ctx.asset.id)
+        }
       }
 
 
@@ -145,12 +157,14 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.creator = creator
 
         if (opts.requireCreatorPermission) {
-          if (!ctx.user.is_admin) {
-            const hasPerm = await isMemberOfCreatorPage(ctx.creator.id, ctx.user.id)
-            if (!hasPerm) {
-              return errorResponse(_evt, new Error('You do not have permission'), 403)
-            }
-
+          let hasPerm = false
+          if (!ctx.user) {
+            hasPerm = true
+          } else if (!ctx.user.is_admin) {
+            hasPerm = await isMemberOfCreatorPage(ctx.creator.id, ctx.user.id)
+          }
+          if (!hasPerm) {
+            return errorResponse(_evt, new Error('You do not have permission'), 403)
           }
         }
       }

@@ -6,8 +6,6 @@ DROP TABLE IF EXISTS creatormembers CASCADE;
 DROP TABLE IF EXISTS bundleinfo CASCADE;
 DROP TABLE IF EXISTS bundleassets CASCADE;
 
-
-
 DROP TYPE IF EXISTS visibility;
 DROP TYPE IF EXISTS filetype;
 DROP TYPE IF EXISTS category;
@@ -48,6 +46,7 @@ create table assets (
     filetype filetype NOT NULL,
     original_file_ext TEXT NOT NULL,
     creator_id TEXT NOT NULL,
+    deleted BOOLEAN NOT NULL DEFAULT false,
 
     name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -57,6 +56,7 @@ create table assets (
     revenue_share JSON DEFAULT '{}'::jsonb,
     CONSTRAINT fk_creator FOREIGN KEY (creator_id) REFERENCES creators(id)
 );
+CREATE INDEX assets_deleted ON assets(deleted);
 
 create table creatormembers (
   creator_id TEXT NOT NULL,

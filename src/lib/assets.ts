@@ -2,11 +2,23 @@ import {bulkIndex, clearIndex, search} from "../api/common/elastic";
 import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
-import {query} from "../api/common/postgres";
+import {deleteObj, query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import {APIError, Validation} from "./errors";
 import {User} from "../interfaces/IUser";
+
+export const ErrNoAssetPermission = new APIError({
+	status: 403,
+	key: 'no_asset_access',
+	message: 'You do not have permission to access those assets'
+})
+
+export const ErrAssetNotFound = new APIError({
+	status: 404,
+	key: 'asset_not_found',
+	message: 'Could not find that asset'
+})
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -36,7 +48,10 @@ export async function searchAsset (id: string) : Promise<Asset> {
 		})
 		return doc.body._source
 	} catch (e) {
-		throw new Error(`${id} doesn't exist in Index`);
+		if (e && e.meta && e.meta.statusCode === 404) {
+			throw ErrAssetNotFound
+		}
+		throw e
 	}
 }
 
@@ -45,6 +60,7 @@ export async function getAsset (id: string) : Promise<Asset | undefined> {
 	FROM ${process.env.DB_ASSETS} a, ${process.env.DB_CREATORS} c
 	WHERE a.creator_id = c.id
 	AND a.id = $1
+	AND a.deleted = false
 	`
 
 	const rows:Asset[] = await query(_sql, [id], false)
@@ -63,16 +79,16 @@ export async function updateAsset (original:Asset, updates: any) {
 	//TODO Validate Collection ID
 	//TODO Validate unlock_price is positive
 
-	original.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
-	original.name = updates.hasOwnProperty('name') ? updates.name : original.name;
-	original.description = updates.hasOwnProperty('description') ? updates.description : original.description;
-	//original.collectionID = updates.hasOwnProperty('collectionID') ? updates.collectionID : original.collectionID;
 	original.category = updates.hasOwnProperty('category') ? updates.category : original.category;
-	original.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
-	original.unlock_price = updates.hasOwnProperty('unlock_price') ? updates.unlock_price : original.unlock_price;
+	original.deleted = updates.hasOwnProperty('deleted') ? updates.deleted : original.deleted;
+	original.description = updates.hasOwnProperty('description') ? updates.description : original.description;
+	original.name = updates.hasOwnProperty('name') ? updates.name : original.name;
+	original.original_file_ext = updates.hasOwnProperty('original_file_ext') ? updates.original_file_ext : original.original_file_ext;
 	original.revenue_share = updates.hasOwnProperty('revenue_share') ? updates.revenue_share : original.revenue_share;
 	original.size_in_bytes = updates.hasOwnProperty('size_in_bytes') ? updates.size_in_bytes : original.size_in_bytes;
-	original.original_file_ext = updates.hasOwnProperty('original_file_ext') ? updates.original_file_ext : original.original_file_ext;
+	original.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
+	original.unlock_price = updates.hasOwnProperty('unlock_price') ? updates.unlock_price : original.unlock_price;
+	original.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
 
 	await db.updateObj(process.env.DB_ASSETS, original.id, original)
 }
@@ -85,20 +101,21 @@ export async function updateAssetAndIndex (original: Asset, updates: any) {
 export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 	let newAsset: Asset = {
 		id: idgen(),
-		slug: slugify(req.name).toLowerCase(),
+		category: req.category,
+		creator_id: req.creator_id,
+		deleted: false,
+		description: req.description,
+		filetype: "IMAGE",
+		name: req.name,
+		original_file_ext: 'UNKNOWN',
+		revenue_share: req.revenue_share,
 		size_in_bytes: 0,
+		slug: slugify(req.name).toLowerCase(),
+		tags: req.tags,
+		unlock_count: 0,
+		unlock_price: req.unlock_price,
 		uploaded: new Date(),
 		visibility: "PENDING",
-		original_file_ext: 'UNKNOWN',
-		filetype: "IMAGE",
-		creator_id: req.creator_id,
-		unlock_count: 0,
-		name: req.name,
-		description: req.description,
-		category: req.category,
-		tags: req.tags,
-		unlock_price: req.unlock_price,
-		revenue_share: req.revenue_share
 	}
 
 	await db.insertObj(process.env.DB_ASSETS, newAsset);
@@ -151,7 +168,8 @@ export async function resetAssets () {
 	const sql = `SELECT a.*, c.name as creator_name
 		FROM ${process.env.DB_ASSETS} a
 		JOIN ${process.env.DB_CREATORS} c 
-		ON c.id = a.creator_id`
+		ON c.id = a.creator_id
+		WHERE a.deleted = false`
 	const assets:Asset[] = await query(sql, [], false)
 	await reindexAssetsSearch(assets)
 }
@@ -173,12 +191,54 @@ export function validateAsset (asset: Asset) {
 	val.throwIfErrors()
 }
 
-export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
+type DeleteAssetResult = 'deleted' | 'hidden'
+// Attempts to hard delete an asset
+// This is when a creator is attempting to delete an asset
+// It will do either a hard or soft delete, depending on if anyone has bought it
+// If it has been purchased, it will just mark the asset as deleted so it won't show up
+// in any new searches
+// If it has not been purchases it will be purged from our db, and from ElasticSearch, and its files
+// will be deleted
+export async function deleteAsset (asset: Asset) : Promise<DeleteAssetResult> {
+	const bought = await assetHasPurchases(asset.id)
+	if (bought) {
+		await updateAsset(asset, {deleted: true})
+		return 'hidden'
+	}
+	await deleteAssetFromSearch(asset.id)
+	await deleteObj(process.env.DB_ASSETS, asset.id)
+	// TODO: delete the files from transloadit
+	return 'deleted'
+}
+
+export async function deleteAssetFromSearch (assetId: string) {
+	await search.delete({
+		index: process.env.INDEX_ASSETDB,
+		id: assetId,
+	});
+}
+
+// Just returns whether one user has ever purchased this asset
+// This is done so we can refuse to hard delete an asset
+export async function assetHasPurchases (assetId: string) : Promise<boolean> {
+	console.log('Checking if ' + assetId + ' has any purchases')
+	return new Promise((res) => {
+		// We don't allow purchases yet, so this will always return false
+		res(false)
+	})
+}
+
+export async function verifyUserHasAssetAccess (user: User, assetId: string) {
+	return await verifyUserHasAssetsAccess(user, [assetId])
+}
+
+export async function verifyUserHasAssetsAccess (user: User, assetIds: string[]) {
+	if (!user) {
+		throw ErrNoAssetPermission
+	}
 	if (user.is_admin) {
 		return
 	}
-
-	console.log('asset ids to check', assetIds)
 
 	// Count how many rows exist where this user is a member of the creator
 	// of the asset
@@ -190,16 +250,13 @@ export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) 
 		WHERE a.creator_id = cm.creator_id
 		AND cm.user_id = $1
 		AND a.id = ANY ($2)
-	`, [user.id, assetIds])
+  `, [user.id, assetIds])
 
 	// If the number equals the assetIds then this user has access to all of them
-	if (rows[0].num == assetIds.length) {
-		return;
+	const total = rows[0].num
+	if (total == assetIds.length) {
+		return
 	}
 
-	throw new APIError({
-		status: 403,
-		key: 'no_asset_access',
-		message: 'You do not have permission to access those assets'
-	})
+	throw ErrNoAssetPermission
 }
