@@ -25,7 +25,6 @@ test('searchassets: get my assets', async (t) => {
 	t.is(body.assets[0].name, 'House')
 	t.is(body.assets[1].name, 'First Kill')
 
-
 	body = await getJSON('assets?mine&visibility=all', {
 		userKey: 'CREATOR1'
 	})

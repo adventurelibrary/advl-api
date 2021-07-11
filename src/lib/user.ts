@@ -26,7 +26,6 @@ export async function getUserByToken(jwt: string): Promise<User | undefined>{
     return undefined
   }
   const res = await getUserByID(userToken.sub);
-  console.log('res', res)
   return res
 }
 
