@@ -1,6 +1,7 @@
 import ava from 'ava'
+import '../load-yaml-env'
 import {getJSON, request, testResStatus} from "./lib/lib";
-import { CREATOR_1} from "./lib/fixtures";
+import {CREATOR_1} from "./lib/fixtures";
 import {query} from "../src/api/common/postgres";
 
 ava('creators:get a single creator', async (t) => {
@@ -155,14 +156,9 @@ ava.serial('creators:create success', async (t) => {
 
 	// Cleanup: destroy the new thing
 	await query(`
-DELETE FROM creators
+DELETE FROM ${process.env.DB_CREATORS}
 WHERE id = $1
 `, [id])
-
-	err = await testResStatus(res,200)
-	if (err) {
-		t.fail(err)
-	}
 
 	t.pass()
 })

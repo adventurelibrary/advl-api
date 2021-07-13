@@ -44,8 +44,7 @@ export async function query(sql:string, params:any[] = [], isWriteQuery: boolean
   return res.rows;
 }
 
-
-export async function insertObj(tableName:string, obj:any) {
+export async function insertObj(tableName:string, obj:any, returning = 'id') : Promise<Record<string, any> | undefined | string> {
   let columns: string[] = []
   let values: any[] = []
   for(let key of Object.keys(obj)){
@@ -60,11 +59,21 @@ export async function insertObj(tableName:string, obj:any) {
   }
 
   let _sql = `INSERT INTO ${tableName} (${columns.join(',')}) VALUES (${paramMarks})`;
-  try{
-    await executeStatement(_sql, values, true);
-    return true;
-  } catch (e) {
-    throw e;
+
+  // This allows you to immediately get the id of a newly created object
+  // You can specify more fields if you need more fields
+  if (returning) {
+    _sql += ` RETURNING ${returning}`
+  }
+
+  const result = await executeStatement(_sql, values, true);
+  if (returning) {
+    const row = result.rows[0]
+    if (returning === 'id') {
+      return row.id
+    }
+
+    return row
   }
 }
 

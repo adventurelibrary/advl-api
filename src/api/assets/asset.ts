@@ -1,20 +1,12 @@
-import {
-  APIGatewayProxyEventQueryStringParameters,
-  APIGatewayProxyHandler
-} from 'aws-lambda';
-import { search } from '../common/elastic';
+import {APIGatewayProxyEventQueryStringParameters, APIGatewayProxyHandler} from 'aws-lambda';
+import {search} from '../common/elastic';
 import {Asset, Category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
-import {
-  searchAsset,
-  updateAssetAndIndex,
-  validateAssetQuery,
-  verifyUserHasAssetAccess
-} from "../../lib/assets";
+import {searchAsset, updateAssetAndIndex, validateAssetQuery, verifyUserHasAssetAccess} from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
-import {getUserCreatorIds } from "../../lib/creator";
+import {getUserCreatorIds} from "../../lib/creator";
 import {getEventUser} from "../common/events";
 import * as db from '../common/postgres';
 
@@ -158,6 +150,8 @@ export const query_assets: APIGatewayProxyHandler = async (_evt, _ctx) => {
         }
       })
       _query.bool.minimum_should_match = 1
+      queryObj.sort = 'uploaded'
+      queryObj.sort_type = 'desc'
     }
 
 

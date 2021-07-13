@@ -5,6 +5,7 @@ import { request, requestAs, testResStatus } from "./lib/lib";
 import {deleteBundle} from "../src/lib/bundle";
 import {query} from "../src/api/common/postgres";
 import {Bundle} from "../../site/modules/bundles/bundle-types";
+import {refreshIndex} from "../src/api/common/elastic";
 
 async function getBundleByName(name: string) : Promise<Bundle> {
 	const rows = await query(`SELECT * FROM bundleinfo WHERE name = $1`, [name])
@@ -43,7 +44,6 @@ test.serial('bundle:create:as test user', async (t) => {
     userKey: 'TEST1'
   }
   let res = await request('bundles/create', createOpts);
-
   let err = await testResStatus(res, 201)
   if(err){
     t.fail(err);
@@ -53,6 +53,9 @@ test.serial('bundle:create:as test user', async (t) => {
   if (bundle.user_id != USER1) {
     t.fail('Wrong user was created')
   }
+
+	t.log('Refreshing ElasticSearch index: ' + process.env.INDEX_BUNDLEINFO)
+	await refreshIndex(process.env.INDEX_BUNDLEINFO)
 
   // Confirm that the bundle was properly added to the search index
   res = await request('bundles/mine', {
@@ -64,8 +67,9 @@ test.serial('bundle:create:as test user', async (t) => {
   }
 
   const json = await res.json()
-  t.truthy(json.bundles[json.bundles.length-1].cover_thumbnail.indexOf('http') == 0, `The last bundle should have a cover`)
-  //t.is(json.bundles.length, 4) // 3 in our test data + the one we just added
+  const latest = json.bundles[json.bundles.length-1]
+  t.is(json.bundles.length, 4) // This user has 3 in our test data, then we just added one in this test
+  t.truthy(latest.cover_thumbnail.indexOf('http') == 0, `The last bundle should have a cover`)
 
 
   // Test cleanup (and bonus delete test)
@@ -244,7 +248,7 @@ test('bundles:get:mine', async (t) => {
   })
   let result = await res.json();
   t.is(result.bundles.length, 3)
-  t.truthy(result.bundles[0].cover_thmbnail.indexOf('http') === 0) // Confirm the public bundle has a thumb
+  t.truthy(result.bundles[0].cover_thumbnail.indexOf('http') === 0) // Confirm the public bundle has a thumb
 
   res = await request (`bundles/mine`, {
     userKey: 'CREATOR1'

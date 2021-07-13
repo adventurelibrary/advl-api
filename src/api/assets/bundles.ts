@@ -50,7 +50,7 @@ export const bundle_create = newHandler({
     user_id: newBundleInfo.creator_id ? null : user.id
   }
 
-  await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
+	await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
 
   if(newBundleInfo.added_assets){
     for (let assetID of newBundleInfo.added_assets){
@@ -67,7 +67,9 @@ export const bundle_create = newHandler({
   await indexBundle(newBundle.id)
   return {
     status: 201,
-    body: {bundle_id: newBundle.id}
+    body: {
+      bundle_id: newBundle.id
+    }
   }
 })
 

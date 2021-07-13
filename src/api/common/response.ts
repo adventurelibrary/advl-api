@@ -13,8 +13,9 @@ export function newResponse ()  {
 	}
 }
 
-export function errorResponse (_evt, error, status?: number) {
+export function errorResponse (_evt, error, status: number = 500) {
 	const response = newResponse()
+	response.statusCode = status
 	console.error(`ERROR | \n Event: ${_evt} \n Error: ${error}`);
 	if (error.stack) {
 		console.log('stack', error.stack)

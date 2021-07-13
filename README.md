@@ -44,3 +44,6 @@ To run specific tests you can modify the test files themselves and call `test.on
 You can specify which tests to run from the command line with `npx ava --match "asset*"`. Prefixes all test strings with, for example, "asset:" or "user:", allows for easier matching.
 
 Tests are added to the `testing` folder. You can **ignore files in the testing folder** by adding them to the `ava.files` prop in package.json with a ! prefix.
+
+## Faster Tests
+If you only want to run tests in a particular file, it can speed up your tests to edit the `package.json` file's `ava` section. Edit the `files` attribute of that object to only point to the file you're testing, and remove the wildcard entry. Do **not** commit this.

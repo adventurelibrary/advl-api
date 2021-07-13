@@ -27,8 +27,8 @@ export async function isMemberOfCreatorPage(creator_id: string, user_id: string)
 }
 
 export async function getTotalCreators() {
-	const res = (await db.query(`SELECT COUNT(*) as total FROM ${process.env.DB_CREATORS}`)).length;
-	return res
+	const res = <{total: any}[]> await db.query(`SELECT COUNT(*) as total FROM ${process.env.DB_CREATORS}`)
+	return parseInt(res[0].total)
 }
 
 export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
@@ -48,7 +48,7 @@ export async function getTotalUserCreators(user: User) {
 	FROM ${process.env.DB_CREATORS} c, ${process.env.DB_CREATORMEMBERS} cm
 	WHERE cm.user_id = $1
 	AND cm.creator_id = c.id`, [user.id])
-	return res.length;
+	return parseInt(res[0].total)
 }
 
 export async function getUserCreatorIds(id: string) : Promise<string[]> {
