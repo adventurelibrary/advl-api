@@ -139,8 +139,8 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
       }
     })
     _query.bool.minimum_should_match = 1
-		queryObj.sort = 'uploaded'
-		queryObj.sort_type = 'desc'
+    queryObj.sort = 'uploaded'
+    queryObj.sort_type = 'desc'
   }
 
 

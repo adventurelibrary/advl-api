@@ -24,7 +24,7 @@ export interface Asset extends UserDefinedAssetInfo{
 
   creator_id: string,
   creator_name?: string, //Used when returning it to Front End
-	deleted?: boolean
+  deleted?: boolean
   filetype: "IMAGE" | "PDF" | "ZIP",
   original_file_ext: string,
   previewLink?: string, //Used when returning to Front End
