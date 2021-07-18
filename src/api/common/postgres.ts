@@ -104,8 +104,12 @@ export async function deleteObj(tableName:string, id:string) {
 }
 
 export function clientRelease(){
-  pg_read.end();
-  pg_write.end();
+  try{
+    pg_read.end();
+    pg_write.end();
+  } catch (e) {
+    console.log("Pool already ended!");
+  }
 }
 
 /**
