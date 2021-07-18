@@ -183,14 +183,16 @@ test.serial('asset:delete an asset with no purchases', async (t) => {
 		method: 'POST',
 		userKey: 'CREATOR1' // This user has access to the creator who made this
 	})
-	let err = await testResStatus(res, 200)
-	if (err) {
-		t.fail(err)
+	if (res.status != 200) {
+		t.fail(`Got status of ${res.status} instead of 200`)
 	}
+
+	const json = await res.json()
+	t.is(json.result, 'deleted') // Should be deleted, not hidden
 
 	// Shouldn't be in the search anymore
 	res = await request('assets?id=' + id)
-	err = await testResStatus(res, 404)
+	let err = await testResStatus(res, 404)
 	if (err) {
 		t.fail(err)
 	}
@@ -209,12 +211,12 @@ test('asset:delete path access', async (t) => {
 	const path = 'assets/' + ASSET_1 + '/delete'
 	let tests : AccessTest[] = [{
 		// A user without access to this asset's creator
-		userKey: 'USER1',
+		userKey: 'TEST1',
 		expectedStatus: 403,
 	}, {
 		// Not logged in
 		userKey: null,
-		expectedStatus: 403,
+		expectedStatus: 401,
 	}]
 	let err = await testPathAccess(path, tests, {
 		method: 'POST'

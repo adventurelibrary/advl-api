@@ -97,9 +97,7 @@ export async function testPathAccess (path: string, tests: AccessTest[], default
 			method: test.method || 'GET'
 		}
 		if (test.userKey) {
-			opts.headers = {
-				userKey: test.userKey
-			}
+			opts.userKey = test.userKey
 		}
 		const res = await request(test.path, opts)
 		const err = await testResStatus(res, test.expectedStatus)
