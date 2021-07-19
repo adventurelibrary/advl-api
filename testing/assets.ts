@@ -1,6 +1,8 @@
 import test from 'ava'
+import '../load-yaml-env'
 import {request, testResStatus} from "./lib/lib";
 import {ASSET_1, ASSET_3} from "./lib/fixtures";
+import {getAsset} from "../src/lib/assets";
 
 test('asset: get asset with wrong id', async (t) => {
 	const res = await request(`asset/id-does-not-exit`)
@@ -125,6 +127,65 @@ test.serial('asset:put update an asset as creator', async (t) => {
 
 	t.pass()
 })
+
+
+
+test.serial('asset:put update asset type', async (t) => {
+	const before = await getAsset(ASSET_3)
+	if (!before) {
+		t.fail(`Didn't load ASSET_3`)
+	}
+
+	type UpdateTest = {
+		type: string
+		expectedStatus: number
+	}
+
+	const tests : UpdateTest[] = `map,token,scene,character,item`.split(',').map((type) => {
+		return {
+			expectedStatus: 204,
+			type: type
+		}
+	})
+
+	tests.push({
+		type: 'invalid-type',
+		expectedStatus: 400,
+	})
+
+	for (let i = 0; i < tests.length; i++) {
+		const test = tests[i]
+		const update = {
+			...before,
+			type: test.type
+		}
+		const res = await request(`assets/update`, {
+			userKey: 'ADMIN1',
+			method: 'PUT',
+			body: [update]
+		})
+		const err = await testResStatus(res, 204)
+		if (err) {
+			t.fail(`[${i}] ` + err)
+			break
+		}
+	}
+
+	// This cleans up the data
+	let res = await request(`assets/update`, {
+		userKey: 'CREATOR1',
+		method: 'PUT',
+		body: [before]
+	})
+	let err = await testResStatus(res, 204)
+	if (err) {
+		t.fail(err)
+	}
+
+
+	t.pass()
+})
+
 
 
 test.serial('asset:put update an asset as regular user', async (t) => {
