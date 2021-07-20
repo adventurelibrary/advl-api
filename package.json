@@ -4,7 +4,9 @@
   "description": "Serverless webpack example using Typescript",
   "scripts": {
     "test": "ts-node tests/test.ts",
-    "reset": "ts-node reset.ts"
+    "reset": "ts-node reset.ts",
+    "ngrok": "ngrok.exe http --hostname=adventurelibrary.ngrok.io https://localhost:3000",
+    "stripe": "stripe.exe listen --forward-to localhost:3000/dev/stripe"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.11.0",
@@ -25,6 +27,7 @@
     "serverless-offline": "^6.8.0",
     "slugify": "^1.4.7",
     "source-map-support": "^0.5.10",
+    "stripe": "^8.163.0",
     "transloadit": "^3.0.0-rc.2",
     "yamljs": "^0.3.0"
   },
