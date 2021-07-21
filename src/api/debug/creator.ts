@@ -1,9 +1,8 @@
 import { APIGatewayProxyHandler } from "aws-lambda"
 import { errorResponse, newResponse } from "../common/response"
 import * as db from '../common/postgres';
-import { Creator } from "../../interfaces/ICreator";
+import { User, Creator } from "../../interfaces/IEntity";
 import { idgen } from "../common/nanoid";
-import { User } from "../../interfaces/IUser";
 import slugify from "slugify";
 
 export const debug_newcreator: APIGatewayProxyHandler = async (_evt, _ctx) => {

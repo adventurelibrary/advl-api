@@ -1,9 +1,8 @@
 import * as db from '../api/common/postgres';
-import { User, UserToken } from '../interfaces/IUser';
+import { Entity, User, UserToken } from '../interfaces/IEntity';
 
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-import { Admin } from '../interfaces/IAdmin';
 
 export async function getUserByID(id: string): Promise<User> {
   try{
@@ -55,7 +54,7 @@ export function validateUserToken(userToken:string){
  * @returns
  */
 export async function isAdmin(userID: string){
-  const admin = <Admin> await db.getObj(process.env.DB_ADMIN, userID);
-  if(!admin){return false;}
+  const entity = <Entity> await db.getObj(process.env.DB_ENTITIES, userID);
+  if(entity.type != "ADMIN"){return false;}
   return true;
 }

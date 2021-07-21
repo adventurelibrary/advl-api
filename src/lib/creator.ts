@@ -1,5 +1,4 @@
-import {User} from "../interfaces/IUser";
-import {Creator} from "../interfaces/ICreator";
+import {Entity, User, Creator} from "../interfaces/IEntity";
 import * as db from "../api/common/postgres";
 import {Validation} from "./errors";
 
@@ -18,7 +17,7 @@ export type GetCreatorOpts = {
 }
 
 export async function isMemberOfCreatorPage(creator_id: string, user_id: string){
-	let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id= $1 and user_id= $2 LIMIT 1`, [creator_id, user_id])
+	let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id = $1 and user_id= $2 LIMIT 1`, [creator_id, user_id])
 	if(result.length == 0){
 		return false;
 	} else {
@@ -84,29 +83,22 @@ export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promi
 	return result
 }
 
-export function creatorToDatabaseWrite (creator: Creator) : any {
-	const dbwrite = <any>creator
-	// falsy owner should just be saved as null
-	if (!creator.owner_id) {
-		dbwrite.owner_id = null
-	}
-
-	return dbwrite
-}
-
 export async function updateCreator (creator:Creator, updates:any) {
 	creator.name = updates.hasOwnProperty('name') ? updates.name : creator.name
 	creator.description = updates.hasOwnProperty('description') ? updates.description : creator.description
 	creator.owner_id = updates.hasOwnProperty('owner_id') ? updates.owner_id : creator.owner_id
 	await validateCreator(creator)
 
-	const write = creatorToDatabaseWrite(creator)
-	return await db.updateObj(process.env.DB_CREATORS, creator.id, write)
+	return await db.updateObj(process.env.DB_CREATORS, creator.id, creator)
 }
 
 export async function insertCreator(creator:Creator) {
-	const write = creatorToDatabaseWrite(creator)
-	return await db.insertObj(process.env.DB_CREATORS, write)
+	const newEntity:Entity = {
+		id: creator.id,
+		type: "CREATOR"
+	}
+	await db.insertObj(process.env.DB_ENTITIES, newEntity);
+	return await db.insertObj(process.env.DB_CREATORS, creator);
 }
 
 export async function validateCreator(creator: Creator) {

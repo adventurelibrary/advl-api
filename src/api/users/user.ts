@@ -1,5 +1,5 @@
 import {validateUserToken} from '../../lib/user';
-import { User } from '../../interfaces/IUser';
+import { Entity, User } from '../../interfaces/IEntity';
 import * as db from '../common/postgres';
 import {newHandler} from "../common/handlers";
 
@@ -28,11 +28,16 @@ export const user_get = newHandler({
       username: userToken['cognito:username'],
       email: userToken.email || userToken.username + '@thisemailisfake.com',
       notification_preferences: {},
-      is_admin: false,
       last_seen: new Date(),
       join_date: new Date()
     }
 
+    const newEntity:Entity = {
+      id: newUser.id,
+      type: "USER"
+    }
+
+    await db.insertObj(process.env.DB_ENTITIES, newEntity);
     await db.insertObj(process.env.DB_USERS, newUser);
     return {
       status: 201,

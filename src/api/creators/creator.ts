@@ -1,4 +1,4 @@
-import { Creator } from '../../interfaces/ICreator';
+import { Creator } from '../../interfaces/IEntity';
 import { idgen } from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
