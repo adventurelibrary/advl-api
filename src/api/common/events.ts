@@ -1,4 +1,4 @@
-import {User} from "../../interfaces/IUser";
+import {User} from "../../interfaces/IEntity";
 import {getUserByToken} from "../../lib/user";
 import {APIGatewayProxyEvent} from "aws-lambda";
 

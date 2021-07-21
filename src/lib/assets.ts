@@ -6,7 +6,8 @@ import {query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import {APIError, Validation} from "./errors";
-import {User} from "../interfaces/IUser";
+import {User} from "../interfaces/IEntity";
+import { isAdmin } from "./user";
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -174,8 +175,8 @@ export function validateAsset (asset: Asset) {
 }
 
 export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
-	if (user.is_admin) {
-		return
+	if (isAdmin(user.id)) {
+		return true;
 	}
 
 	console.log('asset ids to check', assetIds)

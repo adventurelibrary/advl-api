@@ -1,28 +1,34 @@
 DROP TABLE IF EXISTS assets CASCADE;
 DROP TABLE IF EXISTS creators CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
-
 DROP TABLE IF EXISTS creatormembers CASCADE;
 DROP TABLE IF EXISTS bundleinfo CASCADE;
 DROP TABLE IF EXISTS bundleassets CASCADE;
+DROP TABLE IF EXISTS entities CASCADE;
 
+DROP TYPE IF EXISTS entity_type CASCADE;
+DROP TYPE IF EXISTS visibility CASCADE;
+DROP TYPE IF EXISTS filetype CASCADE;
+DROP TYPE IF EXISTS category CASCADE;
 
-
-DROP TYPE IF EXISTS visibility;
-DROP TYPE IF EXISTS filetype;
-DROP TYPE IF EXISTS category;
 create type visibility as ENUM ('PENDING', 'HIDDEN', 'PUBLIC', 'ALL');
 create type filetype as ENUM ('IMAGE', 'PDF', 'ZIP');
 create type category as ENUM ('map', 'token', 'character', 'scene', 'item', 'panel');
+create type entity_type as ENUM ('CREATOR', 'USER', 'ADMIN');
+
+create table entities (
+  id TEXT NOT NULL PRIMARY KEY,
+  entity_type entity_type NOT NULL
+);
 
 create table users (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
   email TEXT NOT NULL UNIQUE,
   notification_preferences JSON DEFAULT '{}'::jsonb,
-  is_admin BOOLEAN NOT NULL DEFAULT false,
   last_seen TIMESTAMP NOT NULL,
-  join_date TIMESTAMP NOT NULL
+  join_date TIMESTAMP NOT NULL,
+  CONSTRAINT fk_entity_id FOREIGN KEY (id) REFERENCES entities(id)
 );
 
 create UNIQUE INDEX users_username ON users(username);
@@ -32,9 +38,10 @@ create table creators (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  owner_id TEXT NULL,
+  owner_id TEXT NOT NULL,
   description TEXT,
-  CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES users(id)
+  CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES users(id),
+  CONSTRAINT fk_entity_id FOREIGN KEY (id) REFERENCES entities(id)
 );
 CREATE UNIQUE INDEX creators_slug ON creators (slug);
 
@@ -71,10 +78,8 @@ create table bundleinfo (
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   public BOOLEAN NOT NULL DEFAULT FALSE,
-  creator_id TEXT,
-  user_id TEXT,
-  CONSTRAINT fk_creator_id FOREIGN KEY (creator_id) REFERENCES creators(id),
-  CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id)
+  creator_id TEXT NOT NULL,
+  CONSTRAINT fk_entity_id FOREIGN KEY (creator_id) REFERENCES entities(id)
 );
 
 create table bundleassets (

@@ -1,9 +1,10 @@
 import { Bundle } from '../interfaces/IBundle';
 import {bulkIndex, clearIndex, search} from "../api/common/elastic";
-import {User} from "../interfaces/IUser";
+import {User} from "../interfaces/IEntity";
 import * as db from "../api/common/postgres";
 import * as b2 from "../api/common/backblaze"
 import {query} from "../api/common/postgres";
+import { isMemberOfCreatorPage } from './creator';
 
 /**
  * POSTGRES get by id
@@ -31,8 +32,14 @@ export function userCanViewBundle(user: User | undefined, bundle: Bundle) : bool
   if (!user) {
     return false
   }
+  if(user.id === bundle.creator_id){
+    return true;
+  }
 
-  return user.id === bundle.user_id
+  //check if the bundle creator is a page the user is a part of
+  if(isMemberOfCreatorPage(bundle.creator_id, user.id)){
+    return true;
+  }
 }
 
 export async function indexBundle (id: string) {
