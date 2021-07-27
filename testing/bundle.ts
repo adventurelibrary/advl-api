@@ -4,7 +4,7 @@ import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, CREATOR_2, USER1} fro
 import { request, requestAs, testResStatus } from "./lib/lib";
 import {deleteBundle} from "../src/lib/bundle";
 import {query} from "../src/api/common/postgres";
-import {Bundle} from "../../site/modules/bundles/bundle-types";
+import {Bundle} from "../src/interfaces/IBundle";
 import {refreshIndex} from "../src/api/common/elastic";
 
 async function getBundleByName(name: string) : Promise<Bundle> {
@@ -50,7 +50,7 @@ test.serial('bundle:create:as test user', async (t) => {
   }
 
   const bundle = await getBundleByName(name)
-  if (bundle.user_id != USER1) {
+  if (bundle.creator_id != USER1) {
     t.fail('Wrong user was created')
   }
 

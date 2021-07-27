@@ -1,0 +1,12 @@
+ElasticSearch:
+// Dumps from staging database into json files and then pushes from json files to local elastic search indexes
+// npm i -g elasticdump
+elasticdump --input https://advl-api:adventurelibrary@d49723c24c0645f19e185d06123d5107.us-east-1.aws.found.io:9243/assets --output ./testing/seed/assets.json
+elasticdump --input ./testing/seed/assets.json --output http://localhost:9200/assets
+
+elasticdump --input https://advl-api:adventurelibrary@d49723c24c0645f19e185d06123d5107.us-east-1.aws.found.io:9243/bundleinfo --output ./testing/seed/bundleinfo.json
+elasticdump --input ./testing/seed/bundleinfo.json --output http://localhost:9200/bundleinfo
+
+
+Postgres:
+- Use PG Admin/pg_dump to "Backup" the adventurelibrary database from staging. You'll need to create "advl:library567" and "rdsadmin:" users in your cluster. Then create an empty adventurelibrary database, right click and restore with the file you backedup from staging. Use the provided one in the folder to save the first step.

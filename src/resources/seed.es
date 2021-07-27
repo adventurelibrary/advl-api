@@ -1,3 +1,0 @@
-PUT /assets/_bulk
-{ "index": { "_id": "7fa4da69-739d-4e32-a107-1f0bfd4a544b"}}
-{ "slug": "asset-tester", "name": "Asset Tester", "filetype": "IMAGE", "original_file_ext": "PNG", "creator_id": "9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1", "size_in_bytes": 123, "uploaded": "2021", "visibilty": "PUBLIC", "unlock_count": 1, "description": "Pending", "category": "map", "tags": "{}", "unlock_price": 50, "revenue_share": "{}"}
