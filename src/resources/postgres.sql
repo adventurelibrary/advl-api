@@ -18,7 +18,7 @@ create type entity_type as ENUM ('CREATOR', 'USER', 'ADMIN');
 
 create table entities (
   id TEXT NOT NULL PRIMARY KEY,
-  entity_type entity_type NOT NULL
+  type entity_type NOT NULL
 );
 
 create table users (

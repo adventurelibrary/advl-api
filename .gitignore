@@ -17,6 +17,7 @@ jspm_packages
 src/.env.yml
 src/backup.env.yml
 
-# EXEs
+# Local Environment
 ngrok.exe
 stripe.exe
+Notes.txt
