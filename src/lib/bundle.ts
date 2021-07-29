@@ -91,12 +91,12 @@ export async function resetBundles () {
 export async function queryBundles(id?: string) : Promise<Bundle[]> {
   let sql = `
     SELECT b.*, c.name as creator_name, u.username, cover.id as cover_asset_id, cover.creator_id as cover_creator_id, original_file_ext as cover_original_file_ext
-    FROM bundleinfo b
+    FROM ${process.env.DB_BUNDLE_INFO} b
     /* This fetches one and only one asset that is linked to this bundle */
     LEFT JOIN LATERAL (
       SELECT a.id, a.creator_id, a.original_file_ext
-      FROM assets a
-      JOIN bundleassets ba
+      FROM ${process.env.DB_ASSETS} a
+      JOIN ${process.env.DB_BUNDLE_ASSETS} ba
       ON ba.asset_id = a.id
       WHERE ba.id = b.id 
       LIMIT 1

@@ -1,19 +1,5 @@
 import { Client } from '@elastic/elasticsearch';
 
-if (!process.env.ELASTIC_CLOUD_ID) {
-  throw new Error(`ELASTIC_CLOUD_ID is blank. Check your .env.yml, or make sure to use load-yaml-env.ts`)
-}
-
-if (!process.env.ELASTIC_USERNAME) {
-  throw new Error(`ELASTIC_USERNAME is blank. Check your .env.yml, or make sure to use load-yaml-env.ts`)
-}
-
-if (!process.env.ELASTIC_PASSWORD) {
-  throw new Error(`ELASTIC_PASSWORD is blank. Check your .env.yml, or make sure to use load-yaml-env.ts`)
-}
-
-
-
 export const search = (() => {
   if(process.env.IS_OFFLINE){
     return new Client({
