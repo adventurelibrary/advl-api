@@ -127,7 +127,7 @@ test.serial('asset:put update an asset as creator', async (t) => {
 })
 
 
-test.serial('asset:put update an asset as regular user', async (t) => {
+test('asset:put update an asset as regular user', async (t) => {
 	let res = await request(`assets/update`, {
 		userKey: 'TEST1',
 		method: 'PUT',

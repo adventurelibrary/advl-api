@@ -21,3 +21,4 @@ src/backup.env.yml
 ngrok.exe
 stripe.exe
 Notes.txt
+passwords.txt

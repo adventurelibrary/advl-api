@@ -5,6 +5,7 @@ export interface Entity {
 
 export interface User {
   id: string, //FK to Entity
+  is_admin: boolean
   username: string,
   email: string,
   notification_preferences: NotificationPreferences,

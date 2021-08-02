@@ -22,7 +22,7 @@ async function verifyUserIsCreatorMember (user: User, creatorId: string) {
 }
 
 async function verifyUserBundleCanView(user: User | undefined, bundle : Bundle) {
-  const canView = userCanViewBundle(user, bundle)
+  const canView = await userCanViewBundle(user, bundle)
   if (!canView) {
     throw new APIError({
       status: 403,
@@ -46,7 +46,7 @@ export const bundle_create = newHandler({
     name: newBundleInfo.name,
     public: newBundleInfo.public,
     description: newBundleInfo.description || '',
-    creator_id: newBundleInfo.creator_id ? newBundleInfo.creator_id : user.id,
+    entity_id: newBundleInfo.creator_id ? newBundleInfo.creator_id : user.id,
   }
 
 	await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
@@ -243,7 +243,8 @@ async function searchBundles(query: any) {
     body: {
       from: query.from ? query.from : 0,
       size: query.size ? query.size: 10,
-      query: _query
+      query: _query,
+      sort: ["name"]
     }
   })
 

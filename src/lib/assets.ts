@@ -175,11 +175,9 @@ export function validateAsset (asset: Asset) {
 }
 
 export async function verifyUserHasAssetAccess (user: User, assetIds: string[]) {
-	if (isAdmin(user.id)) {
-		return true;
+	if (isAdmin(user)) {
+		return;
 	}
-
-	console.log('asset ids to check', assetIds)
 
 	// Count how many rows exist where this user is a member of the creator
 	// of the asset

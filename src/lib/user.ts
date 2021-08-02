@@ -1,5 +1,5 @@
 import * as db from '../api/common/postgres';
-import { Entity, User, UserToken } from '../interfaces/IEntity';
+import {User, UserToken} from '../interfaces/IEntity';
 
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
@@ -49,12 +49,10 @@ export function validateUserToken(userToken:string){
 }
 
 /**
- * Checks Admin DB to see if this user ID is an admin
- * @param userID
- * @returns
+ * Checks provided user object to make sure they're an admin
+ * @param user : User
+ * @returns boolean
  */
-export async function isAdmin(userID: string){
-  const entity = <Entity> await db.getObj(process.env.DB_ENTITIES, userID);
-  if(entity.type != "ADMIN"){return false;}
-  return true;
+export function isAdmin(user: User) : boolean {
+  return user.is_admin
 }
