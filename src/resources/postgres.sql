@@ -89,3 +89,34 @@ create table bundleassets (
   CONSTRAINT fk_bundle_id FOREIGN KEY (id) REFERENCES bundleinfo(id),
   CONSTRAINT fk_asset_id FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
+
+CREATE TYPE purchase_state AS ENUM ('pending', 'success', 'cancelled');
+CREATE TYPE payment_provider AS ENUM ('stripe');
+
+-- A record of a user buying coins with real money
+-- The state is pending when the user is intending to pay, but hasn't
+-- completed the purchase yet. It is then changed to 'success' when
+-- we get the response
+CREATE TABLE coin_purchases (
+    id SERIAL,
+
+    cents INT NOT NULL,
+    coins INT NOT NULL,
+    key TEXT NOT NULL UNIQUE, -- Passed along to Stripe to identify the purchase in the webhook
+    provider payment_provider NOT NULL,
+    state purchase_state,
+    succeeded_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    user_id TEXT NOT NULL REFERENCES users (id),
+
+    created_date TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX coin_purchases_state ON coin_purchases (state);
+
+-- This table logs all of the webhooks we receive from payment providers
+-- It is useful for debugging
+CREATE TABLE purchase_webhooks (
+    id SERIAL,
+    payload TEXT,
+    provider payment_provider,
+    created_date TIMESTAMP NOT NULL DEFAULT NOW()
+);

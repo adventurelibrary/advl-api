@@ -115,3 +115,41 @@ export async function testPathAccess (path: string, tests: AccessTest[]) : Promi
 
   return null
 }
+
+
+export const objHasValues = (data, valuesToMatch) => {
+  const keys = Object.keys(valuesToMatch);
+  const dataKeys = Object.keys(data);
+  let notEquals = [];
+  let invalidKeys = [];
+
+  keys.filter((key) => {
+    if (!dataKeys.includes(key)) {
+      invalidKeys.push(key);
+      return
+    }
+    // For some comparisons we can't just do a === comparison, because we need to be fancier
+    // or have a little leeway
+    // For example if we want to compare dates from a query with dates from code, we might be okay
+    // with the being within 100ms of each other
+    // In that case, we can provide a function to objHasValues which will check the value, instead
+    // of a direct value to compare
+    if (dataKeys.includes(key) && typeof valuesToMatch[key] === 'function') {
+      const msg = valuesToMatch[key](data[key])
+      if (msg) {
+        notEquals.push(msg)
+      }
+    } else if (dataKeys.includes(key) && data[key] !== valuesToMatch[key]) {
+      notEquals.push(`"${key}" has inferred value: ${valuesToMatch[key]}. Got actual value: ${data[key]}`);
+    }
+  })
+
+  if (invalidKeys.length) {
+    return `Data does not contain the following keys: ${invalidKeys.toString()}`;
+  }
+  if (!notEquals.length) {
+    return;
+  }
+
+  return notEquals.toString().replace(',', '\n');
+}
