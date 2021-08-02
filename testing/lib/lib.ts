@@ -77,8 +77,8 @@ export async function testResStatus (res: any, status : number) : Promise<string
   let pass = res.status === status
 	let append = ''
   if (!pass) {
-  	// If it returns 204 it won't have JSON so there's nothing to parse
-		if (res.status !== 204) {
+  	// If it returns these statuses it won't have JSON so there's nothing to parse
+		if (res.status !== 204 && res.status !== 302) {
 	    let body
 			try {
 				body = await res.json()

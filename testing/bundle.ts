@@ -1,7 +1,7 @@
 import test from 'ava';
 import '../load-yaml-env'
 import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, CREATOR_2, USER1} from './lib/fixtures';
-import { request, requestAs, testResStatus } from "./lib/lib";
+import {request, requestAs, testResStatus} from "./lib/lib";
 import {deleteBundle} from "../src/lib/bundle";
 import {query} from "../src/api/common/postgres";
 import {Bundle} from "../../site/modules/bundles/bundle-types";
@@ -50,7 +50,7 @@ test.serial('bundle:create:as test user', async (t) => {
   }
 
   const bundle = await getBundleByName(name)
-  if (bundle.user_id != USER1) {
+  if (bundle.entity_id != USER1) {
     t.fail('Wrong user was created')
   }
 
@@ -106,7 +106,7 @@ test.serial('bundle:create: a new creator bundle as creator user', async (t) => 
   }
 
   const bundle = await getBundleByName(name)
-  t.is(bundle.creator_id, CREATOR_2, `Wrong creator was assigned`)
+  t.is(bundle.entity_id, CREATOR_2, `Wrong creator was assigned`)
 
   // Cleanup
   await deleteBundle(bundle.id)
@@ -248,7 +248,10 @@ test('bundles:get:mine', async (t) => {
   })
   let result = await res.json();
   t.is(result.bundles.length, 3)
-  t.truthy(result.bundles[0].cover_thumbnail.indexOf('http') === 0) // Confirm the public bundle has a thumb
+  console.log('result bundles', result.bundles)
+
+  // Only the third bundle has a cover, because it has an asset
+  t.truthy(result.bundles[2].cover_thumbnail.indexOf('http') === 0, 'Expected http to start: ' + result.bundles[0].cover_thumbnail) // Confirm the public bundle has a thumb
 
   res = await request (`bundles/mine`, {
     userKey: 'CREATOR1'

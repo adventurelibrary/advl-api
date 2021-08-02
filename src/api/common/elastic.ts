@@ -16,8 +16,13 @@ if (!process.env.ELASTIC_PASSWORD) {
 
 export const search = (() => {
   if(process.env.IS_OFFLINE){
+    console.log('OFFLINE CLIENT FOR EC', process.env.ELASTIC_ENDPOINT)
     return new Client({
-      node: process.env.ELASTIC_ENDPOINT
+      node: process.env.ELASTIC_ENDPOINT,
+      auth: {
+        username: process.env.ELASTIC_USERNAME,
+        password: process.env.ELASTIC_PASSWORD
+      }
     })
   } else {
     return new Client({

@@ -20,7 +20,7 @@ debug_sync:
 debug_vpc:
   handler: src/api/debug/rds.rds_vpc
   events:
-    - http: 
+    - http:
         method: post
         path: /database/vpc
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
@@ -40,14 +40,23 @@ coins_purchase:
   handler: src/api/coins/coins.coins_purchase
   events:
     - http:
-        method: post
+        method: get
         path: /coins/purchase
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+coins_purchase_options:
+  handler: src/api/coins/coins.coins_options_get
+  events:
+    - http:
+        method: get
+        path: /coins/options
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 stripe_events:
   handler: src/api/coins/stripe.event_listener
-  events: 
+  events:
     - http:
         method: post
         path: /stripe
@@ -246,3 +255,5 @@ bundles_mine:
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
+
+

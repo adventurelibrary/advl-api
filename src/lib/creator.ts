@@ -16,7 +16,7 @@ export type GetCreatorOpts = {
 	skip?: number
 }
 
-export async function isMemberOfCreatorPage(creator_id: string, user_id: string){
+export async function isMemberOfCreatorPage(creator_id: string, user_id: string) : Promise<boolean> {
 	let result = await db.query(`SELECT * FROM ${process.env.DB_CREATORMEMBERS} where creator_id = $1 and user_id= $2 LIMIT 1`, [creator_id, user_id])
 	if(result.length == 0){
 		return false;

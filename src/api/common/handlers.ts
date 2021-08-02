@@ -116,7 +116,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
           return errorResponse(_evt, `Route requires you to be logged in`, 401)
         }
 
-        if (opts.requireAdmin && !isAdmin(user.id)) {
+        if (opts.requireAdmin && !isAdmin(user)) {
           return errorResponse(_evt, `Route requires you to be an admin`, 403)
         }
 
@@ -145,7 +145,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.creator = creator
 
         if (opts.requireCreatorPermission) {
-          if (!isAdmin(ctx.user.id)) {
+          if (!isAdmin(ctx.user)) {
             const hasPerm = await isMemberOfCreatorPage(ctx.creator.id, ctx.user.id)
             if (!hasPerm) {
               return errorResponse(_evt, new Error('You do not have permission'), 403)
@@ -163,10 +163,10 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
 
         if (opts.requireBundlePermission) {
           //If bundles' creator id is the same as the current user id, then we're good
-          let hasPermission = bundle.creator_id == ctx.user.id
+          let hasPermission = bundle.entity_id == ctx.user.id
           //check if the bundle creator id belongs to a creator the user controls
           if (!hasPermission) {
-            hasPermission = await isMemberOfCreatorPage(bundle.creator_id, ctx.user.id)
+            hasPermission = await isMemberOfCreatorPage(bundle.entity_id, ctx.user.id)
           }
           if (!hasPermission) {
             return errorResponse(_evt, new Error('Not your bundle'), 403)
@@ -181,7 +181,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       // It should return status and body, or throw an error
       const handleResult = await handler(ctx)
       res.statusCode = handleResult.status
-      if (res.statusCode !== 204) {
+      if (res.statusCode !== 204 && res.statusCode != 302) {
         res.body = JSON.stringify(handleResult.body)
       }
     } catch (ex) {

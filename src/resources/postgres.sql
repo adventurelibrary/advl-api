@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS coin_purchases CASCADE;
+DROP TABLE IF EXISTS purchase_webhooks CASCADE;
 DROP TABLE IF EXISTS assets CASCADE;
 DROP TABLE IF EXISTS creators CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -10,6 +12,8 @@ DROP TYPE IF EXISTS entity_type CASCADE;
 DROP TYPE IF EXISTS visibility CASCADE;
 DROP TYPE IF EXISTS filetype CASCADE;
 DROP TYPE IF EXISTS category CASCADE;
+DROP TYPE IF EXISTS purchase_state CASCADE;
+DROP TYPE IF EXISTS payment_provider CASCADE;
 
 create type visibility as ENUM ('PENDING', 'HIDDEN', 'PUBLIC', 'ALL');
 create type filetype as ENUM ('IMAGE', 'PDF', 'ZIP');
@@ -23,6 +27,7 @@ create table entities (
 
 create table users (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
+  is_admin BOOLEAN NOT NULL DEFAULT false,
   username TEXT NOT NULL UNIQUE,
   email TEXT NOT NULL UNIQUE,
   notification_preferences JSON DEFAULT '{}'::jsonb,
@@ -38,7 +43,7 @@ create table creators (
   id TEXT NOT NULL UNIQUE PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  owner_id TEXT NOT NULL,
+  owner_id TEXT,
   description TEXT,
   CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES users(id),
   CONSTRAINT fk_entity_id FOREIGN KEY (id) REFERENCES entities(id)
@@ -78,8 +83,8 @@ create table bundleinfo (
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   public BOOLEAN NOT NULL DEFAULT FALSE,
-  creator_id TEXT NOT NULL,
-  CONSTRAINT fk_entity_id FOREIGN KEY (creator_id) REFERENCES entities(id)
+  entity_id TEXT NOT NULL,
+  CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES entities(id)
 );
 
 create table bundleassets (
