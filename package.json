@@ -27,7 +27,7 @@
     "serverless-offline": "^6.8.0",
     "slugify": "^1.4.7",
     "source-map-support": "^0.5.10",
-    "stripe": "^8.163.0",
+    "stripe": "^8.167.0",
     "transloadit": "^3.0.0-rc.2",
     "yamljs": "^0.3.0"
   },
