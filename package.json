@@ -54,7 +54,7 @@
   "license": "All Rights Reserved",
   "ava": {
     "files": [
-      "./testing/bundle.ts",
+      "./testing/*.ts",
       "!./testing/lib/*",
       "!./testing/files/*"
     ],

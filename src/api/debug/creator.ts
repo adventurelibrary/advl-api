@@ -9,11 +9,11 @@ export const debug_newcreator: APIGatewayProxyHandler = async (_evt, _ctx) => {
   try{
     let response = newResponse();
     const body = JSON.parse(_evt.body);
-    const user:User = <User> (await db.query(`SELECT * FROM users WHERE username='${body.username}' LIMIT 1`, [], false))[0];
+    const user:User = <User> (await db.query(`SELECT * FROM users WHERE username='${body.username}' LIMIT 1`, []))[0];
     //console.log(user);
     if(!user){throw new Error("User by that name not found!");}
 
-    
+
     let newCreator:Creator = {
       id: idgen(),
       owner_id: user.id,

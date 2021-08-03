@@ -115,7 +115,7 @@ export async function queryBundles(id?: string) : Promise<Bundle[]> {
     params.push(id)
   }
 
-  let objects = await query(sql, params, false)
+  let objects = await query(sql, params)
   objects = objects.map(getBundlePublicBody)
   return objects
 }
