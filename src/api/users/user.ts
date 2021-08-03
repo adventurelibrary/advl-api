@@ -2,6 +2,7 @@ import {validateUserToken} from '../../lib/user';
 import { Entity, User } from '../../interfaces/IEntity';
 import * as db from '../common/postgres';
 import {newHandler} from "../common/handlers";
+import {getEntityNumCoins} from "../../lib/coins";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -40,6 +41,7 @@ export const user_get = newHandler({
 
     await db.insertObj(process.env.DB_ENTITIES, newEntity);
     await db.insertObj(process.env.DB_USERS, newUser);
+    newUser.num_coins = 0
     return {
       status: 201,
       body: newUser
@@ -47,6 +49,10 @@ export const user_get = newHandler({
   } else if (user) {
     await db.updateObj(process.env.DB_USERS, user.id, {last_seen: new Date()});
   }
+
+  const numCoins = await getEntityNumCoins(user.id)
+  user.num_coins = numCoins
+
   return {
     status: 200,
     body: user
