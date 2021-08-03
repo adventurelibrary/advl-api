@@ -11,7 +11,7 @@ export async function getUserByID(id: string): Promise<User> {
     FROM ${process.env.DB_USERS} u
     WHERE u.id = $1
     `
-    const user = <User>(await db.query(_sql, [id], false))[0];
+    const user = <User>(await db.query(_sql, [id]))[0];
     console.log("USER: ", user)
     return user;
   } catch (e){

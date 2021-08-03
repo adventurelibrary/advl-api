@@ -48,7 +48,7 @@ export async function getAsset (id: string) : Promise<Asset | undefined> {
 	AND a.id = $1
 	`
 
-	const rows:Asset[] = await query(_sql, [id], false)
+	const rows:Asset[] = await query(_sql, [id])
 	if (!rows || !rows[0]) {
 		return undefined
 	}
@@ -153,7 +153,7 @@ export async function resetAssets () {
 		FROM ${process.env.DB_ASSETS} a
 		JOIN ${process.env.DB_CREATORS} c 
 		ON c.id = a.creator_id`
-	const assets:Asset[] = await query(sql, [], false)
+	const assets:Asset[] = await query(sql, [])
 	await reindexAssetsSearch(assets)
 }
 

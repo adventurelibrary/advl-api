@@ -23,10 +23,13 @@ const pg_write = new Pool({
  * @param params
  * @param isWriteQuery Defaults to true, but should be false where possible
  */
-async function executeStatement(sql: string, params:any[], isWriteQuery: boolean = true){
+async function executeStatement(sql: string, params:any[]){
   console.debug("======POSTGRES QUERY======");
   console.debug("SQL: ", sql)
   console.debug("Params: ", JSON.stringify(params));
+
+  const isWriteQuery = sql.trim().toLowerCase().indexOf('select') !== 0
+
   console.debug("isWriteQuery:",  isWriteQuery);
 
   if(isWriteQuery){
@@ -39,8 +42,8 @@ async function executeStatement(sql: string, params:any[], isWriteQuery: boolean
 
 }
 
-export async function query(sql:string, params:any[] = [], isWriteQuery: boolean = true){
-  const res = await executeStatement(sql, params, isWriteQuery);
+export async function query(sql:string, params:any[] = []){
+  const res = await executeStatement(sql, params);
   return res.rows;
 }
 
@@ -66,7 +69,7 @@ export async function insertObj(tableName:string, obj:any, returning = 'id') : P
     _sql += ` RETURNING ${returning}`
   }
 
-  const result = await executeStatement(_sql, values, true);
+  const result = await executeStatement(_sql, values);
   if (returning) {
     const row = result.rows[0]
     if (returning === 'id') {
@@ -79,7 +82,7 @@ export async function insertObj(tableName:string, obj:any, returning = 'id') : P
 
 export async function getObj(tableName:string, id: string) {
   const _sql = `SELECT * FROM ${tableName} WHERE id = $1 LIMIT 1`;
-  const res = await executeStatement(_sql, [id], false);
+  const res = await executeStatement(_sql, [id]);
   return res.rows[0];
 }
 
@@ -95,13 +98,13 @@ export async function updateObj(tableName:string, objID: string, updates: Record
   //last param is the object's id for the WHERE clause
   params.push(objID)
   const _sql = `UPDATE ${tableName} SET ${updateString.join(",")} WHERE id=$${params.length}`
-  await executeStatement(_sql, params, true);
+  await executeStatement(_sql, params);
   return true;
 }
 
 export async function deleteObj(tableName:string, id:string) {
   const _sql = `DELETE FROM ${tableName} WHERE id = $1`;
-  return await executeStatement(_sql, [id], true);
+  return await executeStatement(_sql, [id]);
 }
 
 export function clientRelease(){
@@ -136,5 +139,5 @@ export async function getObjects(sql: string, values:any[] = [], skip:number = 0
     sql += ` OFFSET $${values.length}`
   }
 
-  return await query(sql, values, false);
+  return await query(sql, values);
 }

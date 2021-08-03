@@ -164,7 +164,7 @@ export const bundle_delete = newHandler({
 
 async function buildFEBundleFromBundleInfo(bundle:Bundle){
   let bundleAssets: Asset[] = [];
-  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1`, [bundle.id], false)).map((record) => {
+  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1`, [bundle.id])).map((record) => {
     let bundleAsset:BundleAsset = <BundleAsset> record;
     return bundleAsset.asset_id;
   })
