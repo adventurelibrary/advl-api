@@ -46,7 +46,7 @@ export interface REQ_Query_Assets{
 export interface REQ_Query {
   id? :string,
   ids? : string[],
-  sort?: "uploaded" | "unlock_count" | "unlock_price" | "_score" | "name"
+  sort?: "uploaded.raw" | "unlock_count" | "unlock_price" | "_score" | "name"
   sort_type?: "asc" | "desc",
   from?: number,
   size?: number
