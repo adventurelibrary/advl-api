@@ -40,7 +40,7 @@ coins_purchase:
   handler: src/api/coins/coins.coins_purchase
   events:
     - http:
-        method: get
+        method: post
         path: /coins/purchase
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:

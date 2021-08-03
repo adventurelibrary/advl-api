@@ -3,6 +3,7 @@ import {User, UserToken} from '../interfaces/IEntity';
 
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
+import {insertObj} from "../api/common/postgres";
 
 export async function getUserByID(id: string): Promise<User> {
   try{
@@ -55,4 +56,19 @@ export function validateUserToken(userToken:string){
  */
 export function isAdmin(user: User) : boolean {
   return user.is_admin
+}
+
+/**
+ * Inserts a new row into the user's ledger giving them a new credit balance
+ * @param entityId - User or Creator to add/subtract coins from
+ * @param coins
+ * @param note
+ */
+export async function addEntityCoins(entityId: string, coins: number, meta?: Record<string, any>) {
+  const insert = {
+    user_id: entityId,
+    coins: coins,
+    ...meta
+  }
+  return await insertObj(process.env.DB_ENTITY_COINS, insert)
 }

@@ -17,7 +17,8 @@ export const USER1 = 'cd240b82-6e33-48e7-a561-eac54bfb1a6b'
 export const users = {
   TEST1: {
     username: 'test-user-01',
-    password: 'test-password'
+    password: 'test-password',
+    id: 'cd240b82-6e33-48e7-a561-eac54bfb1a6b'
   },
   ADMIN1: {
     username: 'test-admin-1',

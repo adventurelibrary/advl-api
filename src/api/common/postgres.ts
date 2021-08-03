@@ -47,7 +47,7 @@ export async function query(sql:string, params:any[] = []){
   return res.rows;
 }
 
-export async function insertObj(tableName:string, obj:any, returning = 'id') : Promise<Record<string, any> | undefined | string> {
+export async function insertObj(tableName:string, obj:any, returning = 'id') : Promise<Record<string, any> | undefined | string | number> {
   let columns: string[] = []
   let values: any[] = []
   for(let key of Object.keys(obj)){
@@ -86,7 +86,7 @@ export async function getObj(tableName:string, id: string) {
   return res.rows[0];
 }
 
-export async function updateObj(tableName:string, objID: string, updates: Record<string, any>) {
+export async function updateObj(tableName:string, objID: string | number, updates: Record<string, any>) {
   const updateString: string[] = [];
   const params: any[] = [];
   const keys = Object.keys(updates)
