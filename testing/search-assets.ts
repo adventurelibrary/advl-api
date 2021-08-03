@@ -22,6 +22,7 @@ test('searchassets: get my assets', async (t) => {
 	})
 	t.is(body.assets.length, 2)
 	t.is(body.total, 2)
+
 	t.is(body.assets[0].name, 'House')
 	t.is(body.assets[1].name, 'First Kill')
 
@@ -30,10 +31,10 @@ test('searchassets: get my assets', async (t) => {
 	})
 	t.is(body.assets.length, 4)
 	t.is(body.total, 4)
-	t.is(body.assets[0].name, 'House')
-	t.is(body.assets[1].name, 'First Kill')
+	t.is(body.assets[0].name, 'Hope Keyshot')
+	t.is(body.assets[1].name, 'House')
 	t.is(body.assets[2].name, 'Killion')
-	t.is(body.assets[3].name, 'Hope Keyshot')
+	t.is(body.assets[3].name, 'First Kill')
 	t.pass()
 	return
 })
