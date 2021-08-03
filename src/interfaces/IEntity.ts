@@ -11,6 +11,7 @@ export interface User {
   notification_preferences: NotificationPreferences,
   last_seen: Date,
   join_date: Date,
+  num_coins?: number // Added by our GET session route for the frontend to see
 }
 
 interface NotificationPreferences {

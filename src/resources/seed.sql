@@ -35,3 +35,7 @@ insert into bundleinfo (id, name, description, public, entity_id) values ('ALJMg
 
 INSERT INTO bundleassets (id, asset_id) VALUES
 ('083e16ae-8f1d-4fd8-af48-e71bf757efd2', 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw');
+
+INSERT INTO entity_coins (entity_id, num_coins, created_date) VALUES
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, NOW() - INTERVAL '7 DAYS'),
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 1000, NOW() - INTERVAL '7 DAYS');

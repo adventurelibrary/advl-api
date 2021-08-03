@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS entity_coins CASCADE;
 DROP TABLE IF EXISTS coin_purchases CASCADE;
 DROP TABLE IF EXISTS purchase_webhooks CASCADE;
 DROP TABLE IF EXISTS assets CASCADE;
@@ -124,4 +125,15 @@ CREATE TABLE purchase_webhooks (
     payload jsonb NOT NULL DEFAULT '{}',
     provider payment_provider,
     created_date TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE entity_coins (
+    id SERIAL PRIMARY KEY,
+    entity_id TEXT NOT NULL,
+    num_coins INTEGER NOT NULL,
+    purchase_id INTEGER REFERENCES coin_purchases (id),
+    --unlock_id INTEGER REFERENCES asset_unlock (id),
+    note TEXT NOT NULL DEFAULT '',
+    created_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES entities(id)
 );
