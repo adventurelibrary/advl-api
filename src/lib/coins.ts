@@ -8,8 +8,8 @@ import {insertObj, query} from "../api/common/postgres";
  */
 export async function addEntityCoins(entityId: string, coins: number, meta?: Record<string, any>) {
 	const insert = {
-		user_id: entityId,
-		coins: coins,
+		entity_id: entityId,
+		num_coins: coins,
 		...meta
 	}
 	return await insertObj(process.env.DB_ENTITY_COINS, insert)

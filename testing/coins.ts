@@ -3,6 +3,9 @@ import ava from 'ava';
 import {objHasValues, request, testResStatus} from './lib/lib';
 import {query} from "../src/api/common/postgres";
 import {users} from "../testing/lib/fixtures"
+import {handleCheckoutSessionCompleted} from "../src/api/coins/stripe";
+import {getCoinPurchaseByKey} from "../src/lib/purchases";
+import {getEntityNumCoins} from "../src/lib/coins";
 
 // STRIPE
 // Buy Coin Pack
@@ -27,6 +30,39 @@ ava.serial('coins: buy a coinpack for a user', async (t) => {
   const rows = await query(`SELECT * FROM ${process.env.DB_COIN_PURCHASES} ORDER BY created_date DESC`)
   const first = rows[0]
   t.is(first.user_id, users.TEST1.id)
+  t.is(first.coins, 500)
+  t.truthy(first.key.length > 0)
+
+  // Fake the webhook event from stripe
+  // We skip doing an http request to our server because it will fail when it attempts to verify
+  // that this webhook originated at Stripe
+  try {
+    const fakeWebhook = {
+      client_reference_id: first.key,
+      object: {
+        amount_total: 500
+      }
+    }
+    await handleCheckoutSessionCompleted(fakeWebhook)
+  } catch (ex) {
+    t.fail(ex.toString())
+  }
+
+  // Check that the coin purchase has been
+  const purchaseAfter = await getCoinPurchaseByKey(first.key)
+
+  t.is(purchaseAfter.id, first.id)
+  t.not(purchaseAfter.status, first.status)
+  t.is(purchaseAfter.status, 'complete')
+
+  // Check that the user's num_coins has been updated
+  const num = await getEntityNumCoins(users.TEST1.id)
+  t.is(num, 2000) // 1500 in our test data, +500 from this previous purchase
+
+  // Data clean. Remove the coins and the purchase.
+  await query(`DELETE FROM ${process.env.DB_ENTITY_COINS} WHERE purchase_id = $1`, [first.id])
+
+  await query(`DELETE FROM ${process.env.DB_COIN_PURCHASES} WHERE id = $1`, [first.id])
 
   t.pass()
 })
