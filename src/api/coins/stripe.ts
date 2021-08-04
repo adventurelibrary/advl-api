@@ -31,8 +31,7 @@ export const event_listener:APIGatewayProxyHandler = async (_evt, _ctx) => {
     provider: 'stripe'
   }
 
-  const id = await insertObj('purchase_webhooks', webhook)
-  console.log('id', id)
+  await insertObj('purchase_webhooks', webhook)
 
   const type = data.type
 
@@ -48,10 +47,9 @@ export const event_listener:APIGatewayProxyHandler = async (_evt, _ctx) => {
 
 // Handles the webhook when it is for a successfully completed payment
 // We want to update the payment to complete, and give the user their coins
-async function handleCheckoutSessionCompleted (data: any) {
+export async function handleCheckoutSessionCompleted (data: any) {
   const key = data.client_reference_id
   const purchase = await getCoinPurchaseByKey(key)
-  console.log('purchase', purchase)
 
   // If the numbers don't match then something went wrong
   if (purchase.cents !== data.object.amount_total) {

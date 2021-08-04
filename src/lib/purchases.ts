@@ -24,6 +24,7 @@ export async function createNewCoinPurchase(provider: PurchaseProvider, user: Us
 	const purchase : CoinPurchase = {
 		id: 0,
 		user_id: user.id,
+		note: '',
 		coins: po.coins,
 		cents: po.cents,
 		status: 'pending',
@@ -49,5 +50,3 @@ export async function getCoinPurchaseByKey(key: string) : Promise<CoinPurchase |
 	const first = rows[0]
 	return first
 }
-
-export async function completeCoinPurchase ()
