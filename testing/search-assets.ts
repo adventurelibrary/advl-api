@@ -83,5 +83,11 @@ test('searchassets: get assets by ids', async (t) => {
 	t.pass()
 })
 
+test('searchassets: get assets by slugs', async (t) => {
+	const body = await getJSON('assets?ids=spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw,caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj')
+	t.is(body[0].creator_slug, 'a-real-creator-slug')
+	t.pass()
+})
+
 // TODO: search for assets with text
 // TODO: get assets by category
