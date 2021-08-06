@@ -1,11 +1,11 @@
 import test from 'ava';
 import '../load-yaml-env'
 import {ASSET_1, BUNDLE_PRIVATE, BUNDLE_PUBLIC, CREATOR_1, CREATOR_2, USER1} from './lib/fixtures';
-import {request, requestAs, testResStatus} from "./lib/lib";
+import {request, testResStatus} from "./lib/lib";
 import {deleteBundle} from "../src/lib/bundle";
 import {query} from "../src/api/common/postgres";
-import {Bundle} from "../../site/modules/bundles/bundle-types";
 import {refreshIndex} from "../src/api/common/elastic";
+import {Bundle} from "../src/interfaces/IBundle";
 
 async function getBundleByName(name: string) : Promise<Bundle> {
 	const rows = await query(`SELECT * FROM bundleinfo WHERE name = $1`, [name])
@@ -14,15 +14,14 @@ async function getBundleByName(name: string) : Promise<Bundle> {
 
 //Create a new bundle as not logged in user
 test.serial('bundle:create:without being logged in', async (t) => {
-  const createOpts = {
-    method: "post",
+  let res = await request('bundles/create', {
+    method: 'POST',
     body: {
       name: "Bundling Bundles 1",
       public: false,
       description: "The bundliest",
     }
-  }
-  let res = await requestAs('bundles/create', null, createOpts);
+  });
   let err = await testResStatus(res, 401) //You need to be logged in to do that
   if(err){
     t.fail(err)

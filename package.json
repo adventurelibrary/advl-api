@@ -54,7 +54,7 @@
   "license": "All Rights Reserved",
   "ava": {
     "files": [
-      "./testing/creators.ts",
+      "./testing/*.ts",
       "!./testing/lib/*",
       "!./testing/files/*"
     ],
