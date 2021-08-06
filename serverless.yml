@@ -1,3 +1,5 @@
+org: styrmir
+app: advl-api
 service: advl-api
 
 frameworkVersion: "2"
