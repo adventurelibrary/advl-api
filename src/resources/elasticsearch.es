@@ -19,7 +19,12 @@ PUT /assets
       },
       "uploaded": {
         "type": "text",
-        "fielddata": true
+        "fielddata": true,
+        "fields": {
+          "raw": {
+            "type":  "keyword"
+          }
+        }
       }
     }
   }

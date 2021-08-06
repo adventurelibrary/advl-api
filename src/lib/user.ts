@@ -1,9 +1,17 @@
 import * as db from '../api/common/postgres';
-import { User, UserToken } from '../interfaces/IUser';
+import {User, UserToken} from '../interfaces/IEntity';
 
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-import { Admin } from '../interfaces/IAdmin';
+
+if (!process.env.STAGE) {
+  throw new Error(`env variable STAGE is not set. Three possible reasons
+  1. You forgot o include the load-yaml-env.ts file at the top of a file
+  2. You didn't provide "--stage dev" to your serverless command"
+  3. You need set the env variable before running a command line script, such as npm run reset
+    3a. Windows: set STAGE=dev&&npm run reset
+    3b. Linux:   STAGE=dev npm run reset`)
+}
 
 export async function getUserByID(id: string): Promise<User> {
   try{
@@ -12,7 +20,7 @@ export async function getUserByID(id: string): Promise<User> {
     FROM ${process.env.DB_USERS} u
     WHERE u.id = $1
     `
-    const user = <User>(await db.query(_sql, [id], false))[0];
+    const user = <User>(await db.query(_sql, [id]))[0];
     console.log("USER: ", user)
     return user;
   } catch (e){
@@ -50,12 +58,10 @@ export function validateUserToken(userToken:string){
 }
 
 /**
- * Checks Admin DB to see if this user ID is an admin
- * @param userID
- * @returns
+ * Checks provided user object to make sure they're an admin
+ * @param user : User
+ * @returns boolean
  */
-export async function isAdmin(userID: string){
-  const admin = <Admin> await db.getObj(process.env.DB_ADMIN, userID);
-  if(!admin){return false;}
-  return true;
+export function isAdmin(user: User) : boolean {
+  return user.is_admin
 }

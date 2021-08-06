@@ -11,6 +11,7 @@ module.exports = {
   database: {
     ...env.elastic,
     ...env.postgres,
+    ...env.stripe,
     ...env.backblaze //needed for Asset init, which is in like all things
   }
 }

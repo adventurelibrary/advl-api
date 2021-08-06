@@ -4,6 +4,11 @@ import {query} from "./src/api/common/postgres";
 import {resetBundles} from "./src/lib/bundle";
 import {resetAssets} from "./src/lib/assets";
 
+if (!process.env.IS_OFFLINE) {
+	console.log('Must run in offline mode so you dont connect to live ElasticSearch')
+	process.exit(1)
+}
+
 async function run () {
 	// Rebuild the database and its chema
 	const schema = fs.readFileSync('./src/resources/postgres.sql', 'utf8');

@@ -131,15 +131,24 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
         status: 200
       }
     }
-    _query.bool.should = creatorIds.map((id) => {
-      return {
+
+    const creatorFilter = {
+      bool: {
+        minimum_should_match: 1,
+        should: []
+      }
+    }
+
+    creatorIds.forEach((id) => {
+      creatorFilter.bool.should.push({
         match: {
           creator_id: id
         }
-      }
+      })
     })
-    _query.bool.minimum_should_match = 1
-    queryObj.sort = 'uploaded'
+    _query.bool.filter.push(creatorFilter)
+    //_query.bool.minimum_should_match = 1
+    queryObj.sort = 'uploaded.raw'
     queryObj.sort_type = 'desc'
   }
 

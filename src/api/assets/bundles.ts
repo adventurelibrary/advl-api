@@ -7,7 +7,7 @@ import { newHandler } from "../common/handlers";
 import { idgen } from "../common/nanoid";
 import * as db from '../common/postgres';
 import { transformAsset } from "./asset";
-import {User} from "../../interfaces/IUser";
+import {User} from "../../interfaces/IEntity";
 import {APIError} from "../../lib/errors";
 import {deleteBundle, indexBundle, userCanViewBundle} from "../../lib/bundle";
 
@@ -22,7 +22,7 @@ async function verifyUserIsCreatorMember (user: User, creatorId: string) {
 }
 
 async function verifyUserBundleCanView(user: User | undefined, bundle : Bundle) {
-  const canView = userCanViewBundle(user, bundle)
+  const canView = await userCanViewBundle(user, bundle)
   if (!canView) {
     throw new APIError({
       status: 403,
@@ -46,8 +46,7 @@ export const bundle_create = newHandler({
     name: newBundleInfo.name,
     public: newBundleInfo.public,
     description: newBundleInfo.description || '',
-    creator_id: newBundleInfo.creator_id ? newBundleInfo.creator_id : null,
-    user_id: newBundleInfo.creator_id ? null : user.id
+    entity_id: newBundleInfo.creator_id ? newBundleInfo.creator_id : user.id,
   }
 
 	await db.insertObj(process.env.DB_BUNDLE_INFO, newBundle)
@@ -85,18 +84,6 @@ export const bundle_update = newHandler({
   //if creatorID is passed in, check that the user actually has permissions to pass it in
   if(reqBundleUpdate.creator_id){
     await verifyUserIsCreatorMember(user, reqBundleUpdate.creator_id)
-  }
-
-  //check that the bundle can be editted by the user/creator
-  if(
-    (reqBundleUpdate.creator_id && bundle.creator_id != reqBundleUpdate.creator_id) ||
-    (user.id != bundle.user_id)
-    )
-  {
-    return {
-      status: 401,
-      body: {error: "User/Creator doesn't have permission to edit this bundle"}
-    }
   }
 
   //update the bundle
@@ -177,7 +164,7 @@ export const bundle_delete = newHandler({
 
 async function buildFEBundleFromBundleInfo(bundle:Bundle){
   let bundleAssets: Asset[] = [];
-  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1`, [bundle.id], false)).map((record) => {
+  let bundleAssetIDs = (await db.query(`SELECT * FROM ${process.env.DB_BUNDLE_ASSETS} WHERE id = $1`, [bundle.id])).map((record) => {
     let bundleAsset:BundleAsset = <BundleAsset> record;
     return bundleAsset.asset_id;
   })
@@ -256,7 +243,8 @@ async function searchBundles(query: any) {
     body: {
       from: query.from ? query.from : 0,
       size: query.size ? query.size: 10,
-      query: _query
+      query: _query,
+      sort: ["name"]
     }
   })
 

@@ -5,8 +5,7 @@ export interface Bundle {
   name: string,
   description: string,
   public: boolean,
-  creator_id: string // FK to Creators, nullable
-  user_id: string //FK to Users, nullable
+  entity_id: string // FK to Entities
   creator_name?: string
   username?: string
   cover_thumbnail?: string // From a join and from B2.GetURL

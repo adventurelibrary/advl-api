@@ -12,15 +12,30 @@ if (!process.env.ELASTIC_PASSWORD) {
   throw new Error(`ELASTIC_PASSWORD is blank. Check your .env.yml, or make sure to use load-yaml-env.ts`)
 }
 
-export const search = new Client({
-  cloud: {
-    id: process.env.ELASTIC_CLOUD_ID
-  },
-  auth: {
-    username: process.env.ELASTIC_USERNAME,
-    password: process.env.ELASTIC_PASSWORD
+export const search = (() => {
+  if(process.env.IS_OFFLINE){
+    console.log('OFFLINE CLIENT FOR EC', process.env.ELASTIC_ENDPOINT)
+    return new Client({
+      node: process.env.ELASTIC_ENDPOINT,
+      auth: {
+        username: process.env.ELASTIC_USERNAME,
+        password: process.env.ELASTIC_PASSWORD
+      }
+    })
+  } else {
+    console.log('Connecting to ELASTIC_CLOUD_ID:' + process.env.ELASTIC_CLOUD_ID)
+    return new Client({
+      cloud: {
+        id: process.env.ELASTIC_CLOUD_ID
+      },
+      auth: {
+        username: process.env.ELASTIC_USERNAME,
+        password: process.env.ELASTIC_PASSWORD
+      }
+    })
   }
-})
+})()
+
 
 export async function bulkIndex(index: string, items: any[], map?: (data) => any | undefined) {
   console.log(`Reindexing ${items.length} items to ${index}`)
@@ -34,10 +49,9 @@ export async function bulkIndex(index: string, items: any[], map?: (data) => any
     }, data]
   })
 
-
   const result = await search.bulk({
     refresh: true,
-    body
+    body: body
   })
 
   if (result.body.errors) {

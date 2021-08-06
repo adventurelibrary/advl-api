@@ -14,6 +14,11 @@ jspm_packages
 .dynamodb
 
 # Environment File
-src/v1.env.yml
-src/production.env.yml
 src/.env.yml
+src/backup.env.yml
+
+# Local Environment
+ngrok.exe
+stripe.exe
+Notes.txt
+passwords.txt

@@ -1,9 +1,10 @@
 import { Bundle } from '../interfaces/IBundle';
 import {bulkIndex, clearIndex, search} from "../api/common/elastic";
-import {User} from "../interfaces/IUser";
+import {User} from "../interfaces/IEntity";
 import * as db from "../api/common/postgres";
 import * as b2 from "../api/common/backblaze"
 import {query} from "../api/common/postgres";
+import { isMemberOfCreatorPage } from './creator';
 
 /**
  * POSTGRES get by id
@@ -24,21 +25,26 @@ export async function deleteBundle(id: string) {
   })
 }
 
-export function userCanViewBundle(user: User | undefined, bundle: Bundle) : boolean {
+export async function userCanViewBundle(user: User | undefined, bundle: Bundle) : Promise<boolean> {
   if (bundle.public) {
     return true
   }
   if (!user) {
     return false
   }
+  if(user.id === bundle.entity_id){
+    return true;
+  }
 
-  return user.id === bundle.user_id
+  //check if the bundle creator is a page the user is a part of
+  const isMember = await isMemberOfCreatorPage(bundle.entity_id, user.id)
+  return isMember
 }
 
 export async function indexBundle (id: string) {
   const bundle = await getBundleByID(id)
   const body = getBundlePublicBody(bundle)
-  return await search.index({
+  return search.index({
     index: process.env.INDEX_BUNDLEINFO,
     id: id,
     body: body
@@ -50,7 +56,7 @@ export async function indexBundle (id: string) {
  * @param bundle
  * @returns
  */
-function getBundlePublicBody(data:any) : Bundle{
+function getBundlePublicBody(data:any) : Bundle {
   const bundle = <Bundle>data
   // If the query found an asset and its creator, then we can build a thumbnail for this bundle
   if (bundle.cover_asset_id && bundle.cover_creator_id) {
@@ -83,7 +89,7 @@ export async function resetBundles () {
 
 export async function queryBundles(id?: string) : Promise<Bundle[]> {
   let sql = `
-    SELECT b.*, c.name as creator_name, u.username, cover.id as cover_asset_id, cover.creator_id as cover_creator_id, original_file_ext as cover_original_file_ext
+    SELECT b.*, c.id as creator_id, u.id as user_id, c.name as creator_name, u.username, cover.id as cover_asset_id, cover.creator_id as cover_creator_id, original_file_ext as cover_original_file_ext
     FROM bundleinfo b
     /* This fetches one and only one asset that is linked to this bundle */
     LEFT JOIN LATERAL (
@@ -96,9 +102,9 @@ export async function queryBundles(id?: string) : Promise<Bundle[]> {
     ) cover
     ON 1=1
     LEFT JOIN creators c
-    ON c.id = b.creator_id
+    ON c.id = b.entity_id
     LEFT JOIN users u
-    ON u.id = b.user_id`
+    ON u.id = b.entity_id`
 
   const params = []
 
@@ -109,7 +115,7 @@ export async function queryBundles(id?: string) : Promise<Bundle[]> {
     params.push(id)
   }
 
-  let objects = await query(sql, params, false)
+  let objects = await query(sql, params)
   objects = objects.map(getBundlePublicBody)
   return objects
 }

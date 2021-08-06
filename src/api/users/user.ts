@@ -1,7 +1,8 @@
 import {validateUserToken} from '../../lib/user';
-import { User } from '../../interfaces/IUser';
+import { Entity, User } from '../../interfaces/IEntity';
 import * as db from '../common/postgres';
 import {newHandler} from "../common/handlers";
+import {getEntityNumCoins} from "../../lib/coins";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -25,15 +26,22 @@ export const user_get = newHandler({
     }
     const newUser:User = {
       id: userToken.sub,
+      is_admin: false,
       username: userToken['cognito:username'],
       email: userToken.email || userToken.username + '@thisemailisfake.com',
       notification_preferences: {},
-      is_admin: false,
       last_seen: new Date(),
       join_date: new Date()
     }
 
+    const newEntity:Entity = {
+      id: newUser.id,
+      type: "USER"
+    }
+
+    await db.insertObj(process.env.DB_ENTITIES, newEntity);
     await db.insertObj(process.env.DB_USERS, newUser);
+    newUser.num_coins = 0
     return {
       status: 201,
       body: newUser
@@ -41,6 +49,10 @@ export const user_get = newHandler({
   } else if (user) {
     await db.updateObj(process.env.DB_USERS, user.id, {last_seen: new Date()});
   }
+
+  const numCoins = await getEntityNumCoins(user.id)
+  user.num_coins = numCoins
+
   return {
     status: 200,
     body: user

@@ -6,7 +6,8 @@ import {deleteObj, query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import {APIError, Validation} from "./errors";
-import {User} from "../interfaces/IUser";
+import {User} from "../interfaces/IEntity";
+import { isAdmin } from "./user";
 
 export const ErrNoAssetPermission = new APIError({
 	status: 403,
@@ -63,7 +64,7 @@ export async function getAsset (id: string) : Promise<Asset | undefined> {
 	AND a.deleted = false
 	`
 
-	const rows:Asset[] = await query(_sql, [id], false)
+	const rows:Asset[] = await query(_sql, [id])
 	if (!rows || !rows[0]) {
 		return undefined
 	}
@@ -170,7 +171,7 @@ export async function resetAssets () {
 		JOIN ${process.env.DB_CREATORS} c 
 		ON c.id = a.creator_id
 		WHERE a.deleted = false`
-	const assets:Asset[] = await query(sql, [], false)
+	const assets:Asset[] = await query(sql, [])
 	await reindexAssetsSearch(assets)
 }
 
@@ -236,8 +237,9 @@ export async function verifyUserHasAssetsAccess (user: User, assetIds: string[])
 	if (!user) {
 		throw ErrNoAssetPermission
 	}
-	if (user.is_admin) {
-		return
+
+	if (isAdmin(user)) {
+		return;
 	}
 
 	// Count how many rows exist where this user is a member of the creator

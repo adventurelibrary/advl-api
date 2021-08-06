@@ -7,13 +7,13 @@ import {
 import {Asset} from "../../interfaces/IAsset";
 import {errorResponse, newResponse} from "./response";
 import {ErrAssetNotFound, getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
-import {User} from "../../interfaces/IUser";
+import {User, Creator} from "../../interfaces/IEntity";
 import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
-import {Creator} from "../../interfaces/ICreator";
 import { Bundle } from "../../interfaces/IBundle";
 import { getBundleByID } from "../../lib/bundle";
 import { clientRelease } from "./postgres";
+import { isAdmin } from "../../lib/user";
 
 // This context we build ourselves and pass to our handlers
 // It contains the basic event and context provided by serverless
@@ -122,7 +122,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
           return errorResponse(_evt, `Route requires you to be logged in`, 401)
         }
 
-        if (opts.requireAdmin && !user.is_admin) {
+        if (opts.requireAdmin && !isAdmin(user)) {
           return errorResponse(_evt, `Route requires you to be an admin`, 403)
         }
 
@@ -157,10 +157,11 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.creator = creator
 
         if (opts.requireCreatorPermission) {
+          console.log('require creator perm')
           let hasPerm = false
-          if (!ctx.user) {
+          if (isAdmin(ctx.user)) {
             hasPerm = true
-          } else if (!ctx.user.is_admin) {
+          } else if (ctx.user) {
             hasPerm = await isMemberOfCreatorPage(ctx.creator.id, ctx.user.id)
           }
           if (!hasPerm) {
@@ -176,9 +177,11 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         }
 
         if (opts.requireBundlePermission) {
-          let hasPermission = bundle.user_id == ctx.user.id
-          if (!hasPermission && bundle.creator_id) {
-            hasPermission = await isMemberOfCreatorPage(bundle.creator_id, ctx.user.id)
+          //If bundles' creator id is the same as the current user id, then we're good
+          let hasPermission = bundle.entity_id == ctx.user.id
+          //check if the bundle creator id belongs to a creator the user controls
+          if (!hasPermission) {
+            hasPermission = await isMemberOfCreatorPage(bundle.entity_id, ctx.user.id)
           }
           if (!hasPermission) {
             return errorResponse(_evt, new Error('Not your bundle'), 403)
@@ -193,7 +196,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       // It should return status and body, or throw an error
       const handleResult = await handler(ctx)
       res.statusCode = handleResult.status
-      if (res.statusCode !== 204) {
+      if (res.statusCode !== 204 && res.statusCode != 302) {
         res.body = JSON.stringify(handleResult.body)
       }
     } catch (ex) {

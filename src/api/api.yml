@@ -35,6 +35,31 @@ debug_creator_create:
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
+################## COINS  #########################
+coins_purchase:
+  handler: src/api/coins/coins.coins_purchase
+  events:
+    - http:
+        method: post
+        path: /coins/purchase
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+coins_purchase_options:
+  handler: src/api/coins/coins.coins_options_get
+  events:
+    - http:
+        method: get
+        path: /coins/options
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+stripe_events:
+  handler: src/api/coins/stripe.event_listener
+  events:
+    - http:
+        method: post
+        path: /stripe
 
 ################## USERS  #########################
 user_get:
@@ -240,3 +265,5 @@ bundles_mine:
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
+
+
