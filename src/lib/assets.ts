@@ -1,5 +1,5 @@
 import {bulkIndex, clearIndex, search} from "../api/common/elastic";
-import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
+import {Asset, AssetUnlock, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
 import {deleteObj, query} from "../api/common/postgres";
@@ -55,6 +55,7 @@ export async function searchAsset (id: string) : Promise<Asset> {
 		throw e
 	}
 }
+
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
 	const _sql = `SELECT a.*, c.name as creator_name
@@ -233,6 +234,12 @@ export async function verifyUserHasAssetAccess (user: User, assetId: string) {
 	return await verifyUserHasAssetsAccess(user, [assetId])
 }
 
+/**
+ * Confirms that the user has write access to ALL the asset IDs passed in
+ * Either they're an admin, or they are a member of each of the asset's creators
+ * @param user
+ * @param assetIds
+ */
 export async function verifyUserHasAssetsAccess (user: User, assetIds: string[]) {
 	if (!user) {
 		throw ErrNoAssetPermission
@@ -261,4 +268,51 @@ export async function verifyUserHasAssetsAccess (user: User, assetIds: string[])
 	}
 
 	throw ErrNoAssetPermission
+}
+
+/**
+ * Will take in an array of Assets and will return a copy of the array
+ * Where each asset will have `unlocked` boolean set appropriately,
+ * based on whether the passed in user has unlocked that asset
+ * User can be undefined for when the request has no logged in user
+ *
+ * We do this as one query after getting the data from ElasticSearch
+ * so that EC doesn't have any user-specific information. Doing it
+ * as one query for all assets instead of one query per asset is
+ * done cause it's faster.
+ *
+ * @param assets
+ * @param user
+ */
+export async function setAssetsUnlockedForUser(assets: Asset[], user: User | undefined) : Promise<Asset[]> {
+	// If you aren't logged in, then none are unlocked
+	if (!user) {
+		return assets.map((asset) => {
+			asset.unlocked = false
+			return asset
+		})
+	}
+
+	// We query the database for any unlocks the user has for these provided assets
+	const ids = assets.map(asset => asset.id)
+	const unlocks = await getUserUnlocksForAssetIds(user.id, ids)
+
+	// Return a new copy where each asset's `unlock` boolean is set based on whether
+	// the asset_id exists in the list of unlocks we just queryed for
+	return assets.map((asset) => {
+		const unlocked = unlocks.findIndex(u => u.asset_id == asset.id) >= 0
+		asset.unlocked = unlocked
+		return asset
+	})
+}
+
+// Does the same as the function above, but does it on a single asset
+export async function setAssetUnlockedForUser(asset: Asset, user: User | undefined) : Promise<Asset> {
+	const modified = await setAssetsUnlockedForUser([asset], user)
+	return modified[0]
+}
+
+export async function getUserUnlocksForAssetIds (userId: string, assetIds: string[]) : Promise<AssetUnlock[]> {
+	const res = <AssetUnlock[]>await query(`SELECT * FROM asset_unlocks WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
+	return res
 }

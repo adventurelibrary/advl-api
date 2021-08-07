@@ -32,6 +32,7 @@ export interface Asset extends UserDefinedAssetInfo{
   slug: string,
   thumbnail?: string //Used when returning to Front End
   unlock_count: number,
+  unlocked?: boolean, // Set on an asset we get from the db for a logged in user
   uploaded: Date,
   visibility: visibility_types,
 }
@@ -78,4 +79,12 @@ export interface REQ_Update {
   tags: string[],
   unlock_price: number,
   revenue_share: RevenueShare
+}
+
+export interface AssetUnlock {
+  id: number
+  user_id: string
+  asset_id: string
+  date_created: Date
+  note: string
 }

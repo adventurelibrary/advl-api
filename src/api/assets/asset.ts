@@ -5,7 +5,7 @@ import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import {
   deleteAsset,
-  searchAsset,
+  searchAsset, setAssetUnlockedForUser,
   updateAssetAndIndex,
   validateAssetQuery,
   verifyUserHasAssetsAccess
@@ -63,14 +63,16 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
 }
 
 export const query_assets: APIGatewayProxyHandler = newHandler({
-}, async ({event: _evt}) => {
+  includeUser: true
+}, async ({event: _evt, user}) => {
   let params;
 
   const queryObj = getEvtQuery(_evt.queryStringParameters)
 
   // If ID then just do a GET on the ID, search params don't matter
   if(queryObj.id) {
-    const FrontEndAsset:Asset = await searchAsset(queryObj.id);
+    let FrontEndAsset:Asset = await searchAsset(queryObj.id);
+    FrontEndAsset = await setAssetUnlockedForUser(FrontEndAsset, user)
     return {
       status: 200,
       body: transformAsset(FrontEndAsset)
@@ -79,6 +81,7 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
 
   // Multiple ids
   if(queryObj.ids && queryObj.ids.length) {
+    // TODO: Do a single API call to query multiple IDs, then set AssetUnlocked on them
     let FEAssets:Asset[] = [];
     for(let id of queryObj.ids){
       let FrontEndAsset:Asset;

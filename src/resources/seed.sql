@@ -21,7 +21,7 @@ VALUES ('7fa4da69-739d-4e32-a107-1f0bfd4a544b', 'asset-tester', 'Asset Tester', 
 ('spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw', 'carlos-cara-alvarez-mutante', 'Mutante', 'IMAGE', 'UNKNOWN', '7bffd388-aba7-4bd2-8472-b63fef449805', 0, '2021-06-04 02:45:11', 'PUBLIC', 0, '', 'character', '{"Barbarian"}', 0, '{}'),
 ('caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj', 'house', 'House', 'IMAGE', 'jpg', '224d9090-2c19-4d3c-b43d-b101d4879a3b', 2875969, '2021-06-03 17:33:25', 'PUBLIC', 0, '', 'map', '{"House", "Barbarian"}', 0, '{}'),
 ('B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx','first-kill','First Kill', 'IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',3711875, '2021-06-03 12:42:06', 'PUBLIC',0, '', 'map','{}',0,'{}'),
-('CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2','killion','Killion','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2939370,'2021-06-03 12:42:13','HIDDEN',0,'','character','{}',0,'{}'),
+('CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2','killion','Killion','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2939370,'2021-06-03 12:42:13','HIDDEN',0,'','character','{}',50,'{}'),
 ('DCjzmGvBbMYux64dhLbWeBMpgbDOgrbm','hope-keyshot','Hope Keyshot','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2491374,'2021-06-03 19:42:18','HIDDEN',0,'','scene','{}',0,'{}');
 
 INSERT INTO bundleinfo (id, name, description, entity_id, public) VALUES
@@ -36,6 +36,10 @@ insert into bundleinfo (id, name, description, public, entity_id) values ('ALJMg
 INSERT INTO bundleassets (id, asset_id) VALUES
 ('083e16ae-8f1d-4fd8-af48-e71bf757efd2', 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw');
 
-INSERT INTO entity_coins (entity_id, num_coins, created_date) VALUES
-('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, NOW() - INTERVAL '7 DAYS'),
-('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 1000, NOW() - INTERVAL '7 DAYS');
+INSERT INTO asset_unlocks (user_id, asset_id, coins_spent) VALUES
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 'CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2', 50);
+
+INSERT INTO entity_coins (entity_id, num_coins, created_date, note, unlock_id) VALUES
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, NOW() - INTERVAL '8 DAYS', 'Bought 500 coins', null),
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 1000, NOW() - INTERVAL '7 DAYS', 'Gifted 1000 coins', null),
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 50, NOW() - INTERVAL '6 DAYS', 'Bought an asset', 1);

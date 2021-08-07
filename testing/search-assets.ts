@@ -73,6 +73,7 @@ test('searchassets: get assets by two tags', async (t) => {
 test('searchassets: get asset by id', async (t) => {
 	const body = await getJSON('assets?id=spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
 	t.is(body.id, 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
+	t.is(body.unlocked, false)
 	t.pass()
 })
 
@@ -82,6 +83,24 @@ test('searchassets: get assets by ids', async (t) => {
 	t.is(body[1].id, 'caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj')
 	t.pass()
 })
+
+
+test.only('searchassets: get unlocked asset by id', async (t) => {
+	let body = await getJSON('assets?id=CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2', {
+		userKey: 'TEST1'
+	})
+	t.is(body.id, 'CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2')
+	t.is(body.unlocked, true)
+
+	body = await getJSON('assets?id=CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2', {
+		userKey: 'ADMIN1'
+	})
+	t.is(body.id, 'CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2')
+	t.is(body.unlocked, false)
+
+	t.pass()
+})
+
 
 // TODO: search for assets with text
 // TODO: get assets by category
