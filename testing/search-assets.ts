@@ -3,9 +3,17 @@ import test from 'ava';
 import {getJSON, request, testResStatus} from "./lib/lib";
 
 test('searchassets: get assets', async (t) => {
-	const body = await getJSON('assets')
+	let body = await getJSON('assets')
 	t.is(body.assets.length, 4)
 	t.is(body.total, 4)
+
+	body = await getJSON('assets', {
+		userKey: 'TEST1'
+	})
+	t.is(body.assets[0].unlocked, true)
+	t.is(body.assets[1].unlocked, false)
+	t.is(body.assets[2].unlocked, false)
+	t.is(body.assets[3].unlocked, false)
 	t.pass()
 })
 
@@ -74,6 +82,14 @@ test('searchassets: get asset by id', async (t) => {
 	const body = await getJSON('assets?id=spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
 	t.is(body.id, 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
 	t.is(body.unlocked, false)
+
+	const res = await request('assets?id=CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2')
+	const err = await testResStatus(res, 404)
+	if (err) {
+		t.fail(err)
+	}
+
+
 	t.pass()
 })
 
@@ -85,17 +101,17 @@ test('searchassets: get assets by ids', async (t) => {
 })
 
 
-test.only('searchassets: get unlocked asset by id', async (t) => {
-	let body = await getJSON('assets?id=CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2', {
+test('searchassets: get unlocked asset by id', async (t) => {
+	let body = await getJSON('assets?id=B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx', {
 		userKey: 'TEST1'
 	})
-	t.is(body.id, 'CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2')
+	t.is(body.id, 'B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx')
 	t.is(body.unlocked, true)
 
-	body = await getJSON('assets?id=CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2', {
+	body = await getJSON('assets?id=B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx', {
 		userKey: 'ADMIN1'
 	})
-	t.is(body.id, 'CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2')
+	t.is(body.id, 'B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx')
 	t.is(body.unlocked, false)
 
 	t.pass()

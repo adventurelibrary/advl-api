@@ -4,10 +4,10 @@ import {Asset, Category, image_file_resolutions, REQ_Query} from '../../interfac
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import {
-  deleteAsset,
-  searchAsset, setAssetUnlockedForUser,
+  deleteAsset, ErrNoAssetPermission,
+  searchAsset, setAssetsUnlockedForUser, setAssetUnlockedForUser,
   updateAssetAndIndex,
-  validateAssetQuery,
+  validateAssetQuery, verifyUserHasAssetAccess,
   verifyUserHasAssetsAccess
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
@@ -72,6 +72,23 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
   // If ID then just do a GET on the ID, search params don't matter
   if(queryObj.id) {
     let FrontEndAsset:Asset = await searchAsset(queryObj.id);
+
+    // If this asset isnn't public, then we need to ensure that this user has
+    // the proper access
+    if (FrontEndAsset.visibility !== 'PUBLIC') {
+      try {
+        await verifyUserHasAssetAccess(user, FrontEndAsset.id)
+      } catch (ex) {
+        // If they don't have permission we just throw a 404
+        if (ex == ErrNoAssetPermission) {
+          return {
+            status: 404,
+          }
+        }
+        throw ex
+      }
+    }
+
     FrontEndAsset = await setAssetUnlockedForUser(FrontEndAsset, user)
     return {
       status: 200,
@@ -220,10 +237,15 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
   }
   let searchResults = await search.search(params)
 
+
   let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
     doc._source = transformAsset(doc._source)
     return doc._source
   })
+
+  // Change the `unlock` of each asset, based on the logged in user
+  FrontEndAssets = await setAssetsUnlockedForUser(FrontEndAssets, user)
+
   return {
     body: {
       assets: FrontEndAssets,
