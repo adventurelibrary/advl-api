@@ -7,7 +7,7 @@ const pg_read = new Pool({
   max: 1,
 })
 
-const pg_write = new Pool({
+export const pg_write = new Pool({
   user: process.env.POSTGRES_USERNAME,
   password: process.env.POSTGRES_PASSWORD,
   host: process.env.POSTGRES_WRITE_URL,

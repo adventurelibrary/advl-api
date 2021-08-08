@@ -316,3 +316,37 @@ export async function getUserUnlocksForAssetIds (userId: string, assetIds: strin
 	const res = <AssetUnlock[]>await query(`SELECT * FROM asset_unlocks WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
 	return res
 }
+
+export async function getUserAssetUnlock (userId: string, assetId: string) : Promise<AssetUnlock | undefined> {
+	const res = await getUserUnlocksForAssetIds(userId, [assetId])
+	return res[0]
+}
+
+/**
+ * This will insert a new unlock for the given user for the asset
+ * The user will have their total coins adjusted
+ */
+export async function userPurchaseAssetUnlock (userId, asset: Asset) {
+	const client = await pg_write.connect()
+
+	try {
+		await client.query('BEGIN')
+		const res = await client.query(`INSERT INTO asset_unlocks (user_id, asset_id, coins_spent) 
+			VALUES ($1, $2, $3) RETURNING id;`, [userId, asset.id, asset.unlock_price])
+		const unlockId = res.rows[0].id
+
+		const insertCoinSQL = `INSERT INTO entity_coins (entity_id, num_coins, unlock_id)
+			VALUES ($1, $2, $3)`
+		await client.query(insertCoinSQL, [userId, asset.unlock_price, unlockId])
+
+		// TODO: Calculate the split for Adventure Library and the Creator, and insert those
+		// entries into entity_coins as well
+
+		await client.query('COMMIT')
+	} catch (e) {
+		await client.query('ROLLBACK')
+		throw e
+	} finally {
+		client.release()
+	}
+}

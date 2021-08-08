@@ -73,7 +73,7 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
   if(queryObj.id) {
     let FrontEndAsset:Asset = await searchAsset(queryObj.id);
 
-    // If this asset isnn't public, then we need to ensure that this user has
+    // If this asset isn't public, then we need to ensure that this user has
     // the proper access
     if (FrontEndAsset.visibility !== 'PUBLIC') {
       try {
@@ -332,5 +332,36 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
   }
   return {
     status: 204,
+  }
+})
+
+export const asset_unlock = newHandler({
+  requireUser: true,
+  requireAsset: true
+}, async ({user, asset}) => {
+  // First we make sure that this user hasn't already unlocked this asset
+  const unlock = await getUserAssetUnlock(user.id, asset.id)
+  if (unlock) {
+    throw new APIError({
+      status: 400,
+      message: 'You have already unlocked that asset'
+    })
+  }
+
+  // Next we make sure they have enough coins to unlock this asset
+  const numCoins = await getEntityNumCoins(user.id)
+  if (numCoins < asset.unlock_price) {
+    throw new APIError({
+      status: 400,
+      message: `You do not have enough coins.`
+    })
+  }
+
+
+  // Create the unlock and add new entity_coins entries
+  await userPurchaseAssetUnlock(user.id, asset)
+
+  return {
+    status: 204
   }
 })

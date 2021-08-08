@@ -136,6 +136,9 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         if (!asset && opts.requireAsset) {
           throw ErrAssetNotFound
         }
+
+        // TODO: Check the asset's visibility
+
         ctx.asset = asset
 
         // If this option is on for this route, then the user needs to be a member of
