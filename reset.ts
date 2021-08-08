@@ -21,6 +21,7 @@ async function run () {
 	// Clear and re-index in elastic search
 	await resetBundles()
 	await resetAssets()
+	process.exit(0)
 }
 run()
 /*

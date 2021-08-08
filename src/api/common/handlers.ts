@@ -137,7 +137,11 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
           throw ErrAssetNotFound
         }
 
-        // TODO: Check the asset's visibility
+        if (asset.visibility != 'PUBLIC') {
+          console.log('Asset isnt public, sending not found error')
+          // TODO: Maybe allow this for admins and creators of the asset?
+          throw ErrAssetNotFound
+        }
 
         ctx.asset = asset
 

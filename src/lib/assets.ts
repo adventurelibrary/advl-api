@@ -327,7 +327,7 @@ export async function getUserAssetUnlock (userId: string, assetId: string) : Pro
  * The user will have their total coins adjusted
  */
 export async function userPurchaseAssetUnlock (userId, asset: Asset) {
-	const client = await pg_write.connect()
+	const client = await db.pg_write.connect()
 
 	try {
 		await client.query('BEGIN')

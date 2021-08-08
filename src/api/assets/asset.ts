@@ -4,17 +4,25 @@ import {Asset, Category, image_file_resolutions, REQ_Query} from '../../interfac
 import * as b2 from '../common/backblaze';
 import {errorResponse, newResponse} from "../common/response";
 import {
-  deleteAsset, ErrNoAssetPermission,
-  searchAsset, setAssetsUnlockedForUser, setAssetUnlockedForUser,
+  deleteAsset,
+  ErrNoAssetPermission,
+  searchAsset,
+  setAssetsUnlockedForUser,
+  setAssetUnlockedForUser,
   updateAssetAndIndex,
-  validateAssetQuery, verifyUserHasAssetAccess,
+  validateAssetQuery,
+  verifyUserHasAssetAccess,
   verifyUserHasAssetsAccess
+  getUserAssetUnlock,
+  userPurchaseAssetUnlock,
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
 import {getUserCreatorIds} from "../../lib/creator";
 import {getEventUser} from "../common/events";
 import * as db from '../common/postgres';
+import {ErrNotEnoughCoins, ErrAssetAlreadyUnlocked} from "../../constants/errors"
+import {getEntityNumCoins} from "../../lib/coins"
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -342,19 +350,13 @@ export const asset_unlock = newHandler({
   // First we make sure that this user hasn't already unlocked this asset
   const unlock = await getUserAssetUnlock(user.id, asset.id)
   if (unlock) {
-    throw new APIError({
-      status: 400,
-      message: 'You have already unlocked that asset'
-    })
+    throw ErrAssetAlreadyUnlocked
   }
 
   // Next we make sure they have enough coins to unlock this asset
   const numCoins = await getEntityNumCoins(user.id)
   if (numCoins < asset.unlock_price) {
-    throw new APIError({
-      status: 400,
-      message: `You do not have enough coins.`
-    })
+    throw ErrNotEnoughCoins
   }
 
 
