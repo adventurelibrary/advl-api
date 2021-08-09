@@ -9,7 +9,7 @@ function load () {
 
 	data = data['dev'];
 
-	['stripe', 'elastic', 'transloadit', 'backblaze', 'postgres'].forEach((module) => {
+	['common', 'stripe', 'elastic', 'transloadit', 'backblaze', 'postgres'].forEach((module) => {
 		console.log(`Loading in ${module} env variables`)
 		Object.keys(data[module]).forEach((key) => {
 			const val = data[module][key]

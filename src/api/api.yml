@@ -176,6 +176,16 @@ asset_download_link:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+delete_asset:
+  handler: src/api/assets/asset.delete_asset
+  events:
+    - http:
+        method: post
+        path: /assets/{assetID}/delete
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
 update_asset:
   handler: src/api/assets/asset.update_asset
   events:

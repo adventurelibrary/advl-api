@@ -12,8 +12,6 @@ if (!process.env.ELASTIC_PASSWORD) {
   throw new Error(`ELASTIC_PASSWORD is blank. Check your .env.yml, or make sure to use load-yaml-env.ts`)
 }
 
-
-
 export const search = (() => {
   if(process.env.IS_OFFLINE){
     console.log('OFFLINE CLIENT FOR EC', process.env.ELASTIC_ENDPOINT)
@@ -25,6 +23,7 @@ export const search = (() => {
       }
     })
   } else {
+    console.log('Connecting to ELASTIC_CLOUD_ID:' + process.env.ELASTIC_CLOUD_ID)
     return new Client({
       cloud: {
         id: process.env.ELASTIC_CLOUD_ID

@@ -39,7 +39,6 @@ async function executeStatement(sql: string, params:any[]){
     const res = await pg_read.query(sql, params);
     return res;
   }
-
 }
 
 export async function query(sql:string, params:any[] = []){

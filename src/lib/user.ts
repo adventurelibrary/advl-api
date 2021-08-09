@@ -4,6 +4,15 @@ import {User, UserToken} from '../interfaces/IEntity';
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
 
+if (!process.env.STAGE) {
+  throw new Error(`env variable STAGE is not set. Three possible reasons
+  1. You forgot o include the load-yaml-env.ts file at the top of a file
+  2. You didn't provide "--stage dev" to your serverless command"
+  3. You need set the env variable before running a command line script, such as npm run reset
+    3a. Windows: set STAGE=dev&&npm run reset
+    3b. Linux:   STAGE=dev npm run reset`)
+}
+
 export async function getUserByID(id: string): Promise<User> {
   try{
     const _sql = `

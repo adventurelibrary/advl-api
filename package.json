@@ -58,6 +58,7 @@
       "!./testing/lib/*",
       "!./testing/files/*"
     ],
+    "verbose": true,
     "extensions": [
       "ts"
     ],

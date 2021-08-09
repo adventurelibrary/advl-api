@@ -1,6 +1,12 @@
 import test from 'ava'
-import {request, testResStatus} from "./lib/lib";
-import {ASSET_1, ASSET_3} from "./lib/fixtures";
+import '../load-yaml-env'
+import {AccessTest, getJSON, request, testPathAccess, testResStatus} from "./lib/lib";
+import {ASSET_1, ASSET_3, CREATOR_2} from "./lib/fixtures";
+import {updateAssetSearchById} from "../src/lib/assets";
+import {Asset} from "../src/interfaces/IAsset";
+import {idgen} from "../src/api/common/nanoid";
+import slugify from "slugify";
+import * as db from "../src/api/common/postgres";
 
 test('asset: get asset with wrong id', async (t) => {
 	const res = await request(`asset/id-does-not-exit`)
@@ -82,7 +88,6 @@ test.serial('asset:put update an asset as admin', async (t) => {
 	t.pass()
 })
 
-
 test.serial('asset:put update an asset as creator', async (t) => {
 	let res = await request(`assets/${ASSET_3}`)
 	let err = await testResStatus(res, 200)
@@ -126,8 +131,7 @@ test.serial('asset:put update an asset as creator', async (t) => {
 	t.pass()
 })
 
-
-test('asset:put update an asset as regular user', async (t) => {
+test.serial('asset:put update an asset as regular user', async (t) => {
 	let res = await request(`assets/update`, {
 		userKey: 'TEST1',
 		method: 'PUT',
@@ -141,5 +145,84 @@ test('asset:put update an asset as regular user', async (t) => {
 		t.fail(err)
 	}
 
+	t.pass()
+})
+
+test.serial('asset:delete an asset with no purchases', async (t) => {
+	// Create a new asset
+	const id = idgen()
+	const name = 'Map To Be Deleted'
+	let newAsset: Asset = {
+		id: id,
+		category: 'map',
+		creator_id: CREATOR_2,
+		deleted: false,
+		description: 'This map s about to be deleted',
+		filetype: "IMAGE",
+		name: name,
+		original_file_ext: 'UNKNOWN',
+		revenue_share: {},
+		size_in_bytes: 0,
+		slug: slugify(name).toLowerCase(),
+		tags: [],
+		unlock_count: 0,
+		unlock_price: 0,
+		uploaded: new Date(),
+		visibility: "PUBLIC",
+	}
+	await db.insertObj(process.env.DB_ASSETS, newAsset);
+	await updateAssetSearchById(id)
+
+	// Double check that this new asset appears in the search
+
+	const body = await getJSON('assets?id=' + id)
+	t.is(body.id, id)
+
+	// Delete it
+	let res = await request('assets/' + id + '/delete', {
+		method: 'POST',
+		userKey: 'CREATOR1' // This user has access to the creator who made this
+	})
+	if (res.status != 200) {
+		t.fail(`Got status of ${res.status} instead of 200`)
+	}
+
+	const json = await res.json()
+	t.is(json.result, 'deleted') // Should be deleted, not hidden
+
+	// Shouldn't be in the search anymore
+	res = await request('assets?id=' + id)
+	let err = await testResStatus(res, 404)
+	if (err) {
+		t.fail(err)
+	}
+
+	// Shouldn't be accessible directly anymore
+	res = await request('assets/' + id)
+	err = await testResStatus(res, 404)
+	if (err) {
+		t.fail(err)
+	}
+
+	t.pass()
+})
+
+test('asset:delete path access', async (t) => {
+	const path = 'assets/' + ASSET_1 + '/delete'
+	let tests : AccessTest[] = [{
+		// A user without access to this asset's creator
+		userKey: 'TEST1',
+		expectedStatus: 403,
+	}, {
+		// Not logged in
+		userKey: null,
+		expectedStatus: 401,
+	}]
+	let err = await testPathAccess(path, tests, {
+		method: 'POST'
+	})
+	if (err != null) {
+		t.fail(err)
+	}
 	t.pass()
 })
