@@ -12,7 +12,7 @@ import {
   verifyUserHasAssetAccess,
   verifyUserHasAssetsAccess,
   getUserAssetUnlock,
-  userPurchaseAssetUnlock, verifyUserHasUnlockedAsset,
+  userPurchaseAssetUnlock, verifyUserHasUnlockedAsset, getUserAssetUnlocks,
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
@@ -107,18 +107,32 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
     }
   }
 
-  // Multiple ids
+  let from = queryObj['from'] ? queryObj['from'] : 0
+  let size = queryObj['size'] ? queryObj['size'] : 10
+
+  let assetIds : string [] = []
+
+  // Multiple ids provided by the query string
   if(queryObj.ids && queryObj.ids.length) {
-    // TODO: Do a single API call to query multiple IDs, then set AssetUnlocked on them
-    let FEAssets:Asset[] = [];
-    for(let id of queryObj.ids){
-      let FrontEndAsset:Asset;
-      FrontEndAsset = await searchAsset(id);
-      FEAssets.push(transformAsset(FrontEndAsset));
-    }
-    return {
-      status: 200,
-      body: FEAssets
+    assetIds = queryObj.ids
+  } else {
+    // If the query contains ?unlocked, then we only return assets that have been unlocked
+    // by the currently logged in user
+    if (queryObj.hasOwnProperty('unlocked')) {
+      if (!user) {
+        throw new APIError({
+          status: 401,
+          message: 'You must be logged in to get unlocked assets'
+        })
+      }
+      const uls = await getUserAssetUnlocks(user.id, from, size)
+      assetIds = uls.map(ul => ul.asset_id)
+
+      // We have to reset the skip here back to 0. We're skipping through the assets
+      // in the query above, not in the ElasticSearch query.
+      // We want to go like "hey postgres, give me 10 unlocks, and skip 30 of them"
+      // and then go "hey elasticsearch, give me these 10 assets, don't skip any of them"
+      from = 0
     }
   }
 
@@ -142,6 +156,14 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
         }
       ]
     }
+  }
+
+  if (assetIds.length) {
+    _query.bool.must.push({
+      ids: {
+        values: assetIds
+      }
+    })
   }
 
   // TODO: Only admins and people getting their own assets should be able to remove the PUBLIC filter
@@ -233,8 +255,8 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
   params = {
     index: process.env.INDEX_ASSETDB,
     body: {
-      from: queryObj['from'] ? queryObj['from'] : 0,
-      size: queryObj['size'] ? queryObj['size'] : 10,
+      from: from,
+      size: size,
       sort: queryObj['sort'] ?
         [{
           [queryObj['sort']] : queryObj['sort_type']
@@ -246,6 +268,7 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
       query: _query
     }
   }
+  console.log('params', JSON.stringify(params, null, 2))
   let searchResults = await search.search(params)
 
 

@@ -2,7 +2,7 @@ import {bulkIndex, clearIndex, search} from "../api/common/elastic";
 import {Asset, AssetUnlock, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
-import {deleteObj, getWritePool, query} from "../api/common/postgres";
+import {deleteObj, getObjects, getWritePool, query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import {Validation} from "./errors";
@@ -311,6 +311,11 @@ export async function setAssetUnlockedForUser(asset: Asset, user: User | undefin
 
 export async function getUserUnlocksForAssetIds (userId: string, assetIds: string[]) : Promise<AssetUnlock[]> {
 	const res = <AssetUnlock[]>await query(`SELECT * FROM asset_unlocks WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
+	return res
+}
+
+export async function getUserAssetUnlocks (userId: string, skip: number, limit: number) : Promise<AssetUnlock[]> {
+	const res = <AssetUnlock[]>await getObjects(`SELECT * FROM asset_unlocks WHERE user_id = $1`, [userId], skip, limit, 'created_date DESC')
 	return res
 }
 

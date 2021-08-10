@@ -1,6 +1,7 @@
 import test from 'ava';
 
 import {getJSON, request, testResStatus} from "./lib/lib";
+import {ASSET_4} from "./lib/fixtures";
 
 test('searchassets: get assets', async (t) => {
 	let body = await getJSON('assets')
@@ -95,8 +96,8 @@ test('searchassets: get asset by id', async (t) => {
 
 test('searchassets: get assets by ids', async (t) => {
 	const body = await getJSON('assets?ids=spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw,caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj')
-	t.is(body[0].id, 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
-	t.is(body[1].id, 'caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj')
+	t.is(body.assets[0].id, 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
+	t.is(body.assets[1].id, 'caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj')
 	t.pass()
 })
 
@@ -117,6 +118,16 @@ test('searchassets: get unlocked asset by id', async (t) => {
 	t.pass()
 })
 
+test('searchassets:my unlocked assets', async (t) => {
+	const body = await getJSON('assets?unlocked', {
+		userKey: 'TEST1'
+	})
+	t.is(body.total, 1)
+	t.is(body.assets[0].id, ASSET_4)
+	t.pass()
+})
+
+// TODO: Test for user with many assets unlocked. Pagination as well
 
 // TODO: search for assets with text
 // TODO: get assets by category
