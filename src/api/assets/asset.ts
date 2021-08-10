@@ -397,6 +397,9 @@ export const asset_unlock = newHandler({
   await userPurchaseAssetUnlock(user.id, asset)
 
   return {
-    status: 204
+    status: 200,
+    body: {
+      numCoins: numCoins - asset.unlock_price
+    }
   }
 })

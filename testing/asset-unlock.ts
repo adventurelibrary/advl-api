@@ -68,10 +68,12 @@ test('asset:unlock', async (t) => {
 		method: 'POST',
 		userKey: 'TEST1',
 	})
-	let err = await testResStatus(res, 204)
+	let err = await testResStatus(res, 200)
 	if (err) {
 		t.fail(err)
 	}
+	const json = await res.json()
+	t.is(json.numCoins, 1400)
 	// Confirm getting the asset shows it unlocked
 	res = await request(`/assets?id=${ASSET_1}`, {
 		userKey: 'TEST1'
