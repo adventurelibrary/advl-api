@@ -1,13 +1,12 @@
 import test from 'ava'
 import '../load-yaml-env'
 import {AccessTest, getJSON, request, testPathAccess, testResStatus} from "./lib/lib";
-import {ASSET_1, ASSET_3, CREATOR_2, ASSET_HIDDEN} from "./lib/fixtures";
+import {ASSET_1, ASSET_3, CREATOR_2} from "./lib/fixtures";
 import {updateAssetSearchById} from "../src/lib/assets";
 import {Asset} from "../src/interfaces/IAsset";
 import {idgen} from "../src/api/common/nanoid";
 import slugify from "slugify";
 import * as db from "../src/api/common/postgres";
-import {ErrAssetNotFound, ErrAssetNotUnlocked} from "../src/constants/errors"
 
 test('asset: get asset with wrong id', async (t) => {
 	const res = await request(`asset/id-does-not-exit`)
@@ -30,51 +29,6 @@ test('asset: get asset directly', async (t) => {
 	t.is(json.visibility, 'PUBLIC')
 	t.is(json.filetype, 'IMAGE')
 	t.is(json.unlock_price, 50)
-	t.pass()
-})
-
-test('asset: get an asset download link for unlocked asset', async (t) => {
-	const res = await request(`assets/${ASSET_4}/download`, {
-		userKey: 'TEST1'
-	})
-	let err = await testResStatus(res, 200)
-	if (err) {
-		t.fail(err)
-	}
-	const json = await res.json()
-	t.true(json.link.indexOf('http') === 0, 'Link should begin with http')
-	t.pass()
-})
-
-test('asset: get an asset download link for HIDDEN asset', async (t) => {
-	const res = await request(`assets/${ASSET_HIDDEN}/download`, {
-		userKey: 'TEST1'
-	})
-	const err = testResError(res, ErrAssetNotFound)
-	if (err) {
-		t.fail(err)
-	}
-	t.pass()
-})
-
-
-test('asset: get an asset download link for locked asset', async (t) => {
-	const res = await request(`assets/${ASSET_1}/download`, {
-		userKey: 'TEST1'
-	})
-	const err = testResError(res, ErrAssetNotUnlocked)
-	if (err) {
-		t.fail(err)
-	}
-	t.pass()
-})
-
-test('asset: get an asset download link with wrong id', async (t) => {
-	const res = await request(`assets/43263264363/download`)
-	let err = await testResStatus(res, 404)
-	if (err) {
-		t.fail(err)
-	}
 	t.pass()
 })
 

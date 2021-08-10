@@ -38,7 +38,6 @@ test('user:get session of regular user', async (t) => {
   t.is(data.username, 'test-user-01')
   t.is(data.is_creator, false)
   t.is(data.is_admin, false)
-  t.is(data.num_coins, 1500)
   t.pass()
 })
 

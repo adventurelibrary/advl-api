@@ -2,11 +2,10 @@ import '../load-yaml-env'
 import test from 'ava';
 import {request, testResError, testResStatus} from "./lib/lib";
 import {ASSET_HIDDEN, ASSET_1, ASSET_4, USER1} from "./lib/fixtures"
-import {ErrAssetNotFound} from "../src/lib/assets"
-import {ErrNotEnoughCoins, ErrAssetAlreadyUnlocked} from "../src/constants/errors"
+import {ErrNotEnoughCoins, ErrAssetAlreadyUnlocked, ErrAssetNotFound} from "../src/constants/errors"
 import {query} from "../src/api/common/postgres"
 
-test('asset:unlock an asset that doesnt exist', async (t) => {
+test('asset:unlock:does not exist', async (t) => {
 	const res = await request(`/assets/332434253425/unlock`, {
 		method: 'POST',
 		userKey: 'TEST1'
@@ -18,7 +17,7 @@ test('asset:unlock an asset that doesnt exist', async (t) => {
 	t.pass()
 })
 
-test('asset:unlock an asset that is HIDDEN', async (t) => {
+test('asset:unlock:HIDDEN', async (t) => {
 	const res = await request(`/assets/${ASSET_HIDDEN}/unlock`, {
 		method: 'POST',
 		userKey: 'TEST1'
@@ -30,7 +29,7 @@ test('asset:unlock an asset that is HIDDEN', async (t) => {
 	t.pass()
 })
 
-test('asset:unlock: unlock an asset when you dont have enough coins', async (t) => {
+test('asset:unlock:not have enough coins', async (t) => {
 	const res = await request(`/assets/${ASSET_1}/unlock`, {
 		method: 'POST',
 		userKey: 'CREATOR1'
@@ -43,10 +42,10 @@ test('asset:unlock: unlock an asset when you dont have enough coins', async (t) 
 })
 
 
-test('asset:unlock: unlock an asset when you already have it unlocked', async (t) => {
+test('asset:unlock:already have it unlocked', async (t) => {
 	const res = await request(`/assets/${ASSET_4}/unlock`, {
 		method: 'POST',
-		userKey: 'CREATOR1'
+		userKey: 'TEST1'
 	})
 	const err = await testResError(res, ErrAssetAlreadyUnlocked)
 	if (err) {
@@ -55,7 +54,7 @@ test('asset:unlock: unlock an asset when you already have it unlocked', async (t
 	t.pass()
 })
 
-test.only('asset:unlock: unlock an asset', async (t) => {
+test('asset:unlock', async (t) => {
 	// Double check their coins at the start
 	let res = await request(`/users`, {
 		userKey: 'TEST1'
@@ -95,18 +94,14 @@ test.only('asset:unlock: unlock an asset', async (t) => {
 			AND num_coins = -50 
 			AND unlock_id > 1
 			LIMIT 1`, [USER1])
-		console.log('sel', sel)
-		const res = await query(`DELETE FROM entity_coins WHERE id = $1`, [sel[0].id]) 
-		console.log('deletee res', res)
+		await query(`DELETE FROM entity_coins WHERE id = $1`, [sel[0].id])
 	} catch (ex) {
-		console.log('ex', ex)
 		t.fail()
 	}
-	
+
 	try {
 		await query(`DELETE FROM asset_unlocks WHERE asset_id = $1 AND user_id = $2`, [ASSET_1, USER1])
 	} catch (ex) {
-		console.log('ex', ex)
 		t.fail()
 	}
 

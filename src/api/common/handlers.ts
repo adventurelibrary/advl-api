@@ -6,7 +6,7 @@ import {
 } from "aws-lambda";
 import {Asset} from "../../interfaces/IAsset";
 import {errorResponse, newResponse} from "./response";
-import {ErrAssetNotFound, getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
+import {getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
 import {User, Creator} from "../../interfaces/IEntity";
 import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
@@ -14,6 +14,7 @@ import { Bundle } from "../../interfaces/IBundle";
 import { getBundleByID } from "../../lib/bundle";
 import { clientRelease } from "./postgres";
 import { isAdmin } from "../../lib/user";
+import {ErrAssetNotFound} from "../../constants/errors";
 
 // This context we build ourselves and pass to our handlers
 // It contains the basic event and context provided by serverless

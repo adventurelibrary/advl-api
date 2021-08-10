@@ -2,25 +2,13 @@ import {bulkIndex, clearIndex, search} from "../api/common/elastic";
 import {Asset, AssetUnlock, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
-import {deleteObj, query} from "../api/common/postgres";
+import {deleteObj, getWritePool, query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
-import {APIError, Validation} from "./errors";
-import {ErrAssetNotUnlocked} from "../constants/errors"
+import {Validation} from "./errors";
+import {ErrAssetNotFound, ErrAssetNotUnlocked, ErrNoAssetPermission} from "../constants/errors"
 import {User} from "../interfaces/IEntity";
 import { isAdmin } from "./user";
-
-export const ErrNoAssetPermission = new APIError({
-	status: 403,
-	key: 'no_asset_access',
-	message: 'You do not have permission to access those assets'
-})
-
-export const ErrAssetNotFound = new APIError({
-	status: 404,
-	key: 'asset_not_found',
-	message: 'Could not find that asset'
-})
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -336,7 +324,7 @@ export async function getUserAssetUnlock (userId: string, assetId: string) : Pro
  * The user will have their total coins adjusted
  */
 export async function userPurchaseAssetUnlock (userId, asset: Asset) {
-	const client = await db.pg_write.connect()
+	const client = await getWritePool().connect()
 
 	try {
 		await client.query('BEGIN')

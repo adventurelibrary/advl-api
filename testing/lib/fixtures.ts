@@ -28,6 +28,7 @@ export const users = {
   },
   CREATOR1: {
     username: 'test-creator-1',
-    password: 'test-password'
+    password: 'test-password',
+    id: '349b984e-8e2e-4a4b-993b-34df19189dbf'
   }
 }

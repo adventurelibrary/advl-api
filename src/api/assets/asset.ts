@@ -2,10 +2,8 @@ import {APIGatewayProxyEventQueryStringParameters, APIGatewayProxyHandler} from 
 import {search} from '../common/elastic';
 import {Asset, Category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
-import {errorResponse, newResponse} from "../common/response";
 import {
   deleteAsset,
-  ErrNoAssetPermission,
   searchAsset,
   setAssetsUnlockedForUser,
   setAssetUnlockedForUser,
@@ -14,14 +12,19 @@ import {
   verifyUserHasAssetAccess,
   verifyUserHasAssetsAccess,
   getUserAssetUnlock,
-  userPurchaseAssetUnlock,
+  userPurchaseAssetUnlock, verifyUserHasUnlockedAsset,
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
 import {getUserCreatorIds} from "../../lib/creator";
 import {getEventUser} from "../common/events";
 import * as db from '../common/postgres';
-import {ErrNotEnoughCoins, ErrAssetAlreadyUnlocked} from "../../constants/errors"
+import {
+  ErrNotEnoughCoins,
+  ErrAssetAlreadyUnlocked,
+  ErrNoAssetPermission,
+  ErrDownloadTypeMissing
+} from "../../constants/errors"
 import {getEntityNumCoins} from "../../lib/coins"
 
 /**
@@ -272,6 +275,10 @@ export const asset_download_link = newHandler({
   requireUser: true,
   requireAsset: true
 }, async ({event, asset, user}: HandlerContext) => {
+  if (!event.queryStringParameters || !event.queryStringParameters.type) {
+    throw ErrDownloadTypeMissing
+  }
+
   // Will throw an error if the current logged in user has not unlocked
   // this asset
   await verifyUserHasUnlockedAsset(user.id, asset.id)
@@ -362,7 +369,6 @@ export const asset_unlock = newHandler({
   if (numCoins < asset.unlock_price) {
     throw ErrNotEnoughCoins
   }
-
 
   // Create the unlock and add new entity_coins entries
   await userPurchaseAssetUnlock(user.id, asset)
