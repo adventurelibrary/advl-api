@@ -42,4 +42,4 @@ INSERT INTO asset_unlocks (user_id, asset_id, coins_spent) VALUES
 INSERT INTO entity_coins (entity_id, num_coins, created_date, note, unlock_id) VALUES
 ('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, NOW() - INTERVAL '8 DAYS', 'Bought 500 coins', null),
 ('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 1000, NOW() - INTERVAL '7 DAYS', 'Gifted 1000 coins', null),
-('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 50, NOW() - INTERVAL '6 DAYS', 'Bought an asset', 1);
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', -50, NOW() - INTERVAL '6 DAYS', 'Bought an asset', 1);

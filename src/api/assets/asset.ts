@@ -12,7 +12,7 @@ import {
   updateAssetAndIndex,
   validateAssetQuery,
   verifyUserHasAssetAccess,
-  verifyUserHasAssetsAccess
+  verifyUserHasAssetsAccess,
   getUserAssetUnlock,
   userPurchaseAssetUnlock,
 } from "../../lib/assets";
@@ -269,9 +269,13 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
  * Only authorized users should be able to fetch certain types of files
  */
 export const asset_download_link = newHandler({
-  includeUser: true, // For later, we can check the user passed in
+  requireUser: true,
   requireAsset: true
-}, async ({event, asset}: HandlerContext) => {
+}, async ({event, asset, user}: HandlerContext) => {
+  // Will throw an error if the current logged in user has not unlocked
+  // this asset
+  await verifyUserHasUnlockedAsset(user.id, asset.id)
+
   let link = 'ERROR_FETCHING_LINK';
   if(asset.filetype == "IMAGE"){
     link = b2.GetURL(<image_file_resolutions>event.queryStringParameters.type, asset);

@@ -6,6 +6,7 @@ import {deleteObj, query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
 import {APIError, Validation} from "./errors";
+import {ErrAssetNotUnlocked} from "../constants/errors"
 import {User} from "../interfaces/IEntity";
 import { isAdmin } from "./user";
 
@@ -230,6 +231,14 @@ export async function assetHasPurchases (assetId: string) : Promise<boolean> {
 	})
 }
 
+export async function verifyUserHasUnlockedAsset (userId: string, assetId: string) {
+	const ul = await getUserAssetUnlock(userId, assetId)
+	if (!ul) {
+		throw ErrAssetNotUnlocked
+	}
+}
+
+// Will throw an error if the user doesn't not have write access to this asset
 export async function verifyUserHasAssetAccess (user: User, assetId: string) {
 	return await verifyUserHasAssetsAccess(user, [assetId])
 }
@@ -337,7 +346,7 @@ export async function userPurchaseAssetUnlock (userId, asset: Asset) {
 
 		const insertCoinSQL = `INSERT INTO entity_coins (entity_id, num_coins, unlock_id)
 			VALUES ($1, $2, $3)`
-		await client.query(insertCoinSQL, [userId, asset.unlock_price, unlockId])
+		await client.query(insertCoinSQL, [userId, asset.unlock_price * -1, unlockId])
 
 		// TODO: Calculate the split for Adventure Library and the Creator, and insert those
 		// entries into entity_coins as well

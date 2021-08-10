@@ -11,3 +11,9 @@ export const ErrAssetAlreadyUnlocked = new APIError({
   key: 'asset_already_unlocked',
   message: 'You have already unlocked that asset'
 })
+
+export const ErrAssetNotUnlocked = new APIError({
+	status: 400,
+	key: 'asset_not_unlocked',
+	message: 'You have not unlocked that asset'
+})

@@ -1,6 +1,7 @@
 export const ASSET_1 = '7fa4da69-739d-4e32-a107-1f0bfd4a544b'
 export const ASSET_2 = 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw'
 export const ASSET_3 = 'caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj'
+export const ASSET_4 = 'B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx'
 export const ASSET_HIDDEN = 'CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2'
 
 export const BUNDLE_1 = 'ALJMgJbpNUxzzaGgx1PQzx0RpUNTZziS'
