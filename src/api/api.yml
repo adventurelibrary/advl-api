@@ -166,6 +166,16 @@ query_assets:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+asset_unlock:
+  handler: src/api/assets/asset.asset_unlock
+  events:
+    - http:
+        method: post
+        path: /assets/{assetID}/unlock
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
 asset_download_link:
   handler: src/api/assets/asset.asset_download_link
   events:

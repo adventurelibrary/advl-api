@@ -11,7 +11,7 @@ import {getEntityNumCoins} from "../src/lib/coins";
 // Buy Coin Pack
 ava.serial('coins: buy a coinpack for a user', async (t) => {
   let res = await request('coins/purchase', {
-    userKey: 'TEST1',
+    userKey: 'CREATOR1',
     method: 'POST',
     body: {
       coins: 500
@@ -29,7 +29,7 @@ ava.serial('coins: buy a coinpack for a user', async (t) => {
 
   const rows = await query(`SELECT * FROM ${process.env.DB_COIN_PURCHASES} ORDER BY created_date DESC`)
   const first = rows[0]
-  t.is(first.user_id, users.TEST1.id)
+  t.is(first.user_id, users.CREATOR1.id)
   t.is(first.coins, 500)
   t.truthy(first.key.length > 0)
 
@@ -56,8 +56,8 @@ ava.serial('coins: buy a coinpack for a user', async (t) => {
   t.is(purchaseAfter.status, 'complete')
 
   // Check that the user's num_coins has been updated
-  const num = await getEntityNumCoins(users.TEST1.id)
-  t.is(num, 2000) // 1500 in our test data, +500 from this previous purchase
+  const num = await getEntityNumCoins(users.CREATOR1.id)
+  t.is(num, 500) // 0 in our test data, +500 from this previous purchase
 
   // Data clean. Remove the coins and the purchase.
   await query(`DELETE FROM ${process.env.DB_ENTITY_COINS} WHERE purchase_id = $1`, [first.id])

@@ -6,7 +6,7 @@ import {
 } from "aws-lambda";
 import {Asset} from "../../interfaces/IAsset";
 import {errorResponse, newResponse} from "./response";
-import {ErrAssetNotFound, getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
+import {getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
 import {User, Creator} from "../../interfaces/IEntity";
 import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
@@ -14,6 +14,7 @@ import { Bundle } from "../../interfaces/IBundle";
 import { getBundleByID } from "../../lib/bundle";
 import { clientRelease } from "./postgres";
 import { isAdmin } from "../../lib/user";
+import {ErrAssetNotFound} from "../../constants/errors";
 
 // This context we build ourselves and pass to our handlers
 // It contains the basic event and context provided by serverless
@@ -136,6 +137,13 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         if (!asset && opts.requireAsset) {
           throw ErrAssetNotFound
         }
+
+        if (asset.visibility != 'PUBLIC') {
+          console.log('Asset isnt public, sending not found error')
+          // TODO: Maybe allow this for admins and creators of the asset?
+          throw ErrAssetNotFound
+        }
+
         ctx.asset = asset
 
         // If this option is on for this route, then the user needs to be a member of

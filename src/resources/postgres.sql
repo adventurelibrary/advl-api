@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS asset_unlocks CASCADE;
 DROP TABLE IF EXISTS entity_coins CASCADE;
 DROP TABLE IF EXISTS coin_purchases CASCADE;
 DROP TABLE IF EXISTS purchase_webhooks CASCADE;
@@ -132,12 +133,22 @@ CREATE TABLE purchase_webhooks (
     created_date TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE asset_unlocks (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    asset_id TEXT NOT NULL,
+    coins_spent INTEGER NOT NULL,
+    created_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_asset_id FOREIGN KEY (asset_id) REFERENCES assets(id)
+);
+
 CREATE TABLE entity_coins (
     id SERIAL PRIMARY KEY,
     entity_id TEXT NOT NULL,
     num_coins INTEGER NOT NULL,
-    purchase_id INTEGER REFERENCES coin_purchases (id),
-    --unlock_id INTEGER REFERENCES asset_unlock (id),
+    purchase_id INTEGER REFERENCES coin_purchases(id),
+    unlock_id INTEGER REFERENCES asset_unlocks(id),
     note TEXT NOT NULL DEFAULT '',
     created_date TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES entities(id)

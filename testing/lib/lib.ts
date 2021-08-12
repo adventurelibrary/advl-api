@@ -60,20 +60,61 @@ export async function getJSON (url: string, opts : any = {}) {
   return json
 }
 
+interface ResError {
+  status: number
+  key: string
+}
+export async function testResError (res: any, err: ResError) : Promise<string | null> {
+  let avaError = null
+  if (!res ) {
+    return `res is falsy`
+  }
+  if (res.then) {
+    return `res is a promise. Did you forget await?`
+  }
+  if (!err) {
+    return `Your passed in err is falsy`
+  }
+  if (typeof res.json !== 'function') {
+    console.log('res', res)
+    return `res.json is not a function`
+  }
+  let json : any = {}
+  try {
+    json = await res.json()
+  } catch (ex) {
+    return `Could not get json from res: ${ex.toString()}`
+  }
+  if (!json.error) {
+    avaError = `No 'error' key found returned in response JSON. JSON: ${JSON.stringify(json)}`
+  }
+  else if (json.error.key != err.key) {
+    avaError = `Wrong error key found. Expected ${err.key} and found '${json.error.key}'`
+  } else  if (res.status != err.status) {
+    avaError = `Expected status ${err.status} but found ${res.status}. JSON: ${JSON.stringify(json)}`
+  }
+
+  if (avaError) {
+    avaError += ` Body: ${JSON.stringify(json)}`
+  }
+
+  return avaError
+}
+
 export async function testResStatus (res: any, status : number) : Promise<string | null> {
   let pass = res.status === status
 	let append = ''
   if (!pass) {
   	// If it returns these statuses it won't have JSON so there's nothing to parse
 		if (res.status !== 204 && res.status !== 302) {
-	    let body
-			try {
-				body = await res.json()
-			} catch (ex) {
-				body = `Error getting result JSON ${ex.toString()}`
-			}
-			append = ` Body ${JSON.stringify(body)}`
-		}
+      let body
+      try {
+        body = await res.json()
+      } catch (ex) {
+        body = `Error getting result JSON ${ex.toString()}`
+      }
+  		append = ` Body ${JSON.stringify(body)}`
+  	}
     return `Expected ${status} got ${res.status}.` + append
   }
   return null

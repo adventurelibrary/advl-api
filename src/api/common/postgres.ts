@@ -1,24 +1,45 @@
 import {Pool} from 'pg';
-const pg_read = new Pool({
-  user: process.env.POSTGRES_USERNAME,
-  password: process.env.POSTGRES_PASSWORD,
-  host: process.env.POSTGRES_READ_URL,
-  database: process.env.POSTGRES_DB_NAME,
-  max: 1,
-})
 
-const pg_write = new Pool({
-  user: process.env.POSTGRES_USERNAME,
-  password: process.env.POSTGRES_PASSWORD,
-  host: process.env.POSTGRES_WRITE_URL,
-  database: process.env.POSTGRES_DB_NAME,
-  max: 1
-})
+/**
+ * We use this function get the write connection to the db.
+ * We only open the connection when a function requests this
+ * connection to prevent unnecessary connections.
+ * The write and read connections are separate for efficiency reasons
+ * explained above the @executeStatement function
+ */
+let pg_write : null | Pool = null
+export const getWritePool = () : Pool => {
+  if (!pg_write) {
+    pg_write = new Pool({
+      user: process.env.POSTGRES_USERNAME,
+      password: process.env.POSTGRES_PASSWORD,
+      host: process.env.POSTGRES_WRITE_URL,
+      database: process.env.POSTGRES_DB_NAME,
+      max: 1
+    })
+  }
+  return pg_write
+}
+
+let pg_read : null | Pool = null
+export const getReadPool = () : Pool => {
+  if (!pg_read) {
+    pg_read = new Pool({
+      user: process.env.POSTGRES_USERNAME,
+      password: process.env.POSTGRES_PASSWORD,
+      host: process.env.POSTGRES_READ_URL,
+      database: process.env.POSTGRES_DB_NAME,
+      max: 1
+    })
+  }
+  return pg_read
+}
 
 /**
  * Runs the query against the Postgres DB we have in the background.
  * The last param determines if the query should use the writer, or if can just use the reader
  * The reader can handle a lot more connetions because it's Aurora, and it doesn't actually need to connect to the db but rather reads logs to build state
+ * @name executeStatement
  * @param sql The sql to run
  * @param params
  * @param isWriteQuery Defaults to true, but should be false where possible
@@ -32,13 +53,8 @@ async function executeStatement(sql: string, params:any[]){
 
   console.debug("isWriteQuery:",  isWriteQuery);
 
-  if(isWriteQuery){
-    const res = await pg_write.query(sql, params);
-    return res;
-  } else {
-    const res = await pg_read.query(sql, params);
-    return res;
-  }
+  const pool = isWriteQuery ? getWritePool() : getReadPool()
+  return await pool.query(sql, params)
 }
 
 export async function query(sql:string, params:any[] = []){
@@ -108,10 +124,14 @@ export async function deleteObj(tableName:string, id:string) {
 
 export function clientRelease(){
   try{
-    pg_read.end();
-    pg_write.end();
+    if (pg_read) {
+      pg_read.end();
+    }
+    if (pg_write) {
+      pg_write.end();
+    }
   } catch (e) {
-    console.log("Pool already ended!");
+    console.log('Error ending clients', e);
   }
 }
 

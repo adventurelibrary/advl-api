@@ -2,19 +2,30 @@ import {APIGatewayProxyEventQueryStringParameters, APIGatewayProxyHandler} from 
 import {search} from '../common/elastic';
 import {Asset, Category, image_file_resolutions, REQ_Query} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
-import {errorResponse, newResponse} from "../common/response";
 import {
   deleteAsset,
   searchAsset,
+  setAssetsUnlockedForUser,
+  setAssetUnlockedForUser,
   updateAssetAndIndex,
   validateAssetQuery,
-  verifyUserHasAssetsAccess
+  verifyUserHasAssetAccess,
+  verifyUserHasAssetsAccess,
+  getUserAssetUnlock,
+  userPurchaseAssetUnlock, verifyUserHasUnlockedAsset, getUserAssetUnlocks,
 } from "../../lib/assets";
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
 import {getUserCreatorIds} from "../../lib/creator";
 import {getEventUser} from "../common/events";
 import * as db from '../common/postgres';
+import {
+  ErrNotEnoughCoins,
+  ErrAssetAlreadyUnlocked,
+  ErrNoAssetPermission,
+  ErrDownloadTypeMissing
+} from "../../constants/errors"
+import {getEntityNumCoins} from "../../lib/coins"
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -63,31 +74,65 @@ function getEvtQuery (eventParams: APIGatewayProxyEventQueryStringParameters) : 
 }
 
 export const query_assets: APIGatewayProxyHandler = newHandler({
-}, async ({event: _evt}) => {
+  includeUser: true
+}, async ({event: _evt, user}) => {
   let params;
 
   const queryObj = getEvtQuery(_evt.queryStringParameters)
 
   // If ID then just do a GET on the ID, search params don't matter
   if(queryObj.id) {
-    const FrontEndAsset:Asset = await searchAsset(queryObj.id);
+    let FrontEndAsset:Asset = await searchAsset(queryObj.id);
+
+    // If this asset isn't public, then we need to ensure that this user has
+    // the proper access
+    if (FrontEndAsset.visibility !== 'PUBLIC') {
+      try {
+        await verifyUserHasAssetAccess(user, FrontEndAsset.id)
+      } catch (ex) {
+        // If they don't have permission we just throw a 404
+        if (ex == ErrNoAssetPermission) {
+          return {
+            status: 404,
+          }
+        }
+        throw ex
+      }
+    }
+
+    FrontEndAsset = await setAssetUnlockedForUser(FrontEndAsset, user)
     return {
       status: 200,
       body: transformAsset(FrontEndAsset)
     }
   }
 
-  // Multiple ids
+  let from = queryObj['from'] ? queryObj['from'] : 0
+  let size = queryObj['size'] ? queryObj['size'] : 10
+
+  let assetIds : string [] = []
+
+  // Multiple ids provided by the query string
   if(queryObj.ids && queryObj.ids.length) {
-    let FEAssets:Asset[] = [];
-    for(let id of queryObj.ids){
-      let FrontEndAsset:Asset;
-      FrontEndAsset = await searchAsset(id);
-      FEAssets.push(transformAsset(FrontEndAsset));
-    }
-    return {
-      status: 200,
-      body: FEAssets
+    assetIds = queryObj.ids
+  } else {
+    // If the query contains ?unlocked, then we only return assets that have been unlocked
+    // by the currently logged in user
+    if (queryObj.hasOwnProperty('unlocked')) {
+      if (!user) {
+        throw new APIError({
+          status: 401,
+          message: 'You must be logged in to get unlocked assets'
+        })
+      }
+      const uls = await getUserAssetUnlocks(user.id, from, size)
+      assetIds = uls.map(ul => ul.asset_id)
+
+      // We have to reset the skip here back to 0. We're skipping through the assets
+      // in the query above, not in the ElasticSearch query.
+      // We want to go like "hey postgres, give me 10 unlocks, and skip 30 of them"
+      // and then go "hey elasticsearch, give me these 10 assets, don't skip any of them"
+      from = 0
     }
   }
 
@@ -111,6 +156,14 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
         }
       ]
     }
+  }
+
+  if (assetIds.length) {
+    _query.bool.must.push({
+      ids: {
+        values: assetIds
+      }
+    })
   }
 
   // TODO: Only admins and people getting their own assets should be able to remove the PUBLIC filter
@@ -202,8 +255,8 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
   params = {
     index: process.env.INDEX_ASSETDB,
     body: {
-      from: queryObj['from'] ? queryObj['from'] : 0,
-      size: queryObj['size'] ? queryObj['size'] : 10,
+      from: from,
+      size: size,
       sort: queryObj['sort'] ?
         [{
           [queryObj['sort']] : queryObj['sort_type']
@@ -215,12 +268,18 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
       query: _query
     }
   }
+  console.log('params', JSON.stringify(params, null, 2))
   let searchResults = await search.search(params)
+
 
   let FrontEndAssets:Asset[] = searchResults.body.hits.hits.map((doc:any) => {
     doc._source = transformAsset(doc._source)
     return doc._source
   })
+
+  // Change the `unlock` of each asset, based on the logged in user
+  FrontEndAssets = await setAssetsUnlockedForUser(FrontEndAssets, user)
+
   return {
     body: {
       assets: FrontEndAssets,
@@ -236,9 +295,17 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
  * Only authorized users should be able to fetch certain types of files
  */
 export const asset_download_link = newHandler({
-  includeUser: true, // For later, we can check the user passed in
+  requireUser: true,
   requireAsset: true
-}, async ({event, asset}: HandlerContext) => {
+}, async ({event, asset, user}: HandlerContext) => {
+  if (!event.queryStringParameters || !event.queryStringParameters.type) {
+    throw ErrDownloadTypeMissing
+  }
+
+  // Will throw an error if the current logged in user has not unlocked
+  // this asset
+  await verifyUserHasUnlockedAsset(user.id, asset.id)
+
   let link = 'ERROR_FETCHING_LINK';
   if(asset.filetype == "IMAGE"){
     link = b2.GetURL(<image_file_resolutions>event.queryStringParameters.type, asset);
@@ -307,5 +374,32 @@ export const update_asset : APIGatewayProxyHandler = newHandler({
   }
   return {
     status: 204,
+  }
+})
+
+export const asset_unlock = newHandler({
+  requireUser: true,
+  requireAsset: true
+}, async ({user, asset}) => {
+  // First we make sure that this user hasn't already unlocked this asset
+  const unlock = await getUserAssetUnlock(user.id, asset.id)
+  if (unlock) {
+    throw ErrAssetAlreadyUnlocked
+  }
+
+  // Next we make sure they have enough coins to unlock this asset
+  const numCoins = await getEntityNumCoins(user.id)
+  if (numCoins < asset.unlock_price) {
+    throw ErrNotEnoughCoins
+  }
+
+  // Create the unlock and add new entity_coins entries
+  await userPurchaseAssetUnlock(user.id, asset)
+
+  return {
+    status: 200,
+    body: {
+      numCoins: numCoins - asset.unlock_price
+    }
   }
 })

@@ -1,25 +1,14 @@
 import {bulkIndex, clearIndex, search} from "../api/common/elastic";
-import {Asset, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
+import {Asset, AssetUnlock, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
-import {deleteObj, query} from "../api/common/postgres";
+import {deleteObj, getObjects, getWritePool, query} from "../api/common/postgres";
 import {idgen} from "../api/common/nanoid";
 import slugify from "slugify";
-import {APIError, Validation} from "./errors";
+import {Validation} from "./errors";
+import {ErrAssetNotFound, ErrAssetNotUnlocked, ErrNoAssetPermission} from "../constants/errors"
 import {User} from "../interfaces/IEntity";
 import { isAdmin } from "./user";
-
-export const ErrNoAssetPermission = new APIError({
-	status: 403,
-	key: 'no_asset_access',
-	message: 'You do not have permission to access those assets'
-})
-
-export const ErrAssetNotFound = new APIError({
-	status: 404,
-	key: 'asset_not_found',
-	message: 'Could not find that asset'
-})
 
 export function validateTags(tags : string[]) {
 	if (!tags) {
@@ -55,6 +44,7 @@ export async function searchAsset (id: string) : Promise<Asset> {
 		throw e
 	}
 }
+
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
 	const _sql = `SELECT a.*, c.name as creator_name
@@ -229,10 +219,24 @@ export async function assetHasPurchases (assetId: string) : Promise<boolean> {
 	})
 }
 
+export async function verifyUserHasUnlockedAsset (userId: string, assetId: string) {
+	const ul = await getUserAssetUnlock(userId, assetId)
+	if (!ul) {
+		throw ErrAssetNotUnlocked
+	}
+}
+
+// Will throw an error if the user doesn't not have write access to this asset
 export async function verifyUserHasAssetAccess (user: User, assetId: string) {
 	return await verifyUserHasAssetsAccess(user, [assetId])
 }
 
+/**
+ * Confirms that the user has write access to ALL the asset IDs passed in
+ * Either they're an admin, or they are a member of each of the asset's creators
+ * @param user
+ * @param assetIds
+ */
 export async function verifyUserHasAssetsAccess (user: User, assetIds: string[]) {
 	if (!user) {
 		throw ErrNoAssetPermission
@@ -261,4 +265,90 @@ export async function verifyUserHasAssetsAccess (user: User, assetIds: string[])
 	}
 
 	throw ErrNoAssetPermission
+}
+
+/**
+ * Will take in an array of Assets and will return a copy of the array
+ * Where each asset will have `unlocked` boolean set appropriately,
+ * based on whether the passed in user has unlocked that asset
+ * User can be undefined for when the request has no logged in user
+ *
+ * We do this as one query after getting the data from ElasticSearch
+ * so that EC doesn't have any user-specific information. Doing it
+ * as one query for all assets instead of one query per asset is
+ * done cause it's faster.
+ *
+ * @param assets
+ * @param user
+ */
+export async function setAssetsUnlockedForUser(assets: Asset[], user: User | undefined) : Promise<Asset[]> {
+	// If you aren't logged in, then none are unlocked
+	if (!user) {
+		return assets.map((asset) => {
+			asset.unlocked = false
+			return asset
+		})
+	}
+
+	// We query the database for any unlocks the user has for these provided assets
+	const ids = assets.map(asset => asset.id)
+	const unlocks = await getUserUnlocksForAssetIds(user.id, ids)
+
+	// Return a new copy where each asset's `unlock` boolean is set based on whether
+	// the asset_id exists in the list of unlocks we just queryed for
+	return assets.map((asset) => {
+		const unlocked = unlocks.findIndex(u => u.asset_id == asset.id) >= 0
+		asset.unlocked = unlocked
+		return asset
+	})
+}
+
+// Does the same as the function above, but does it on a single asset
+export async function setAssetUnlockedForUser(asset: Asset, user: User | undefined) : Promise<Asset> {
+	const modified = await setAssetsUnlockedForUser([asset], user)
+	return modified[0]
+}
+
+export async function getUserUnlocksForAssetIds (userId: string, assetIds: string[]) : Promise<AssetUnlock[]> {
+	const res = <AssetUnlock[]>await query(`SELECT * FROM asset_unlocks WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
+	return res
+}
+
+export async function getUserAssetUnlocks (userId: string, skip: number, limit: number) : Promise<AssetUnlock[]> {
+	const res = <AssetUnlock[]>await getObjects(`SELECT * FROM asset_unlocks WHERE user_id = $1`, [userId], skip, limit, 'created_date DESC')
+	return res
+}
+
+export async function getUserAssetUnlock (userId: string, assetId: string) : Promise<AssetUnlock | undefined> {
+	const res = await getUserUnlocksForAssetIds(userId, [assetId])
+	return res[0]
+}
+
+/**
+ * This will insert a new unlock for the given user for the asset
+ * The user will have their total coins adjusted
+ */
+export async function userPurchaseAssetUnlock (userId, asset: Asset) {
+	const client = await getWritePool().connect()
+
+	try {
+		await client.query('BEGIN')
+		const res = await client.query(`INSERT INTO asset_unlocks (user_id, asset_id, coins_spent) 
+			VALUES ($1, $2, $3) RETURNING id;`, [userId, asset.id, asset.unlock_price])
+		const unlockId = res.rows[0].id
+
+		const insertCoinSQL = `INSERT INTO entity_coins (entity_id, num_coins, unlock_id)
+			VALUES ($1, $2, $3)`
+		await client.query(insertCoinSQL, [userId, asset.unlock_price * -1, unlockId])
+
+		// TODO: Calculate the split for Adventure Library and the Creator, and insert those
+		// entries into entity_coins as well
+
+		await client.query('COMMIT')
+	} catch (e) {
+		await client.query('ROLLBACK')
+		throw e
+	} finally {
+		client.release()
+	}
 }
