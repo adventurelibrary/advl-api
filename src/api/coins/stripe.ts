@@ -13,10 +13,11 @@ export const event_listener:APIGatewayProxyHandler = async (_evt, _ctx) => {
   const data = JSON.parse(_evt.body)
   console.log("EVENT: \n", data);
 
-  const sig = _evt.headers['stripe-signature'];
+  const sig = _evt.headers['Stripe-Signature']
+
   let event;
   try {
-    event = stripe.webhooks.constructEvent(data, sig, process.env.STRIPE_WEBHOOK_SIGNING_SECRET);
+    event = stripe.webhooks.constructEvent(_evt.body, sig, process.env.STRIPE_WEBHOOK_SIGNING_SECRET);
   }
   catch (err) {
     console.log('ERROR VERIFYING STRIPE WEBHOOK', err)
