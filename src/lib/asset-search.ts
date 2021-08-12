@@ -1,17 +1,182 @@
-import {Asset} from "../interfaces/IAsset"
+import {Asset, AssetSearchOptions, Category} from "../interfaces/IAsset"
+import {getEventQueryCSV} from "../api/common/events";
+import {search} from "../api/common/elastic";
+import {transformAsset} from "../api/assets/asset";
+import {APIGatewayProxyEventQueryStringParameters} from "aws-lambda";
 
-
-export type AssetSearchParams = {
-	text?: string
-	id?: string
-	ids?: string[]
-}
-
-type AssetSearchResponse = {
+type AssetSearchResult = {
 	total: number,
 	assets: Asset[]
+	params?: any
 }
 
-export async function searchAssets (params: AssetSearchParams) : Promise<AssetSearchResponse> {
 
+/**
+ * Converts the query string parameters that serverless has, into our custom type: AssetSearchOptions
+ * This function will allow accept certain query parameters, and will ignore some other
+ * This is so a user can't append ?visibility=all to see everything
+ * Extra fields for AssetSearchOptions can be set on a per-route basis
+  * */
+export function evtQueryToAssetSearchOptions (eventParams: APIGatewayProxyEventQueryStringParameters) : AssetSearchOptions {
+	console.log(eventParams);
+	const queryObj:AssetSearchOptions = {};
+
+	if (eventParams) {
+		queryObj.size = parseInt(eventParams.size)
+		queryObj.from = parseInt(eventParams.from)
+	}
+
+	// Certain fields are comma delimited, which we override here
+	queryObj.tags = getEventQueryCSV(eventParams, 'tags')
+	queryObj.categories = <Category[]>getEventQueryCSV(eventParams, 'categories')
+
+	if (isNaN(queryObj.size) || queryObj.size <= 0) {
+		queryObj.size = 10
+	} else if (queryObj.size > 50) {
+		queryObj.size = 50 // This is so someone doesn't do ?size=1432432 and cause huge lag
+	}
+
+	if (isNaN(queryObj.from) || queryObj.from <= 0) {
+		queryObj.from = 10
+	}
+
+	return queryObj
+}
+
+/**
+ * Searches ElasticSearch for a page of assets.
+ * @param opts
+ */
+export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSearchResult> {
+	let from = opts.from ? opts.from : 0
+	let size = opts.size ? opts.size : 10
+
+	const text = opts.text
+	let _query : any = {
+		"bool": {
+			"must": [{
+				"match": {
+					"deleted": false
+				}
+			}],
+			"filter": [
+				{
+					"match": {
+						"visibility" : "PUBLIC"
+					}
+				}
+			]
+		}
+	}
+
+	// We sometimes search for a specific set of assets
+	// This can be down from the "Get My Unlocked Assets" route, where we get the user's
+	// first X unlocked assets by date unlocked, and just search for those
+	if (opts.assetIds.length) {
+		_query.bool.must.push({
+			ids: {
+				values: opts.assetIds
+			}
+		})
+	}
+
+	if (opts.visibility == 'all') {
+		_query.bool.filter = [];
+	}
+
+	if (opts.creator_ids) {
+		const creatorFilter = {
+			bool: {
+				minimum_should_match: 1,
+				should: []
+			}
+		}
+
+		opts.creator_ids.forEach((id) => {
+			creatorFilter.bool.should.push({
+				match: {
+					creator_id: id
+				}
+			})
+		})
+		_query.bool.filter.push(creatorFilter)
+	}
+
+
+	// Performs a text search on 'name' and 'description' and sorts by score
+	// Fuzzy search means that "froze" will match "Frozen" and "kings" will match "King"
+	if (text) {
+		_query.bool.must.push({
+			"dis_max": {
+				"tie_breaker": 0.7,
+				"queries": [
+					{
+						"fuzzy": {
+							'name': text
+						}
+					},
+					{
+						"fuzzy": {
+							'description': text
+						}
+					}
+				]
+			}
+		})
+	}
+
+	// Asset must match ALL provided tags
+	// This the equivalent of ' AND 'Archer' IN asset.tags AND 'Barbarian' IN asset.tags
+	if (opts.tags.length) {
+		opts.tags.forEach((tag) => {
+			_query.bool.must.push({
+				"match": {
+					"tags": tag
+				}
+			})
+		})
+	}
+
+	// Asset must match ONE of the provided categories
+	// This is the equivalent of " AND category IN ('maps', 'scenes')"
+	if (opts.categories.length) {
+		_query.bool.must.push({
+			"terms": {
+				"category": opts.categories
+			}
+		})
+	}
+
+
+	// Query doesn't include ID
+	const params = {
+		index: process.env.INDEX_ASSETDB,
+		body: {
+			from: from,
+			size: size,
+			sort: opts.sort ?
+				[{
+					[opts.sort] : opts.sort_type
+				}]
+				:
+				[{
+					"_score": "desc"
+				}],
+			query: _query
+		}
+	}
+	console.log('params', JSON.stringify(params, null, 2))
+	let ecResult = await search.search(params)
+
+	// This transform will pretty up any data we need to pretty up, such as the
+	// image URLs needing to be properly set up with Transloadit
+	const assets : Asset[] = ecResult.body.hits.hits.map((doc:any) => {
+		doc._source = transformAsset(doc._source)
+		return doc._source
+	})
+
+	return {
+		total: ecResult.body.hits.total.value,
+		assets: assets
+	}
 }

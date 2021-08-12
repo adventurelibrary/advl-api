@@ -46,9 +46,8 @@ export interface REQ_Query_Assets{
   query?: string
 }
 
-export interface REQ_Query {
-  id? :string,
-  ids? : string[],
+export interface AssetSearchOptions {
+  assetIds?: string[]
   sort?: "uploaded.raw" | "unlock_count" | "unlock_price" | "_score" | "name"
   sort_type?: "asc" | "desc",
   from?: number,
@@ -56,11 +55,9 @@ export interface REQ_Query {
 
   text?: string, // will search name & description
   visibility?: visibility_types[] | 'all'
-  original_file_ext?: string,
-  creator_name?: string, // Can come from join queries
-  collectionID?: string,
   tags?: string[],
   categories?: Category[],
+  creator_ids?: string[]
 }
 
 export interface REQ_DownloadLink {

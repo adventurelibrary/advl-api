@@ -6,7 +6,7 @@ import {
 } from "aws-lambda";
 import {Asset} from "../../interfaces/IAsset";
 import {errorResponse, newResponse} from "./response";
-import {getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
+import {getAsset, searchAsset, verifyUserHasAssetAccess} from "../../lib/assets";
 import {User, Creator} from "../../interfaces/IEntity";
 import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
@@ -133,7 +133,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       // These routes assume that the asset id is provided as :assetID
       // in the api.yml file
       if (opts.includeAsset || opts.requireAsset) {
-        const asset = await getAsset(_evt.pathParameters.assetID)
+        const asset = await searchAsset(_evt.pathParameters.assetID)
         if (!asset && opts.requireAsset) {
           throw ErrAssetNotFound
         }

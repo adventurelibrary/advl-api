@@ -119,7 +119,7 @@ test('searchassets: get unlocked asset by id', async (t) => {
 })
 
 test('searchassets:my unlocked assets', async (t) => {
-	const body = await getJSON('assets?unlocked', {
+	const body = await getJSON('assets/unlocked', {
 		userKey: 'TEST1'
 	})
 	t.is(body.total, 1)

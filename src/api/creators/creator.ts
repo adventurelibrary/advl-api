@@ -2,11 +2,12 @@ import { Creator } from '../../interfaces/IEntity';
 import { idgen } from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
-  getCreators, getTotalCreators, getTotalUserCreators, getUserCreators,
+  getCreators, getTotalCreators, getTotalUserCreators, getUserCreatorIds, getUserCreators,
   insertCreator, isMemberOfCreatorPage,
   updateCreator,
   validateCreator
 } from "../../lib/creator";
+import {getEventUser} from "../common/events";
 
 export const creator_get = newHandler({
   requireCreator: true,
@@ -94,6 +95,24 @@ export const creator_post = newHandler({
     body: {
       id: id
     }
+  }
+})
+
+/**
+ * For someone with access to this creator to view their assets
+ * Not for public view
+ * Will return hidden assets and more details about the assets
+ */
+export const creator_admin_assets = newHandler({
+  requireCreatorPermission: true,
+}, async ({event}) => {
+  const search = evtoqhatever()
+
+  search.sort = 'uploaded.raw'
+  search.sort_type = 'desc'
+  return {
+    status: 200,
+    body: 'Not done yet'
   }
 })
 
