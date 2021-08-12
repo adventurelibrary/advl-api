@@ -1,6 +1,11 @@
+const { exit } = require('process');
 const YAML = require('yamljs');
-console.log(process.env.SLS_STAGE)
-const env = (YAML.load('src/.env.yml'))['dev']; //CHANGE THIS WHEN DEPLOYING
+
+if(!process.env.SLS_STAGE){
+  console.log("\n\n\n\n\nSLS_STAGE not specified\n\n\n\n\n")
+  exit(1);
+}
+const env = (YAML.load('src/.env.yml'))[process.env.SLS_STAGE];
 
 module.exports = {
   transloadit: {

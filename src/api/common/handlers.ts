@@ -12,7 +12,7 @@ import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
 import { Bundle } from "../../interfaces/IBundle";
 import { getBundleByID } from "../../lib/bundle";
-import { clientRelease } from "./postgres";
+//import { clientRelease } from "./postgres";
 import { isAdmin } from "../../lib/user";
 import {ErrAssetNotFound} from "../../constants/errors";
 
@@ -68,6 +68,7 @@ export type Handler = (ctx : HandlerContext) => Promise<HandlerResult>
 // This wrapper is meant to make writing handlers for specific routes easier
 export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGatewayProxyHandler {
   return async (_evt, _ctx)  => {
+    _ctx.callbackWaitsForEmptyEventLoop = false;
     if (opts.requireAdmin) {
       opts.requireUser = true
     }
@@ -208,10 +209,10 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         res.body = JSON.stringify(handleResult.body)
       }
     } catch (ex) {
-      clientRelease();
+      //clientRelease();
       return errorResponse(_evt, ex)
     }
-    clientRelease();
+    //clientRelease();
     return res
   }
 }
