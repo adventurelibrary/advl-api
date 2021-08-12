@@ -7,7 +7,7 @@ type CoinPurchaseStatus = 'pending' | 'complete' | 'error'
 type PurchaseProvider = 'stripe' // | 'paypal'
 
 export type CoinPurchase = {
-	id: number
+	id?: number
 	coins: number
 	cents: number
 	key: string,
@@ -22,7 +22,6 @@ export type CoinPurchase = {
 export async function createNewCoinPurchase(provider: PurchaseProvider, user: User, po: CoinPurchaseOption) : Promise<CoinPurchase> {
 	const key = idgen()
 	const purchase : CoinPurchase = {
-		id: 0,
 		user_id: user.id,
 		note: '',
 		coins: po.coins,
