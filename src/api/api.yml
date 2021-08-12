@@ -115,6 +115,18 @@ creators_get:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+#Returns: Creator[], id, name, slug, ordered by ASC name
+creators_get_search_list:
+  handler: src/api/creators/creator.creators_get_search_list
+  events:
+    - http:
+        method: get
+        path: /creatorssearchlist
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+    
+
 creator_post:
   handler: src/api/creators/creator.creator_post
   events:

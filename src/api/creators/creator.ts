@@ -2,7 +2,7 @@ import { Creator } from '../../interfaces/IEntity';
 import { idgen } from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
-  getCreators, getTotalCreators, getTotalUserCreators, getUserCreators,
+  getCreators, getCreatorsSearchList, getTotalCreators, getTotalUserCreators, getUserCreators,
   insertCreator, isMemberOfCreatorPage,
   updateCreator,
   validateCreator
@@ -32,6 +32,24 @@ export const creators_get = newHandler({
   requireAdmin: true,
 }, async ({query}) => {
   const rows = await getCreators({
+    limit: parseInt(query.limit),
+    skip: parseInt(query.skip)
+  })
+  const total = await getTotalCreators()
+  return {
+    status: 200,
+    body: {
+      creators: rows,
+      total: total
+    }
+  }
+})
+
+
+export const creators_get_search_list = newHandler({
+  requireUser: false,
+}, async ({query}) => {
+  const rows = await getCreatorsSearchList({
     limit: parseInt(query.limit),
     skip: parseInt(query.skip)
   })

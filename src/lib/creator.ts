@@ -31,8 +31,19 @@ export async function getTotalCreators() {
 }
 
 export async function getCreators(opts : GetCreatorOpts) : Promise<Creator[]> {
-	const result = <Creator[]>await db.getObjects(
+	const result = <Creator[]> await db.getObjects(
 		`SELECT * FROM ${process.env.DB_CREATORS}`,
+		[],
+		opts.skip,
+		opts.limit,
+		'name ASC')
+	return result
+}
+
+// returns creator ids, names and slug text, to link to from search bar
+export async function getCreatorsSearchList(opts : GetCreatorOpts) : Promise<Creator[]> {
+	const result = <Creator[]> await db.getObjects(
+		`SELECT id, name, slug FROM ${process.env.DB_CREATORS}`,
 		[],
 		opts.skip,
 		opts.limit,
