@@ -82,29 +82,52 @@ user_put:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-################## CREATORS #########################
+################## MANAGE CREATORS #########################
 
 creators_get_mine:
   handler: src/api/creators/creator.creators_get_mine
   events:
     - http:
         method: get
-        path: /creators/mine
+        path: /manage/creators
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
 
-creator_get:
-  handler: src/api/creators/creator.creator_get
+creator_manage_get:
+  handler: src/api/creators/creator.creator_manage_get
   events:
     - http:
         method: get
-        path: /creator/{creatorID}
+        path: /manage/creator/{creatorID}
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
 
+
+creator_manage_post:
+  handler: src/api/creators/creator.creator_manage_post
+  events:
+    - http:
+        method: post
+        path: /manage/creators
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+creator_manage_put:
+  handler: src/api/creators/creator.creator_manage_put
+  events:
+    - http:
+        method: put
+        path: /manage/creator/{creatorID}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+
+################## CREATORS PUBLIC #########################
 creators_get:
   handler: src/api/creators/creator.creators_get
   events:
@@ -115,46 +138,8 @@ creators_get:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-creator_post:
-  handler: src/api/creators/creator.creator_post
-  events:
-    - http:
-        method: post
-        path: /creator
-        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
-  environment:
-    ${file(src/dynamic-environment.js):database}
+################## ASSETS PUBLIC #########################
 
-creator_put:
-  handler: src/api/creators/creator.creator_put
-  events:
-    - http:
-        method: put
-        path: /creator/{creatorID}
-        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
-  environment:
-    ${file(src/dynamic-environment.js):database}
-
-################## ASSETS #########################
-get_upload_signature:
-  handler: src/api/assets/transloadit.get_signature
-  events:
-    - http:
-        method: post
-        path: /assets/get_signature
-        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
-  environment:
-    ${file(src/dynamic-environment.js):transloadit}
-
-transloadit_notify:
-  handler: src/api/assets/transloadit.transloadit_notify
-  events:
-    - http:
-        method: post
-        path: /assets/transloadit
-        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
-  environment:
-    ${file(src/dynamic-environment.js):transloadit}
 
 query_assets:
   handler: src/api/assets/asset.query_assets
@@ -166,7 +151,7 @@ query_assets:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-query_assets:
+assets_unlocked:
   handler: src/api/assets/asset.assets_unlocked
   events:
     - http:
@@ -196,28 +181,11 @@ asset_download_link:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-delete_asset:
-  handler: src/api/assets/asset.delete_asset
-  events:
-    - http:
-        method: post
-        path: /assets/{assetID}/delete
-        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
-  environment:
-    ${file(src/dynamic-environment.js):database}
 
-update_asset:
-  handler: src/api/assets/asset.update_asset
-  events:
-    - http:
-        method: put
-        path: /assets/update
-        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
-  environment:
-    ${file(src/dynamic-environment.js):database}
+################## ASSETS MANAGE ###################
 
 get_asset:
-  handler: src/api/assets/asset.get_asset
+  handler: src/api/assets/asset.asset_manage_get
   events:
     - http:
         method: get
@@ -225,6 +193,47 @@ get_asset:
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
+
+delete_asset:
+  handler: src/api/assets/asset.delete_asset
+  events:
+    - http:
+        method: post
+        path: /manage/assets/{assetID}/delete
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+update_asset:
+  handler: src/api/assets/asset.assets_manage_update
+  events:
+    - http:
+        method: put
+        path: /manage/assets/update
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+get_upload_signature:
+  handler: src/api/assets/transloadit.get_signature
+  events:
+    - http:
+        method: post
+        path: /assets/get_signature
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):transloadit}
+
+transloadit_notify:
+  handler: src/api/assets/transloadit.transloadit_notify
+  events:
+    - http:
+        method: post
+        path: /assets/transloadit
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):transloadit}
+
 ################## Bundles #########################
 bundle_create:
   handler: src/api/assets/bundles.bundle_create

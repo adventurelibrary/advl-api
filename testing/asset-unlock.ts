@@ -54,7 +54,7 @@ test('asset:unlock:already have it unlocked', async (t) => {
 	t.pass()
 })
 
-test('asset:unlock', async (t) => {
+test.only('asset:unlock', async (t) => {
 	// Double check their coins at the start
 	let res = await request(`/users`, {
 		userKey: 'TEST1'

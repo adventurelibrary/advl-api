@@ -153,7 +153,6 @@ test.serial('asset:delete an asset with no purchases', async (t) => {
 	await updateAssetSearchById(id)
 
 	// Double check that this new asset appears in the search
-
 	const body = await getJSON('assets?id=' + id)
 	t.is(body.id, id)
 
@@ -187,7 +186,7 @@ test.serial('asset:delete an asset with no purchases', async (t) => {
 })
 
 test('asset:delete path access', async (t) => {
-	const path = 'assets/' + ASSET_1 + '/delete'
+	const path = 'manage/assets/' + ASSET_1 + '/delete'
 	let tests : AccessTest[] = [{
 		// A user without access to this asset's creator
 		userKey: 'TEST1',

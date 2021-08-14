@@ -108,6 +108,9 @@ export const assets_unlocked = newHandler({
     asset.unlocked = true
     return asset
   })
+
+  // TODO: Sort them into the same order as the unlocks
+
   return {
     status: 200,
     body: searchResult
@@ -115,7 +118,6 @@ export const assets_unlocked = newHandler({
 })
 
 /**
- * TODO
  * Only authorized users should be able to fetch certain types of files
  */
 export const asset_download_link = newHandler({
@@ -144,8 +146,10 @@ export const asset_download_link = newHandler({
   }
 })
 
-// Returns the asset directly from our database
-export const get_asset : APIGatewayProxyHandler = newHandler({
+/**
+ *
+ */
+export const asset_manage_get : APIGatewayProxyHandler = newHandler({
   requireAsset: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
   ctx.asset = await setAssetUnlockedForUser(ctx.asset, ctx.user)
@@ -170,7 +174,7 @@ export const delete_asset : APIGatewayProxyHandler = newHandler({
 })
 
 // Takes in an array of asset data as the body and updates each of them
-export const update_asset : APIGatewayProxyHandler = newHandler({
+export const assets_manage_update : APIGatewayProxyHandler = newHandler({
   requireUser: true,
   takesJSON: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
