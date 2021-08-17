@@ -49,10 +49,8 @@ export const user_get = newHandler({
   } else if (user) {
     await db.updateObj(process.env.DB_USERS, user.id, {last_seen: new Date()});
     const numCoins = await getEntityNumCoins(user.id)
-    console.log('numCoins', numCoins)
     user.num_coins = numCoins
   }
-
 
   return {
     status: 200,
