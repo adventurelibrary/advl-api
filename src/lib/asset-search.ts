@@ -178,7 +178,7 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 			query: _query
 		}
 	}
-	console.log('params', JSON.stringify(params, null, 2))
+	//console.log('params', JSON.stringify(params, null, 2))
 	let ecResult = await search.search(params)
 
 	// This transform will pretty up any data we need to pretty up, such as the

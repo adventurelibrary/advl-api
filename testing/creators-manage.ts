@@ -233,12 +233,12 @@ ava.only('creators:manage:get assets', async (t) => {
 		userKey: 'ADMIN1',
 	})
 	let json = await res.json()
-	console.log('json.assets.assets', json.assets.assets.map((x) => {
+	/*console.log('json.assets.assets', json.assets.assets.map((x) => {
 		return {
 			uploaded: x.uploaded,
 			name: x.name
 		}
-	}))
+	}))*/
 	t.is(json.creator.id, CREATOR_2)
 	t.is(json.assets.total, 4)
 	t.is(json.assets.assets[0].visibility, 'HIDDEN')

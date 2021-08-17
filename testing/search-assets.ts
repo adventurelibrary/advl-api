@@ -1,7 +1,7 @@
 import test from 'ava';
 
 import {getJSON, request, testResStatus} from "./lib/lib";
-import {ASSET_4} from "./lib/fixtures";
+import {ASSET_2, ASSET_4} from "./lib/fixtures";
 
 test('searchassets: get assets', async (t) => {
 	let body = await getJSON('assets')
@@ -94,12 +94,19 @@ test('searchassets: get unlocked asset by id', async (t) => {
 	t.pass()
 })
 
-test('searchassets:my unlocked assets', async (t) => {
-	const body = await getJSON('assets/unlocked', {
+test.only('searchassets:my unlocked assets', async (t) => {
+	let body = await getJSON('assets/unlocked', {
 		userKey: 'TEST1'
 	})
-	t.is(body.total, 1)
+	t.is(body.total, 2)
 	t.is(body.assets[0].id, ASSET_4)
+	t.is(body.assets[1].id, ASSET_2)
+
+	body = await getJSON('assets/unlocked', {
+		userKey: 'CREATOR1'
+	})
+	t.is(body.total, 0)
+
 	t.pass()
 })
 

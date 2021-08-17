@@ -36,8 +36,9 @@ insert into bundleinfo (id, name, description, public, entity_id) values ('ALJMg
 INSERT INTO bundleassets (id, asset_id) VALUES
 ('083e16ae-8f1d-4fd8-af48-e71bf757efd2', 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw');
 
-INSERT INTO asset_unlocks (user_id, asset_id, coins_spent) VALUES
-('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 'B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx', 50);
+INSERT INTO asset_unlocks (user_id, asset_id, coins_spent, created_date) VALUES
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 'B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx', 50, NOW() - INTERVAL '7 DAYS'),
+('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw', 0, NOW() - INTERVAL '1 DAY');
 
 INSERT INTO entity_coins (entity_id, num_coins, created_date, note, unlock_id) VALUES
 ('cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, NOW() - INTERVAL '8 DAYS', 'Bought 500 coins', null),

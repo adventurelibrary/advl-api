@@ -128,6 +128,15 @@ export const assets_unlocked = newHandler({
 }, async ({user, event}) => {
   const {from, size} = getEventQueryFromSize(event.queryStringParameters)
   const uls = await getUserAssetUnlocks(user.id, from, size)
+  if (uls.length === 0) {
+    return {
+      status: 200,
+      body: {
+        assets: [],
+        total: 0
+      }
+    }
+  }
   const assetIds = uls.map(ul => ul.asset_id)
   const searchResult = await searchAssets({
     assetIds: assetIds,

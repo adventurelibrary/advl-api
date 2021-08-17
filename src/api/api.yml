@@ -147,6 +147,17 @@ creators_get:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+creator_get:
+  handler: src/api/creators/creator.creator_get
+  events:
+    - http:
+        method: get
+        path: /creator/{creatorID}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+
 ################## ASSETS PUBLIC #########################
 query_assets:
   handler: src/api/assets/asset.query_assets
