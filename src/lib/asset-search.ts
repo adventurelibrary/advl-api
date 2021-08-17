@@ -10,6 +10,29 @@ type AssetSearchResult = {
 	params?: any
 }
 
+export function getEventQueryFromSize (eventParams: APIGatewayProxyEventQueryStringParameters) : {from: number, size: number} {
+	let size = 10
+	let from = 0
+
+	if (eventParams) {
+		size = parseInt(eventParams.size)
+		from = parseInt(eventParams.from)
+	}
+
+	if (isNaN(size) || size <= 0) {
+		size = 10
+	} else if (size > 50) {
+		size = 50 // This is so someone doesn't do ?size=1432432 and cause huge lag
+	}
+
+	if (isNaN(from) || from <= 0) {
+		from = 0
+	}
+	return {
+		from,
+		size
+	}
+}
 
 /**
  * Converts the query string parameters that serverless has, into our custom type: AssetSearchOptions
@@ -21,24 +44,14 @@ export function evtQueryToAssetSearchOptions (eventParams: APIGatewayProxyEventQ
 	console.log(eventParams);
 	const queryObj:AssetSearchOptions = {};
 
-	if (eventParams) {
-		queryObj.size = parseInt(eventParams.size)
-		queryObj.from = parseInt(eventParams.from)
-	}
-
 	// Certain fields are comma delimited, which we override here
 	queryObj.tags = getEventQueryCSV(eventParams, 'tags')
 	queryObj.categories = <Category[]>getEventQueryCSV(eventParams, 'categories')
 
-	if (isNaN(queryObj.size) || queryObj.size <= 0) {
-		queryObj.size = 10
-	} else if (queryObj.size > 50) {
-		queryObj.size = 50 // This is so someone doesn't do ?size=1432432 and cause huge lag
-	}
+	const {from, size} = getEventQueryFromSize(eventParams)
 
-	if (isNaN(queryObj.from) || queryObj.from <= 0) {
-		queryObj.from = 10
-	}
+	queryObj.from = from
+	queryObj.size = size
 
 	return queryObj
 }
@@ -70,9 +83,9 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 	}
 
 	// We sometimes search for a specific set of assets
-	// This can be down from the "Get My Unlocked Assets" route, where we get the user's
+	// This can be done from the "Get My Unlocked Assets" route, where we get the user's
 	// first X unlocked assets by date unlocked, and just search for those
-	if (opts.assetIds.length) {
+	if (opts.assetIds && opts.assetIds.length) {
 		_query.bool.must.push({
 			ids: {
 				values: opts.assetIds
@@ -84,7 +97,7 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 		_query.bool.filter = [];
 	}
 
-	if (opts.creator_ids) {
+	if (opts.creator_ids && opts.creator_ids) {
 		const creatorFilter = {
 			bool: {
 				minimum_should_match: 1,
@@ -127,7 +140,7 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 
 	// Asset must match ALL provided tags
 	// This the equivalent of ' AND 'Archer' IN asset.tags AND 'Barbarian' IN asset.tags
-	if (opts.tags.length) {
+	if (opts.tags && opts.tags.length) {
 		opts.tags.forEach((tag) => {
 			_query.bool.must.push({
 				"match": {
@@ -139,7 +152,7 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 
 	// Asset must match ONE of the provided categories
 	// This is the equivalent of " AND category IN ('maps', 'scenes')"
-	if (opts.categories.length) {
+	if (opts.categories && opts.categories.length) {
 		_query.bool.must.push({
 			"terms": {
 				"category": opts.categories

@@ -1,6 +1,8 @@
 import './load-yaml-env'
 import {resetBundles} from "./src/lib/bundle";
 import {resetAssets} from "./src/lib/assets";
+import fs from 'fs'
+import {query} from './src/api/common/postgres'
 
 if (!process.env.IS_OFFLINE) {
 	console.log('Must run in offline mode so you dont connect to live ElasticSearch')
@@ -9,12 +11,12 @@ if (!process.env.IS_OFFLINE) {
 
 async function run () {
 	// Rebuild the database and its chema
-/*	const schema = fs.readFileSync('./src/resources/postgres.sql', 'utf8');
+	const schema = fs.readFileSync('./src/resources/postgres.sql', 'utf8');
 	await query(schema)
 
 	// Insert the seed data
 	const seed = fs.readFileSync('./src/resources/seed.sql', 'utf8');
-	await query(seed)*/
+	await query(seed)
 
 	// Clear and re-index in elastic search
 	await resetBundles()

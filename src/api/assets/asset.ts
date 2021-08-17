@@ -16,7 +16,7 @@ import {APIError} from "../../lib/errors";
 import * as db from '../common/postgres';
 import {ErrAssetAlreadyUnlocked, ErrDownloadTypeMissing, ErrNotEnoughCoins} from "../../constants/errors"
 import {getEntityNumCoins} from "../../lib/coins"
-import {evtQueryToAssetSearchOptions, searchAssets} from "../../lib/asset-search";
+import {evtQueryToAssetSearchOptions, getEventQueryFromSize, searchAssets} from "../../lib/asset-search";
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -31,6 +31,36 @@ export function transformAsset (asset : Asset) : Asset {
   return asset
 }
 
+/**
+ * Public route to get a specific asset
+ * TODO: Use creator slug and asset slug instead of slug ID for this route
+ *  This is so our routes can be adventurelibrary.art/john/mountain-pass
+ */
+export const asset_get : APIGatewayProxyHandler = newHandler({
+  includeUser: true,
+  requireAsset: true
+}, async ({user, asset}) => {
+  if (!asset) {
+    console.log('No asset found in asset_get handler')
+    return {
+      status: 404
+    }
+  }
+
+  // This properly builds the thumbnail and preview links
+  asset = transformAsset(asset)
+
+  // This sets the `unlocked` bool value for logged in user
+  asset = await setAssetUnlockedForUser(asset, user)
+  return {
+    status: 200,
+    body: asset,
+  }
+})
+
+/**
+ * The big query function used by the site's search bar
+ */
 export const query_assets: APIGatewayProxyHandler = newHandler({
   includeUser: true
 }, async ({event: _evt, user}) => {
@@ -94,10 +124,9 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
  * Does not allow for any actual searching just yet,
  */
 export const assets_unlocked = newHandler({
-  requireUser: true
+  requireUser: true,
 }, async ({user, event}) => {
-  let from = parseInt(event.queryStringParameters['from']) || 0
-  let size = parseInt(event.queryStringParameters['size']) || 0
+  const {from, size} = getEventQueryFromSize(event.queryStringParameters)
   const uls = await getUserAssetUnlocks(user.id, from, size)
   const assetIds = uls.map(ul => ul.asset_id)
   const searchResult = await searchAssets({
@@ -118,7 +147,8 @@ export const assets_unlocked = newHandler({
 })
 
 /**
- * Only authorized users should be able to fetch certain types of files
+ * Returns the URL for the image to be given to the frontend
+ * The frontend can then open a new window or redirect as needed
  */
 export const asset_download_link = newHandler({
   requireUser: true,
@@ -147,12 +177,14 @@ export const asset_download_link = newHandler({
 })
 
 /**
- *
+ * For admins/creators to get an asset's data
+ * Not for public consumption
  */
 export const asset_manage_get : APIGatewayProxyHandler = newHandler({
-  requireAsset: true
+  requireAsset: true,
+  assetSource: 'database',
+  requireAssetPermission: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
-  ctx.asset = await setAssetUnlockedForUser(ctx.asset, ctx.user)
   return {
     status: 200,
     body: transformAsset(ctx.asset)

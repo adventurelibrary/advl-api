@@ -54,7 +54,7 @@
   "license": "All Rights Reserved",
   "ava": {
     "files": [
-      "./testing/asset-unlock.ts",
+      "./testing/*.ts",
       "!./testing/lib/*",
       "!./testing/files/*"
     ],

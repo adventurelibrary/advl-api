@@ -94,13 +94,22 @@ creators_get_mine:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-
 creator_manage_get:
   handler: src/api/creators/creator.creator_manage_get
   events:
     - http:
         method: get
         path: /manage/creator/{creatorID}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+creator_manage_assets:
+  handler: src/api/creators/creator.creator_manage_assets
+  events:
+    - http:
+        method: get
+        path: /manage/creator/{creatorID}/assets
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
@@ -139,8 +148,6 @@ creators_get:
     ${file(src/dynamic-environment.js):database}
 
 ################## ASSETS PUBLIC #########################
-
-
 query_assets:
   handler: src/api/assets/asset.query_assets
   events:
@@ -181,15 +188,25 @@ asset_download_link:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-
-################## ASSETS MANAGE ###################
-
 get_asset:
-  handler: src/api/assets/asset.asset_manage_get
+  handler: src/api/assets/asset.asset_get
   events:
     - http:
         method: get
         path: /assets/{assetID}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+
+################## ASSETS MANAGE ###################
+
+manage_get_asset:
+  handler: src/api/assets/asset.asset_manage_get
+  events:
+    - http:
+        method: get
+        path: /manage/assets/{assetID}
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}

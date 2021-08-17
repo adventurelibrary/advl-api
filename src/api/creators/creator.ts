@@ -36,6 +36,12 @@ export const creator_manage_assets = newHandler({
   const searchOptions = evtQueryToAssetSearchOptions(event.queryStringParameters)
   searchOptions.visibility = 'all'
   searchOptions.creator_ids = [creator.id]
+
+  // We default to sorting the most recently uploaded ones
+  if (!searchOptions.sort) {
+    searchOptions.sort = 'uploaded.raw'
+    searchOptions.sort_type = 'desc'
+  }
   const searchResult = await searchAssets(searchOptions)
 
   return {

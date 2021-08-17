@@ -1,11 +1,31 @@
 import ava from 'ava'
 import '../load-yaml-env'
 import {AccessTest, getJSON, request, testPathAccess, testResStatus} from "./lib/lib";
-import {CREATOR_1} from "./lib/fixtures";
+import {CREATOR_1, CREATOR_2} from "./lib/fixtures";
 import {query} from "../src/api/common/postgres";
 
 ava('creators:manage get access', async (t) => {
-		const path = `/creator/manage/${CREATOR_1}`
+	const path = `/creator/manage/${CREATOR_1}`
+	let tests : AccessTest[] = [{
+		// A user without access to this asset's creator
+		userKey: 'TEST1',
+		expectedStatus: 403,
+	}, {
+		// Not logged in
+		userKey: null,
+		expectedStatus: 401,
+	}]
+	let err = await testPathAccess(path, tests, {
+		method: 'POST'
+	})
+	if (err != null) {
+		t.fail(err)
+	}
+	t.pass()
+})
+
+ava('creators:manage get assets access', async (t) => {
+	const path = `/creator/manage/${CREATOR_1}/assets`
 	let tests : AccessTest[] = [{
 		// A user without access to this asset's creator
 		userKey: 'TEST1',
@@ -206,4 +226,25 @@ ava('creators:manage:put:validation', async (t) => {
 	t.is(json.error.details[0].field, 'name')
 
 	t.pass()
+})
+
+ava.only('creators:manage:get assets', async (t) => {
+	let res = await request(`/manage/creator/${CREATOR_2}/assets`, {
+		userKey: 'ADMIN1',
+	})
+	let json = await res.json()
+	console.log('json.assets.assets', json.assets.assets.map((x) => {
+		return {
+			uploaded: x.uploaded,
+			name: x.name
+		}
+	}))
+	t.is(json.creator.id, CREATOR_2)
+	t.is(json.assets.total, 4)
+	t.is(json.assets.assets[0].visibility, 'HIDDEN')
+	t.is(json.assets.assets[3].visibility, 'PUBLIC')
+	t.is(json.assets.assets[0].name, 'Hope Keyshot')
+	t.is(json.assets.assets[1].name, 'House')
+	t.is(json.assets.assets[2].name, 'Killion')
+	t.is(json.assets.assets[3].name, 'First Kill')
 })
