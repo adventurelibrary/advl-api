@@ -35,7 +35,9 @@ debug_creator_create:
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
+
 ################## COINS  #########################
+
 coins_purchase:
   handler: src/api/coins/coins.coins_purchase
   events:
@@ -84,8 +86,8 @@ user_put:
 
 ################## MANAGE CREATORS #########################
 
-creators_get_mine:
-  handler: src/api/creators/creator.creators_get_mine
+creators_manage_get_mine:
+  handler: src/api/creators/creator.creators_manage_get_mine
   events:
     - http:
         method: get
@@ -212,7 +214,7 @@ get_asset:
 
 ################## ASSETS MANAGE ###################
 
-manage_get_asset:
+asset_manage_get:
   handler: src/api/assets/asset.asset_manage_get
   events:
     - http:
@@ -222,8 +224,8 @@ manage_get_asset:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-delete_asset:
-  handler: src/api/assets/asset.delete_asset
+asset_manage_delete:
+  handler: src/api/assets/asset.asset_manage_delete
   events:
     - http:
         method: post
@@ -232,7 +234,7 @@ delete_asset:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-update_asset:
+assets_manage_update:
   handler: src/api/assets/asset.assets_manage_update
   events:
     - http:

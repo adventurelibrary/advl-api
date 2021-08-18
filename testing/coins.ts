@@ -9,7 +9,7 @@ import {getEntityNumCoins} from "../src/lib/coins";
 
 // STRIPE
 // Buy Coin Pack
-ava.serial.only('coins: buy a coinpack for a user', async (t) => {
+ava.serial('coins: buy a coinpack for a user', async (t) => {
   let idsToDelete = []
   for (let i = 1; i <= 2; i++) {
     let res = await request('coins/purchase', {
@@ -40,9 +40,11 @@ ava.serial.only('coins: buy a coinpack for a user', async (t) => {
     // that this webhook originated at Stripe
     try {
       const fakeWebhook = {
-        client_reference_id: purchase.key,
-        object: {
-          amount_total: 500
+        data: {
+          object: {
+            client_reference_id: purchase.key,
+            amount_total: 500
+          }
         }
       }
       await handleCheckoutSessionCompleted(fakeWebhook)
@@ -67,7 +69,7 @@ ava.serial.only('coins: buy a coinpack for a user', async (t) => {
   // Data clean. Remove the coins and the purchase.
   await query(`DELETE FROM ${process.env.DB_ENTITY_COINS} WHERE purchase_id = $1 OR purchase_id = $2`, idsToDelete)
 
-  await query(`DELETE FROM ${process.env.DB_COIN_PURCHASES} WHERE id = $1 OR purchase_id = $2`, idsToDelete)
+  await query(`DELETE FROM ${process.env.DB_COIN_PURCHASES} WHERE id = $1 OR id = $2`, idsToDelete)
 
 
   t.pass()

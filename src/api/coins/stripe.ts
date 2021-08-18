@@ -52,7 +52,6 @@ export async function handleCheckoutSessionCompleted (stripeEvent: any) {
   const data = stripeEvent.data
   const key = data.object.client_reference_id
   const purchase = await getCoinPurchaseByKey(key)
-  console.log('data', data)
 
   if (!purchase) {
     throw new Error('Could not find coin purchase with key: ' + key)

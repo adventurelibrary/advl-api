@@ -3,7 +3,6 @@ import {idgen} from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
   getCreators,
-  getTotalCreators,
   getTotalUserCreators,
   getUserCreators,
   insertCreator,
@@ -55,7 +54,7 @@ export const creator_manage_assets = newHandler({
 
 
 // Get the list of creators that this user has permissions with
-export const creators_get_mine = newHandler({
+export const creators_manage_get_mine = newHandler({
   requireUser: true,
 }, async ({query, user}) => {
   const rows = await getUserCreators(user, {
@@ -115,7 +114,7 @@ export const creator_manage_post = newHandler({
  * TODO: Use slug instead of id on this route
  */
 export const creator_get = newHandler({
-  requireCreator: true,
+  requireCreator: true
 }, async ({ creator}) => {
   let body : any = {}
   body = BasicCreatorInfo(creator)
@@ -125,20 +124,18 @@ export const creator_get = newHandler({
   }
 })
 
-
-export const creators_get = newHandler({
-  requireAdmin: true,
-}, async ({query}) => {
-  const rows = await getCreators({
-    limit: parseInt(query.limit),
-    skip: parseInt(query.skip)
-  })
-  const total = await getTotalCreators()
+/**
+ * Get the FULL list of creators
+ * The frontend uses this to create the auto-fill list of creators for users
+ * to search by
+ */
+export const creators_get = newHandler({}, async () => {
+  const rows = await getCreators({skip: 0, limit: 0})
+  console.log('rows', rows)
   return {
     status: 200,
     body: {
       creators: rows,
-      total: total
     }
   }
 })

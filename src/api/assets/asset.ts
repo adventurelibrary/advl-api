@@ -65,34 +65,6 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
   includeUser: true
 }, async ({event: _evt, user}) => {
   const queryObj = evtQueryToAssetSearchOptions(_evt.queryStringParameters)
-  /*
-  // If ID then just do a GET on the ID, search params don't matter
-  if(_evt.queryStringParameters.id) {
-    let FrontEndAsset:Asset = await searchAsset(queryObj.id);
-
-    // If this asset isn't public, then we need to ensure that this user has
-    // the proper access
-    if (FrontEndAsset.visibility !== 'PUBLIC') {
-      try {
-        await verifyUserHasAssetAccess(user, FrontEndAsset.id)
-      } catch (ex) {
-        // If they don't have permission we just throw a 404
-        if (ex == ErrNoAssetPermission) {
-          return {
-            status: 404,
-          }
-        }
-        throw ex
-      }
-    }
-
-    FrontEndAsset = await setAssetUnlockedForUser(FrontEndAsset, user)
-    return {
-      status: 200,
-      body: transformAsset(FrontEndAsset)
-    }
-  }
-  */
 
   // Will check for things like invalid tags or negative limits
   validateAssetQuery(queryObj)
@@ -200,7 +172,7 @@ export const asset_manage_get : APIGatewayProxyHandler = newHandler({
   }
 })
 
-export const delete_asset : APIGatewayProxyHandler = newHandler({
+export const asset_manage_delete : APIGatewayProxyHandler = newHandler({
   requireAssetPermission: true,
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
   // Result will be either 'deleted' or 'hidden', depending on if the asset

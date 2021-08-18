@@ -181,7 +181,6 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.creator = creator
 
         if (opts.requireCreatorPermission) {
-          console.log('require creator perm')
           let hasPerm = false
           if (isAdmin(ctx.user)) {
             hasPerm = true

@@ -5,15 +5,16 @@ import {ASSET_2, ASSET_4} from "./lib/fixtures";
 
 test('searchassets: get assets', async (t) => {
 	let body = await getJSON('assets')
-	console.log('body', body)
 	t.is(body.assets.length, 4)
 	t.is(body.total, 4)
 
 	body = await getJSON('assets', {
 		userKey: 'TEST1'
 	})
+	t.is(body.assets[0].id, 'B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx')
+	t.is(body.assets[1].id, 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
 	t.is(body.assets[0].unlocked, true)
-	t.is(body.assets[1].unlocked, false)
+	t.is(body.assets[1].unlocked, true)
 	t.is(body.assets[2].unlocked, false)
 	t.is(body.assets[3].unlocked, false)
 	t.pass()
@@ -62,7 +63,6 @@ test('searchassets: get assets by two tags', async (t) => {
 
 test('searchassets: get asset by id', async (t) => {
 	const body = await getJSON('assets/spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
-	console.log('body', body)
 	t.is(body.id, 'spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw')
 	t.is(body.unlocked, false)
 
@@ -94,7 +94,7 @@ test('searchassets: get unlocked asset by id', async (t) => {
 	t.pass()
 })
 
-test.only('searchassets:my unlocked assets', async (t) => {
+test('searchassets:my unlocked assets', async (t) => {
 	let body = await getJSON('assets/unlocked', {
 		userKey: 'TEST1'
 	})

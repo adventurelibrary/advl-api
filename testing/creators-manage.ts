@@ -5,7 +5,7 @@ import {CREATOR_1, CREATOR_2} from "./lib/fixtures";
 import {query} from "../src/api/common/postgres";
 
 ava('creators:manage get access', async (t) => {
-	const path = `/creator/manage/${CREATOR_1}`
+	const path = `/manage/creator/${CREATOR_1}`
 	let tests : AccessTest[] = [{
 		// A user without access to this asset's creator
 		userKey: 'TEST1',
@@ -16,7 +16,7 @@ ava('creators:manage get access', async (t) => {
 		expectedStatus: 401,
 	}]
 	let err = await testPathAccess(path, tests, {
-		method: 'POST'
+		method: 'GET'
 	})
 	if (err != null) {
 		t.fail(err)
@@ -24,8 +24,15 @@ ava('creators:manage get access', async (t) => {
 	t.pass()
 })
 
+ava('creators:manage:get a creator', async (t) => {
+	const json = await getJSON(`/manage/creator/${CREATOR_1}`, {
+		userKey: 'ADMIN1'
+	})
+	t.is(json.id, CREATOR_1)
+})
+
 ava('creators:manage get assets access', async (t) => {
-	const path = `/creator/manage/${CREATOR_1}/assets`
+	const path = `/manage/creator/${CREATOR_1}/assets`
 	let tests : AccessTest[] = [{
 		// A user without access to this asset's creator
 		userKey: 'TEST1',
@@ -35,9 +42,7 @@ ava('creators:manage get assets access', async (t) => {
 		userKey: null,
 		expectedStatus: 401,
 	}]
-	let err = await testPathAccess(path, tests, {
-		method: 'POST'
-	})
+	let err = await testPathAccess(path, tests, )
 	if (err != null) {
 		t.fail(err)
 	}
@@ -59,7 +64,9 @@ ava.serial('creators:manage:put:success as admin', async (t) => {
 		t.fail(err)
 	}
 
-	const json = await getJSON(`/manage/creator/${CREATOR_1}`)
+	const json = await getJSON(`/manage/creator/${CREATOR_1}`, {
+		userKey: 'ADMIN1'
+	})
 	t.is(json.name, 'Updated Name')
 
 	// Cleanup
@@ -82,7 +89,7 @@ ava.serial('creators:manage:put:success as admin', async (t) => {
 
 ava('creators:manage:get:mine', async (t) => {
 	// Admin owns no creators
-	let res = await request(`/creators/mine`, {
+	let res = await request(`/manage/creators`, {
 		userKey: 'ADMIN1'
 	})
 	let err = await testResStatus(res, 200)
@@ -93,7 +100,7 @@ ava('creators:manage:get:mine', async (t) => {
 	t.is(json.creators.length, 0)
 	t.is(json.total, 0)
 
-	res = await request(`/creators/mine`, {
+	res = await request(`/manage/creators`, {
 		userKey: 'CREATOR1'
 	})
 	err = await testResStatus(res, 200)
@@ -106,7 +113,7 @@ ava('creators:manage:get:mine', async (t) => {
 	t.is(json.total, 1)
 
 
-	res = await request(`/creators/mine`, {
+	res = await request(`/manage/creators`, {
 		userKey: 'TEST1'
 	})
 	err = await testResStatus(res, 200)
@@ -118,7 +125,7 @@ ava('creators:manage:get:mine', async (t) => {
 	t.is(json.total, 0)
 
 
-	res = await request(`/creators/mine`)
+	res = await request(`/manage/creators`)
 	err = await testResStatus(res, 401)
 	if (err) {
 		t.fail(err)
@@ -128,7 +135,7 @@ ava('creators:manage:get:mine', async (t) => {
 })
 
 ava('creators:manage:post non-logged in tries to create a creator', async (t) => {
-	const res = await request('/creator', {
+	const res = await request('/manage/creators', {
 		method: 'POST',
 	})
 	let err = await testResStatus(res, 401)
@@ -140,7 +147,7 @@ ava('creators:manage:post non-logged in tries to create a creator', async (t) =>
 })
 
 ava('creators:manage:post non-admin in tries to create a creator', async (t) => {
-	const res = await request('/creator', {
+	const res = await request('/manage/creators', {
 		method: 'POST',
 		userKey: 'TEST1'
 	})
@@ -156,7 +163,7 @@ ava('creators:manage:post non-admin in tries to create a creator', async (t) => 
 })
 
 ava('creators:manage: create validation', async (t) => {
-	const res = await request('/creator', {
+	const res = await request('/manage/creators', {
 		method: 'POST',
 		userKey: 'ADMIN1',
 		body: {
@@ -179,7 +186,7 @@ ava('creators:manage: create validation', async (t) => {
 })
 
 ava.serial('creators:manage:create success', async (t) => {
-	let res = await request('/creator', {
+	let res = await request('/manage/creators', {
 		method: 'POST',
 		userKey: 'ADMIN1',
 		body: {
@@ -228,7 +235,7 @@ ava('creators:manage:put:validation', async (t) => {
 	t.pass()
 })
 
-ava.only('creators:manage:get assets', async (t) => {
+ava('creators:manage:get assets', async (t) => {
 	let res = await request(`/manage/creator/${CREATOR_2}/assets`, {
 		userKey: 'ADMIN1',
 	})

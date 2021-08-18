@@ -76,7 +76,6 @@ test('asset:unlock', async (t) => {
 		userKey: 'TEST1'
 	})
 	body = await res.json()
-	console.log('body'.repeat(40), body)
 	t.is(body.id, ASSET_1)
 	t.is(body.unlocked, true)
 
