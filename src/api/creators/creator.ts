@@ -131,7 +131,6 @@ export const creator_get = newHandler({
  */
 export const creators_get = newHandler({}, async () => {
   const rows = await getCreators({skip: 0, limit: 0})
-  console.log('rows', rows)
   return {
     status: 200,
     body: {
