@@ -24,6 +24,7 @@ export interface Asset extends UserDefinedAssetInfo{
 
   creator_id: string,
   creator_name?: string, //Used when returning it to Front End
+  creator_slug?: string // From a left join. Sent to EC for searching
   deleted?: boolean
   filetype: "IMAGE" | "PDF" | "ZIP",
   original_file_ext: string,
@@ -58,6 +59,7 @@ export interface AssetSearchOptions {
   tags?: string[],
   categories?: Category[],
   creator_ids?: string[]
+  creator_slugs?: string[]
 }
 
 export interface REQ_DownloadLink {

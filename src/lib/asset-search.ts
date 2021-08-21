@@ -41,12 +41,13 @@ export function getEventQueryFromSize (eventParams: APIGatewayProxyEventQueryStr
  * Extra fields for AssetSearchOptions can be set on a per-route basis
   * */
 export function evtQueryToAssetSearchOptions (eventParams: APIGatewayProxyEventQueryStringParameters) : AssetSearchOptions {
-	console.log(eventParams);
+	console.log('eventPrams', eventParams);
 	const queryObj:AssetSearchOptions = {};
 
 	// Certain fields are comma delimited, which we override here
 	queryObj.tags = getEventQueryCSV(eventParams, 'tags')
 	queryObj.categories = <Category[]>getEventQueryCSV(eventParams, 'categories')
+	queryObj.creator_slugs = <string[]>getEventQueryCSV(eventParams, 'creator_slugs')
 
 	const {from, size} = getEventQueryFromSize(eventParams)
 
@@ -97,7 +98,11 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 		_query.bool.filter = [];
 	}
 
-	if (opts.creator_ids && opts.creator_ids) {
+	/**
+	 * Only return assets from these creators
+	 * Creator IDs most likely provided by our backend code, not provided by the client's request
+	 */
+	if (opts.creator_ids && opts.creator_ids.length > 0) {
 		const creatorFilter = {
 			bool: {
 				minimum_should_match: 1,
@@ -113,6 +118,29 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 			})
 		})
 		_query.bool.filter.push(creatorFilter)
+	}
+
+
+	/**
+	 * Only return assets from these creators
+	 * Creator Slugs most likely comes from a client's request
+	 */
+	if (opts.creator_slugs && opts.creator_slugs.length > 0) {
+		const slugFilter = {
+			bool: {
+				minimum_should_match: 1,
+				should: []
+			}
+		}
+
+		opts.creator_slugs.forEach((slug) => {
+			slugFilter.bool.should.push({
+				match: {
+					creator_slug: slug
+				}
+			})
+		})
+		_query.bool.filter.push(slugFilter)
 	}
 
 

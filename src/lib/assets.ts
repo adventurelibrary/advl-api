@@ -47,7 +47,7 @@ export async function searchAsset (id: string) : Promise<Asset> {
 
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
-	const _sql = `SELECT a.*, c.name as creator_name
+	const _sql = `SELECT a.*, c.name as creator_name, c.slug as creator_slug
 	FROM ${process.env.DB_ASSETS} a, ${process.env.DB_CREATORS} c
 	WHERE a.creator_id = c.id
 	AND a.id = $1
@@ -156,7 +156,7 @@ export async function reindexAssetsSearch (assets: Asset[]) {
 }
 
 export async function resetAssets () {
-	const sql = `SELECT a.*, c.name as creator_name
+	const sql = `SELECT a.*, c.name as creator_name, c.slug as creator_slug
 		FROM ${process.env.DB_ASSETS} a
 		JOIN ${process.env.DB_CREATORS} c 
 		ON c.id = a.creator_id
