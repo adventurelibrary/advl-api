@@ -1,5 +1,5 @@
 import {bulkIndex, clearIndex, search} from "../api/common/elastic";
-import {Asset, AssetUnlock, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
+import {Asset, AssetUnlock, REQ_Get_Signature, AssetSearchOptions} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
 import {deleteObj, getObjects, getWritePool, query} from "../api/common/postgres";
@@ -24,7 +24,7 @@ export function validateTags(tags : string[]) {
 }
 
 //@ts-ignore
-export function validateAssetQuery(req : REQ_Query) {
+export function validateAssetQuery(req : AssetSearchOptions) {
 	// TODO: Maybe reimplement the tags validation
 	//validateTags(req.tags)
 }

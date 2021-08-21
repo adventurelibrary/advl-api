@@ -1,52 +1,60 @@
-import { Creator } from '../../interfaces/IEntity';
-import { idgen } from "../common/nanoid";
+import {Creator} from '../../interfaces/IEntity';
+import {idgen} from "../common/nanoid";
 import {newHandler} from "../common/handlers";
 import {
-  getCreators, getTotalCreators, getTotalUserCreators, getUserCreators,
-  insertCreator, isMemberOfCreatorPage,
+  getCreators,
+  getTotalUserCreators,
+  getUserCreators,
+  insertCreator,
   updateCreator,
   validateCreator
 } from "../../lib/creator";
+import {evtQueryToAssetSearchOptions, searchAssets} from "../../lib/asset-search";
 
-export const creator_get = newHandler({
-  requireCreator: true,
-  includeUser: true,
-}, async ({user, creator}) => {
-  let body : any = {}
-  let hasPerm = false
-  if (user) {
-    hasPerm = await isMemberOfCreatorPage(creator.id, user.id)
-  }
-  if (hasPerm) {
-    body = creator
-  } else {
-    body = BasicCreatorInfo(creator)
-  }
+/**
+ * The private route to fetch a creator
+ * Used by admins and users who have permission on the creator
+ */
+export const creator_manage_get = newHandler({
+  requireCreatorPermission: true,
+}, async ({creator}) => {
   return {
     status: 200,
-    body: body
+    body: creator
   }
 })
 
-export const creators_get = newHandler({
-  requireAdmin: true,
-}, async ({query}) => {
-  const rows = await getCreators({
-    limit: parseInt(query.limit),
-    skip: parseInt(query.skip)
-  })
-  const total = await getTotalCreators()
+/**
+ * The private route to fetch a creator's assets
+ * Used by admins and users who have permission on the creator
+ * Will return their hidden assets
+ */
+export const creator_manage_assets = newHandler({
+  requireCreatorPermission: true,
+}, async ({creator, event}) => {
+  const searchOptions = evtQueryToAssetSearchOptions(event.queryStringParameters)
+  searchOptions.visibility = 'all'
+  searchOptions.creator_ids = [creator.id]
+
+  // We default to sorting the most recently uploaded ones
+  if (!searchOptions.sort) {
+    searchOptions.sort = 'uploaded.raw'
+    searchOptions.sort_type = 'desc'
+  }
+  const searchResult = await searchAssets(searchOptions)
+
   return {
     status: 200,
     body: {
-      creators: rows,
-      total: total
+      creator: creator,
+      assets: searchResult
     }
   }
 })
 
+
 // Get the list of creators that this user has permissions with
-export const creators_get_mine = newHandler({
+export const creators_manage_get_mine = newHandler({
   requireUser: true,
 }, async ({query, user}) => {
   const rows = await getUserCreators(user, {
@@ -63,7 +71,7 @@ export const creators_get_mine = newHandler({
   }
 })
 
-export const creator_put = newHandler({
+export const creator_manage_put = newHandler({
   requireCreatorPermission: true, // You're either an admin, or you're editing your creator
   takesJSON: true
 }, async ({creator, json}) => {
@@ -75,7 +83,10 @@ export const creator_put = newHandler({
   }
 })
 
-export const creator_post = newHandler({
+/**
+ * Creates a new creator
+ */
+export const creator_manage_post = newHandler({
   requireAdmin: true,
   takesJSON: true
 }, async ({json}) => {
@@ -93,6 +104,37 @@ export const creator_post = newHandler({
     status: 201,
     body: {
       id: id
+    }
+  }
+})
+
+//==========PUBLIC ROUTES============
+/**
+ * The Public route for fetching a creator
+ * TODO: Use slug instead of id on this route
+ */
+export const creator_get = newHandler({
+  requireCreator: true
+}, async ({ creator}) => {
+  let body : any = {}
+  body = BasicCreatorInfo(creator)
+  return {
+    status: 200,
+    body: body
+  }
+})
+
+/**
+ * Get the FULL list of creators
+ * The frontend uses this to create the auto-fill list of creators for users
+ * to search by
+ */
+export const creators_get = newHandler({}, async () => {
+  const rows = await getCreators({skip: 0, limit: 0})
+  return {
+    status: 200,
+    body: {
+      creators: rows,
     }
   }
 })

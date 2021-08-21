@@ -247,7 +247,6 @@ test('bundles:get:mine', async (t) => {
   })
   let result = await res.json();
   t.is(result.bundles.length, 3)
-  console.log('result bundles', result.bundles)
 
   // Only the third bundle has a cover, because it has an asset
   t.truthy(result.bundles[2].cover_thumbnail.indexOf('http') === 0, 'Expected http to start: ' + result.bundles[0].cover_thumbnail) // Confirm the public bundle has a thumb

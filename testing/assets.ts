@@ -43,7 +43,7 @@ test.serial('asset:put update an asset as admin', async (t) => {
 	t.is(asset.id, ASSET_1)
 
 	// This update doesn't actually change anything
-	res = await request(`assets/update`, {
+	res = await request(`manage/assets/update`, {
 		userKey: 'ADMIN1',
 		method: 'PUT',
 		body: [asset]
@@ -54,7 +54,7 @@ test.serial('asset:put update an asset as admin', async (t) => {
 	}
 
 	// This cleans up the data
-	res = await request(`assets/update`, {
+	res = await request(`manage/assets/update`, {
 		userKey: 'ADMIN1',
 		method: 'PUT',
 		body: [asset]
@@ -77,7 +77,7 @@ test.serial('asset:put update an asset as creator', async (t) => {
 	const asset = json
 	t.is(asset.id, ASSET_3)
 
-	res = await request(`assets/update`, {
+	res = await request(`manage/assets/update`, {
 		userKey: 'CREATOR1',
 		method: 'PUT',
 		body: [{
@@ -97,7 +97,7 @@ test.serial('asset:put update an asset as creator', async (t) => {
 
 
 	// This cleans up the data
-	res = await request(`assets/update`, {
+	res = await request(`manage/assets/update`, {
 		userKey: 'CREATOR1',
 		method: 'PUT',
 		body: [asset]
@@ -111,7 +111,7 @@ test.serial('asset:put update an asset as creator', async (t) => {
 })
 
 test.serial('asset:put update an asset as regular user', async (t) => {
-	let res = await request(`assets/update`, {
+	let res = await request(`manage/assets/update`, {
 		userKey: 'TEST1',
 		method: 'PUT',
 		body: [{
@@ -152,13 +152,12 @@ test.serial('asset:delete an asset with no purchases', async (t) => {
 	await db.insertObj(process.env.DB_ASSETS, newAsset);
 	await updateAssetSearchById(id)
 
-	// Double check that this new asset appears in the search
-
-	const body = await getJSON('assets?id=' + id)
+	// Double check that this new asset appears publicly
+	const body = await getJSON('assets/' + id)
 	t.is(body.id, id)
 
 	// Delete it
-	let res = await request('assets/' + id + '/delete', {
+	let res = await request('manage/assets/' + id + '/delete', {
 		method: 'POST',
 		userKey: 'CREATOR1' // This user has access to the creator who made this
 	})
@@ -169,25 +168,19 @@ test.serial('asset:delete an asset with no purchases', async (t) => {
 	const json = await res.json()
 	t.is(json.result, 'deleted') // Should be deleted, not hidden
 
-	// Shouldn't be in the search anymore
-	res = await request('assets?id=' + id)
+	// Shouldn't be accessible anymore
+	res = await request('assets/' + id)
 	let err = await testResStatus(res, 404)
 	if (err) {
 		t.fail(err)
 	}
 
-	// Shouldn't be accessible directly anymore
-	res = await request('assets/' + id)
-	err = await testResStatus(res, 404)
-	if (err) {
-		t.fail(err)
-	}
 
 	t.pass()
 })
 
 test('asset:delete path access', async (t) => {
-	const path = 'assets/' + ASSET_1 + '/delete'
+	const path = 'manage/assets/' + ASSET_1 + '/delete'
 	let tests : AccessTest[] = [{
 		// A user without access to this asset's creator
 		userKey: 'TEST1',

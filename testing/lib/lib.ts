@@ -76,7 +76,6 @@ export async function testResError (res: any, err: ResError) : Promise<string | 
     return `Your passed in err is falsy`
   }
   if (typeof res.json !== 'function') {
-    console.log('res', res)
     return `res.json is not a function`
   }
   let json : any = {}

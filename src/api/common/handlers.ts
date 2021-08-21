@@ -6,14 +6,14 @@ import {
 } from "aws-lambda";
 import {Asset} from "../../interfaces/IAsset";
 import {errorResponse, newResponse} from "./response";
-import {getAsset, verifyUserHasAssetAccess} from "../../lib/assets";
-import {User, Creator} from "../../interfaces/IEntity";
+import {getAsset, searchAsset, verifyUserHasAssetAccess} from "../../lib/assets";
+import {Creator, User} from "../../interfaces/IEntity";
 import {getEventUser} from "./events";
 import {getCreatorByID, isMemberOfCreatorPage} from "../../lib/creator";
-import { Bundle } from "../../interfaces/IBundle";
-import { getBundleByID } from "../../lib/bundle";
+import {Bundle} from "../../interfaces/IBundle";
+import {getBundleByID} from "../../lib/bundle";
 //import { clientRelease } from "./postgres";
-import { isAdmin } from "../../lib/user";
+import {isAdmin} from "../../lib/user";
 import {ErrAssetNotFound} from "../../constants/errors";
 
 // This context we build ourselves and pass to our handlers
@@ -29,6 +29,8 @@ export type HandlerContext = {
   bundle?: Bundle
   query: Record<string, string>
 }
+
+type AssetSource = 'database' | 'elasticsearch'
 
 // These options are used when creating a new handler to determine what oft-repeated
 // tasks we should perform, and what data we should try to insert into the HandlerContext
@@ -52,6 +54,8 @@ export type HandlerOpts = {
 
   requireBundle?: boolean
   requireBundlePermission?: boolean
+
+  assetSource?: AssetSource
 }
 
 // A very simple response for our handlers to give us
@@ -69,6 +73,11 @@ export type Handler = (ctx : HandlerContext) => Promise<HandlerResult>
 export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGatewayProxyHandler {
   return async (_evt, _ctx)  => {
     _ctx.callbackWaitsForEmptyEventLoop = false;
+
+    if (!opts.assetSource) {
+      opts.assetSource = 'elasticsearch'
+    }
+
     if (opts.requireAdmin) {
       opts.requireUser = true
     }
@@ -134,7 +143,13 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
       // These routes assume that the asset id is provided as :assetID
       // in the api.yml file
       if (opts.includeAsset || opts.requireAsset) {
-        const asset = await getAsset(_evt.pathParameters.assetID)
+        let asset : Asset
+
+        if (opts.assetSource === 'elasticsearch') {
+          asset = await searchAsset(_evt.pathParameters.assetID)
+        } else if (opts.assetSource === 'database') {
+          asset = await getAsset(_evt.pathParameters.assetID)
+        }
         if (!asset && opts.requireAsset) {
           throw ErrAssetNotFound
         }
@@ -148,7 +163,7 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.asset = asset
 
         // If this option is on for this route, then the user needs to be a member of
-        // the asset's creator's creatormembers table
+        // the asset's creator's creatormembers table, or be an admin
         if (opts.requireAssetPermission) {
           await verifyUserHasAssetAccess(ctx.user, ctx.asset.id)
         }
@@ -166,7 +181,6 @@ export function newHandler (opts  : HandlerOpts, handler : Handler) : APIGateway
         ctx.creator = creator
 
         if (opts.requireCreatorPermission) {
-          console.log('require creator perm')
           let hasPerm = false
           if (isAdmin(ctx.user)) {
             hasPerm = true
