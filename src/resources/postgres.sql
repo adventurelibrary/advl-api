@@ -116,8 +116,8 @@ CREATE TABLE coin_purchases (
     key TEXT NOT NULL UNIQUE, -- Passed along to Stripe to identify the purchase in the webhook
     note TEXT NOT NULL DEFAULT '',
     provider payment_provider NOT NULL,
-    status purchase_status,
-    succeeded_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    status purchase_status NOT NULL,
+    succeeded_date TIMESTAMP,
     user_id TEXT NOT NULL REFERENCES users (id),
 
     created_date TIMESTAMP NOT NULL DEFAULT NOW()

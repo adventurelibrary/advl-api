@@ -64,10 +64,7 @@ export async function getUserCreatorIds(id: string) : Promise<string[]> {
 }
 
 
-export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promise<Creator[]> {
-	const limit = isNaN(opts.limit) || !opts.limit ? 20 : opts.limit
-	const skip = isNaN(opts.skip) ? 0 : opts.skip
-
+export async function getUserCreators (user: User) : Promise<Creator[]> {
 	const result:Creator[] = <Creator[]> await db.getObjects(
 		`
 		SELECT c.*
@@ -76,8 +73,8 @@ export async function getUserCreators(user: User, opts : GetCreatorOpts) : Promi
 		AND cm.creator_id = c.id
 		`,
 		[user.id],
-		skip,
-		limit,
+		0,
+		0,
 		'name ASC'
 	)
 	return result

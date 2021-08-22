@@ -10,9 +10,13 @@ type AssetSearchResult = {
 	params?: any
 }
 
-export function getEventQueryFromSize (eventParams: APIGatewayProxyEventQueryStringParameters) : {from: number, size: number} {
-	let size = 10
+export function getEventQueryFromAndSize (eventParams: APIGatewayProxyEventQueryStringParameters, defaultSize = 10, maxSize = 50) : {from: number, size: number} {
+	let size = defaultSize
 	let from = 0
+
+	if (maxSize < defaultSize) {
+		maxSize = defaultSize
+	}
 
 	if (eventParams) {
 		size = parseInt(eventParams.size)
@@ -20,9 +24,9 @@ export function getEventQueryFromSize (eventParams: APIGatewayProxyEventQueryStr
 	}
 
 	if (isNaN(size) || size <= 0) {
-		size = 10
-	} else if (size > 50) {
-		size = 50 // This is so someone doesn't do ?size=1432432 and cause huge lag
+		size = defaultSize
+	} else if (size > maxSize) {
+		size = maxSize // This is so someone doesn't do ?size=1432432 and cause huge lag
 	}
 
 	if (isNaN(from) || from <= 0) {
@@ -49,7 +53,7 @@ export function evtQueryToAssetSearchOptions (eventParams: APIGatewayProxyEventQ
 	queryObj.categories = <Category[]>getEventQueryCSV(eventParams, 'categories')
 	queryObj.creator_slugs = <string[]>getEventQueryCSV(eventParams, 'creator_slugs')
 
-	const {from, size} = getEventQueryFromSize(eventParams)
+	const {from, size} = getEventQueryFromAndSize(eventParams)
 
 	queryObj.from = from
 	queryObj.size = size

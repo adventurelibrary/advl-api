@@ -16,7 +16,7 @@ import {APIError} from "../../lib/errors";
 import * as db from '../common/postgres';
 import {ErrAssetAlreadyUnlocked, ErrDownloadTypeMissing, ErrNotEnoughCoins} from "../../constants/errors"
 import {getEntityNumCoins} from "../../lib/coins"
-import {evtQueryToAssetSearchOptions, getEventQueryFromSize, searchAssets} from "../../lib/asset-search";
+import {evtQueryToAssetSearchOptions, getEventQueryFromAndSize, searchAssets} from "../../lib/asset-search";
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -98,7 +98,7 @@ export const query_assets: APIGatewayProxyHandler = newHandler({
 export const assets_unlocked = newHandler({
   requireUser: true,
 }, async ({user, event}) => {
-  const {from, size} = getEventQueryFromSize(event.queryStringParameters)
+  const {from, size} = getEventQueryFromAndSize(event.queryStringParameters)
   const uls = await getUserAssetUnlocks(user.id, from, size)
   if (uls.length === 0) {
     return {

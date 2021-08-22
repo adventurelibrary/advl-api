@@ -54,13 +54,12 @@ export const creator_manage_assets = newHandler({
 
 
 // Get the list of creators that this user has permissions with
+// Will return ALL of them, no pagination is done
+// Checks the creatormembers table, so admins will likely get 0 results
 export const creators_manage_get_mine = newHandler({
   requireUser: true,
-}, async ({query, user}) => {
-  const rows = await getUserCreators(user, {
-    limit: parseInt(query.limit),
-    skip: parseInt(query.skip)
-  })
+}, async ({user}) => {
+  const rows = await getUserCreators(user)
   const total = await getTotalUserCreators(user)
   return {
     status: 200,

@@ -3,6 +3,8 @@ import { Entity, User } from '../../interfaces/IEntity';
 import * as db from '../common/postgres';
 import {newHandler} from "../common/handlers";
 import {getEntityNumCoins} from "../../lib/coins";
+import {getEventQueryFromAndSize} from "../../lib/asset-search";
+import {CoinPurchase, getUserCompletePurchases, getUserTotalCompletePurchases} from "../../lib/purchases";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -67,5 +69,25 @@ export const user_put = newHandler({
   })
   return {
     status: 204,
+  }
+})
+
+export const user_my_purchases = newHandler({
+  requireUser: true,
+}, async ({user, event}) => {
+  const {from, size} = getEventQueryFromAndSize(event.queryStringParameters, 30)
+  console.log('from', from)
+  console.log('size', size)
+  const total = await getUserTotalCompletePurchases(user.id)
+  let results : CoinPurchase[] = []
+  if (total >= from) {
+    results = await getUserCompletePurchases(user.id, from, size)
+  }
+  return {
+    status: 200,
+    body: {
+      total: total,
+      results: results
+    }
   }
 })
