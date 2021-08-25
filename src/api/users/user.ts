@@ -5,6 +5,7 @@ import {newHandler} from "../common/handlers";
 import {getEntityNumCoins} from "../../lib/coins";
 import {getEventQueryFromAndSize} from "../../lib/asset-search";
 import {CoinPurchase, getUserCompletePurchases, getUserTotalCompletePurchases} from "../../lib/purchases";
+import {LIMIT_MD} from "../../constants/constants";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -75,9 +76,7 @@ export const user_put = newHandler({
 export const user_my_purchases = newHandler({
   requireUser: true,
 }, async ({user, event}) => {
-  const {from, size} = getEventQueryFromAndSize(event.queryStringParameters, 30)
-  console.log('from', from)
-  console.log('size', size)
+  const {from, size} = getEventQueryFromAndSize(event.queryStringParameters, LIMIT_MD)
   const total = await getUserTotalCompletePurchases(user.id)
   let results : CoinPurchase[] = []
   if (total >= from) {
