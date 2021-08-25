@@ -3,6 +3,7 @@ import {getEventQueryCSV} from "../api/common/events";
 import {search} from "../api/common/elastic";
 import {transformAsset} from "../api/assets/asset";
 import {APIGatewayProxyEventQueryStringParameters} from "aws-lambda";
+import {LIMIT_LG} from "../constants/constants";
 
 type AssetSearchResult = {
 	total: number,
@@ -10,7 +11,7 @@ type AssetSearchResult = {
 	params?: any
 }
 
-export function getEventQueryFromAndSize (eventParams: APIGatewayProxyEventQueryStringParameters, defaultSize = 10, maxSize = 50) : {from: number, size: number} {
+export function getEventQueryFromAndSize (eventParams: APIGatewayProxyEventQueryStringParameters, defaultSize = 10, maxSize = LIMIT_LG) : {from: number, size: number} {
 	let size = defaultSize
 	let from = 0
 
