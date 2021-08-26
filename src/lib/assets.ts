@@ -310,12 +310,12 @@ export async function setAssetUnlockedForUser(asset: Asset, user: User | undefin
 }
 
 export async function getUserUnlocksForAssetIds (userId: string, assetIds: string[]) : Promise<AssetUnlock[]> {
-	const res = <AssetUnlock[]>await query(`SELECT * FROM asset_unlocks WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
+	const res = <AssetUnlock[]>await query(`SELECT * FROM ${process.env.DB_ASSET_UNLOCKS} WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
 	return res
 }
 
 export async function getUserAssetUnlocks (userId: string, skip: number, limit: number) : Promise<AssetUnlock[]> {
-	const res = <AssetUnlock[]>await getObjects(`SELECT * FROM asset_unlocks WHERE user_id = $1`, [userId], skip, limit, 'created_date DESC')
+	const res = <AssetUnlock[]>await getObjects(`SELECT * FROM ${process.env.DB_ASSET_UNLOCKS} WHERE user_id = $1`, [userId], skip, limit, 'created_date DESC')
 	return res
 }
 
@@ -333,11 +333,11 @@ export async function userPurchaseAssetUnlock (userId, asset: Asset) {
 
 	try {
 		await client.query('BEGIN')
-		const res = await client.query(`INSERT INTO asset_unlocks (user_id, asset_id, coins_spent) 
+		const res = await client.query(`INSERT INTO ${process.env.DB_ASSET_UNLOCKS} (user_id, asset_id, coins_spent) 
 			VALUES ($1, $2, $3) RETURNING id;`, [userId, asset.id, asset.unlock_price])
 		const unlockId = res.rows[0].id
 
-		const insertCoinSQL = `INSERT INTO entity_coins (entity_id, num_coins, unlock_id)
+		const insertCoinSQL = `INSERT INTO ${process.env.DB_ENTITY_COINS} (entity_id, num_coins, unlock_id)
 			VALUES ($1, $2, $3)`
 		await client.query(insertCoinSQL, [userId, asset.unlock_price * -1, unlockId])
 

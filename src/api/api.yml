@@ -74,6 +74,17 @@ user_get:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+user_my_purchases:
+  handler: src/api/users/user.user_my_purchases
+  events:
+    - http:
+        method: get
+        path: /users/my-purchases
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+
 user_put:
   handler: src/api/users/user.user_put
   events:
