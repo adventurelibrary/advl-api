@@ -62,6 +62,8 @@ stripe_events:
     - http:
         method: post
         path: /stripe
+  environment:
+    ${file(src/dynamic-environment.js):database}
 
 ################## USERS  #########################
 user_get:

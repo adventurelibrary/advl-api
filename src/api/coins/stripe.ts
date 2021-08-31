@@ -13,6 +13,7 @@ export const event_listener:APIGatewayProxyHandler = async (_evt, _ctx) => {
   const data = JSON.parse(_evt.body)
   console.log("EVENT: \n", data);
 
+  console.log(_evt.headers);
   const sig = _evt.headers['Stripe-Signature']
 
   let event;
@@ -78,3 +79,4 @@ export async function handleCheckoutSessionCompleted (stripeEvent: any) {
     body: 'Success'
   }
 }
+
