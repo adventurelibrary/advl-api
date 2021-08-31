@@ -140,7 +140,16 @@ test('searchassets:my unlocked assets', async (t) => {
 	t.pass()
 })
 
+test.only('searchassets: get asset by text', async (t) => {
+	const body = await getJSON('assets?text=house')
+	t.is(body.total, 1)
+	t.is(body.assets.length, 1)
+	t.is(body.assets[0].name, 'House')
+	t.pass()
+})
+
+
+
 // TODO: Test for user with many assets unlocked. Pagination as well
 
-// TODO: search for assets with text
 // TODO: get assets by category

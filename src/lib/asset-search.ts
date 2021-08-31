@@ -46,13 +46,13 @@ export function getEventQueryFromAndSize (eventParams: APIGatewayProxyEventQuery
  * Extra fields for AssetSearchOptions can be set on a per-route basis
   * */
 export function evtQueryToAssetSearchOptions (eventParams: APIGatewayProxyEventQueryStringParameters) : AssetSearchOptions {
-	console.log('eventPrams', eventParams);
 	const queryObj:AssetSearchOptions = {};
 
 	// Certain fields are comma delimited, which we override here
 	queryObj.tags = getEventQueryCSV(eventParams, 'tags')
 	queryObj.categories = <Category[]>getEventQueryCSV(eventParams, 'categories')
 	queryObj.creator_slugs = <string[]>getEventQueryCSV(eventParams, 'creator_slugs')
+	queryObj.text = eventParams.text || ''
 
 	const {from, size} = getEventQueryFromAndSize(eventParams)
 
