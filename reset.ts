@@ -1,6 +1,6 @@
 import './load-yaml-env'
-import {resetBundles} from "./src/lib/bundle";
-import {resetAssets} from "./src/lib/assets";
+import {reindexAllBundles} from "./src/lib/bundle";
+import {reindexAllAssets} from "./src/lib/assets";
 import fs from 'fs'
 import {query} from './src/api/common/postgres'
 
@@ -10,6 +10,16 @@ if (!process.env.IS_OFFLINE) {
 }
 
 async function run () {
+	if (process.env.STAGE != 'dev') {
+		console.log(`WARNING: Running in stage "\x1b[35m${process.env.STAGE}" !!! You have 5s to cancel if you need to.`)
+		console.log('You are about to \x1b[31m" WIPE THE DATABASE\x1b[0m')
+		await new Promise((res) => {
+			setTimeout(() => {
+				res()
+			}, 5000)
+		})
+	}
+
 	// Rebuild the database and its chema
 	const schema = fs.readFileSync('./src/resources/postgres.sql', 'utf8');
 	await query(schema)
@@ -19,15 +29,8 @@ async function run () {
 	await query(seed)
 
 	// Clear and re-index in elastic search
-	await resetBundles()
-	await resetAssets()
+	await reindexAllBundles()
+	await reindexAllAssets()
 	process.exit(0)
 }
 run()
-/*
-
-// This takes our .env.yaml file contents and hacks it into the process.env
-// so that our connection clients will be able to get the connection info (usernames, codes, etc)
-
-
-*/

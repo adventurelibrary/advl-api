@@ -47,3 +47,6 @@ Tests are added to the `testing` folder. You can **ignore files in the testing f
 
 ## Faster Tests
 If you only want to run tests in a particular file, it can speed up your tests to edit the `package.json` file's `ava` section. Edit the `files` attribute of that object to only point to the file you're testing, and remove the wildcard entry. Do **not** commit this.
+
+## Reindexing
+To clear the all assets and bundles from Elastic Search and then reindex from the database you can run `npm run reindex` 

@@ -1,7 +1,7 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { errorResponse, newResponse } from "../common/response";
 import {query} from "../common/postgres";
-import {resetAssets} from "../../lib/assets";
+import {reindexAllAssets} from "../../lib/assets";
 
 export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
   try{
@@ -26,7 +26,7 @@ export const debug_rds:APIGatewayProxyHandler = async (_evt, _ctx) => {
 export const debug_sync:APIGatewayProxyHandler = async(_evt, _ctx) => {
   let response = newResponse();
   try{
-    await resetAssets()
+    await reindexAllAssets()
     //await resetBundles()
     response.statusCode = 204
     return response;
@@ -42,7 +42,7 @@ export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
 
 
   try{
-  
+
     let q = JSON.parse(_evt.body)
     console.log("Query: ", q.query);
     console.log("Values: ", q.values)
@@ -62,7 +62,7 @@ export const rds_vpc:APIGatewayProxyHandler = async (_evt, _ctx) => {
       .catch( (e) => {
         console.error("Connecting Problems: ", e)
       })
-    
+
     let res = await client.query(q.query, q.values);
     console.log(res);
     response.body = JSON.stringify(res);
