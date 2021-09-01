@@ -7,7 +7,13 @@ function load () {
 	}
 	let data = yaml.load(fileContents);
 
-	data = data['dev'];
+	const stage = process.env.STAGE
+
+	if (!data.hasOwnProperty(stage)) {
+		throw new Error(`data from .env.yml file does not have a "${stage}" section`)
+	}
+
+	data = data[stage];
 
 	['common', 'stripe', 'elastic', 'transloadit', 'backblaze', 'postgres'].forEach((module) => {
 		console.log(`Loading in ${module} env variables`)

@@ -155,7 +155,7 @@ export async function reindexAssetsSearch (assets: Asset[]) {
 	return bulkIndex(process.env.INDEX_ASSETDB, assets, getAssetSearchBody)
 }
 
-export async function resetAssets () {
+export async function reindexAllAssets () {
 	const sql = `SELECT a.*, c.name as creator_name, c.slug as creator_slug
 		FROM ${process.env.DB_ASSETS} a
 		JOIN ${process.env.DB_CREATORS} c 

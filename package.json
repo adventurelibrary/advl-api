@@ -5,6 +5,7 @@
   "scripts": {
     "test": "ts-node tests/test.ts",
     "reset": "ts-node reset.ts",
+    "reindex": "ts-node reindex.ts",
     "ngrok": "ngrok.exe http --hostname=adventurelibrary.ngrok.io https://localhost:3000",
     "stripe": "stripe.exe listen --forward-to localhost:3000/dev/stripe"
   },

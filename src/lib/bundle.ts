@@ -82,7 +82,7 @@ export async function indexBundles (bundles: Bundle[]) {
   return bulkIndex(process.env.INDEX_BUNDLEINFO, bundles, getBundlePublicBody)
 }
 
-export async function resetBundles () {
+export async function reindexAllBundles () {
   const bundles = await queryBundles()
   await reindexBundles(bundles)
 }
