@@ -7,6 +7,7 @@ export interface RES_Get_Signature{
 
 export type Category = 'map' | 'character' | 'scene' | 'token'
 
+
 interface UserDefinedAssetInfo {
   name: string,
   description: string,
@@ -14,12 +15,14 @@ interface UserDefinedAssetInfo {
   creator_id: string,
   tags: string[],
   unlock_price: number,
-  revenue_share: RevenueShare
+  revenue_share: RevenueShare,
+  visibility: AssetVisibility,
 }
 
-export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC"
+export type AssetVisibility = "HIDDEN" | "PUBLIC"
+export type UploadStatus = "PENDING" | "COMPLETE" | "FAILED"
 
-export interface Asset extends UserDefinedAssetInfo{
+export interface Asset extends UserDefinedAssetInfo {
   id: string,
 
   creator_id: string,
@@ -35,7 +38,7 @@ export interface Asset extends UserDefinedAssetInfo{
   unlock_count: number,
   unlocked?: boolean, // Set on an asset we get from the db for a logged in user
   uploaded: Date,
-  visibility: visibility_types,
+  upload_status: UploadStatus
 }
 
 interface RevenueShare {
@@ -55,7 +58,9 @@ export interface AssetSearchOptions {
   size?: number
 
   text?: string, // will search name & description
-  visibility?: visibility_types[] | 'all'
+  refresh?: boolean
+  visibility?: AssetVisibility[] | 'all'
+  upload_status?: 'all' | 'completed'
   tags?: string[],
   categories?: Category[],
   creator_ids?: string[]
@@ -70,7 +75,7 @@ export type image_file_resolutions = "original" | "optimized" | "watermarked" | 
 
 export interface REQ_Update {
   id: string,
-  visibility?: visibility_types,
+  visibility?: AssetVisibility,
   name: string,
   description: string,
   collectionID: string,

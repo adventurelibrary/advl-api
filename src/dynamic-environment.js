@@ -12,6 +12,7 @@ module.exports = {
     ...env.transloadit,
     ...env.elastic,
     ...env.postgres,
+    ...env.backblaze,
   },
   database: {
     ...env.elastic,

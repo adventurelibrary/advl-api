@@ -258,11 +258,11 @@ assets_manage_update:
     ${file(src/dynamic-environment.js):database}
 
 get_upload_signature:
-  handler: src/api/assets/transloadit.get_signature
+  handler: src/api/assets/transloadit.get_upload_signature
   events:
     - http:
         method: post
-        path: /assets/get_signature
+        path: /manage/creator/{creatorID}/upload-signature
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):transloadit}

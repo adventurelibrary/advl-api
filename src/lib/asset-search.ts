@@ -52,7 +52,7 @@ export function evtQueryToAssetSearchOptions (eventParams: APIGatewayProxyEventQ
 	queryObj.tags = getEventQueryCSV(eventParams, 'tags')
 	queryObj.categories = <Category[]>getEventQueryCSV(eventParams, 'categories')
 	queryObj.creator_slugs = <string[]>getEventQueryCSV(eventParams, 'creator_slugs')
-	queryObj.text = eventParams.text || ''
+	queryObj.text = (eventParams && eventParams.text) || ''
 
 	const {from, size} = getEventQueryFromAndSize(eventParams)
 
@@ -101,6 +101,19 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 
 	if (opts.visibility == 'all') {
 		_query.bool.filter = [];
+	}
+
+	/**
+	 * By default we only return assets that have completed uploading
+	 * For creators we want them to also be able to view pending and failed
+	 * assets
+	 */
+	if (opts.upload_status !== 'all') {
+		_query.bool.filter.push({
+			match: {
+				'upload_status': 'COMPLETE',
+			}
+		})
 	}
 
 	/**
