@@ -106,7 +106,8 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 		unlock_count: 0,
 		unlock_price: req.unlock_price,
 		uploaded: new Date(),
-		visibility: "PENDING",
+		visibility: req.visibility || 'HIDDEN',
+		upload_status: 'PENDING',
 	}
 
 	await db.insertObj(process.env.DB_ASSETS, newAsset);
@@ -114,12 +115,13 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 	return newAsset;
 }
 
-export async function indexAssetSearch (asset: Asset) {
+export async function indexAssetSearch (asset: Asset, refresh?: boolean | 'wait_for') {
 	// Update ES. This will insert it to ES if it's not on elasticsearch
 	await search.index({
 		index: process.env.INDEX_ASSETDB,
 		id: asset.id,
-		body: getAssetSearchBody(asset)
+		body: getAssetSearchBody(asset),
+		refresh: refresh
 	});
 }
 
@@ -130,9 +132,9 @@ function getAssetSearchBody (asset: Asset) : any {
 	return data
 }
 
-export async function updateAssetSearchById (id: string) {
+export async function updateAssetSearchById (id: string, refresh? : boolean | 'wait_for') {
 	const asset = await getAsset(id)
-	return await indexAssetSearch(asset)
+	return await indexAssetSearch(asset, refresh)
 }
 /*
 export async function indexAssetSearch (asset: Asset) {
