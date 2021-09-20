@@ -148,6 +148,7 @@ test.serial('asset:delete an asset with no purchases', async (t) => {
 		unlock_price: 0,
 		uploaded: new Date(),
 		visibility: "PUBLIC",
+		upload_status: 'COMPLETE'
 	}
 	await db.insertObj(process.env.DB_ASSETS, newAsset);
 	await updateAssetSearchById(id)

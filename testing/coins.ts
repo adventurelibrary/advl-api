@@ -20,8 +20,10 @@ ava.serial('coins: buy a coinpack for a user', async (t) => {
       }
     })
 
-    const status = res.status
-    t.is(status, 200)
+    let err = await testResStatus(res, 200)
+    if (err) {
+      t.fail(err)
+    }
 
     const body = await res.json()
 
