@@ -1,8 +1,9 @@
 import {validateUserToken} from '../../lib/user';
 import { Entity, User } from '../../interfaces/IEntity';
 import * as db from '../common/postgres';
-import {newHandler} from "../common/handlers";
+import {newHandler, HandlerContext, HandlerResult} from "../common/handlers";
 import {getEntityNumCoins} from "../../lib/coins";
+import {getUserEmailExists, getUsernameExists} from '../../lib/user'
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -70,3 +71,30 @@ export const user_put = newHandler({
     status: 204,
   }
 })
+
+/*
+  Returns "true": string, in return data, if email already registered to user in db.
+*/
+export const email_exists = newHandler({
+}, async (ctx : HandlerContext) : Promise<HandlerResult> => {
+    let passedEmail = ctx['event']['pathParameters']['email']
+    let emailExists = await getUserEmailExists(passedEmail)
+  return {
+    status: 200,
+    body: emailExists.toString()
+  }
+})
+
+/*
+  Returns "true": string, in return data, if email already registered to user in db.
+*/
+export const name_exists = newHandler({
+}, async (ctx : HandlerContext) : Promise<HandlerResult> => {
+    let passedUsername = ctx['event']['pathParameters']['username']
+    let userameExists = await getUsernameExists(passedUsername)
+  return {
+    status: 200,
+    body: userameExists.toString()
+  }
+})
+

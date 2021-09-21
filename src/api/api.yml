@@ -84,6 +84,27 @@ user_put:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+user_email_exist:
+  handler: src/api/users/user.email_exists
+  events:
+    - http: # GET if returns boolean true, then email is already in use
+        method: get
+        path: /users/emailexists/{email}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+
+user_name_exist:
+  handler: src/api/users/user.name_exists
+  events:
+    - http: # GET if returns boolean true, then email is already in use
+        method: get
+        path: /users/usernameexists/{username}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
 ################## CREATORS #########################
 
 creators_get_mine:

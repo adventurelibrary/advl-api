@@ -65,3 +65,36 @@ export function validateUserToken(userToken:string){
 export function isAdmin(user: User) : boolean {
   return user.is_admin
 }
+
+// returns true if passed email already exists in the db for a registered user
+export async function getUserEmailExists (email: string) : Promise<boolean> {
+  let emailExists = false
+
+  const res = await db.query(`SELECT u.email FROM users AS u WHERE email = $1`, [email])
+  try {
+    if (res[0].email)
+      emailExists = true
+  }
+  catch(e) {
+    // if no result found do nothing
+  }
+
+	return emailExists
+}
+
+
+// returns true if passed username already exists in the db for a registered user
+export async function getUsernameExists (username: string) : Promise<boolean> {
+  let usernameExists = false
+
+  const res = await db.query(`SELECT u.username FROM users AS u WHERE username = $1`, [username])
+  try {
+    if (res[0].username)
+    usernameExists = true
+  }
+  catch(e) {
+    // if no result found do nothing
+  }
+
+	return usernameExists
+}
