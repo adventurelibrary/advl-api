@@ -6,6 +6,7 @@ import {getEntityNumCoins} from "../../lib/coins";
 import {getEventQueryFromAndSize} from "../../lib/asset-search";
 import {CoinPurchase, getUserCompletePurchases, getUserTotalCompletePurchases} from "../../lib/purchases";
 import {LIMIT_MD} from "../../constants/constants";
+import {getUserCreators} from "../../lib/creator";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -53,6 +54,13 @@ export const user_get = newHandler({
     await db.updateObj(process.env.DB_USERS, user.id, {last_seen: new Date()});
     const numCoins = await getEntityNumCoins(user.id)
     user.num_coins = numCoins
+
+    if (user.is_creator) {
+      user.creators = await getUserCreators(user)
+    } else {
+      user.creators = []
+    }
+
   }
 
   return {
