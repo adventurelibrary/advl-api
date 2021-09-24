@@ -1,4 +1,4 @@
-import {Asset, AssetSearchOptions, Category} from "../interfaces/IAsset"
+import {Asset, AssetSearchOptions, AssetSortField, AssetSortType, Category} from "../interfaces/IAsset"
 import {getEventQueryCSV} from "../api/common/events";
 import {search} from "../api/common/elastic";
 import {transformAsset} from "../api/assets/asset";
@@ -47,17 +47,37 @@ export function getEventQueryFromAndSize (eventParams: APIGatewayProxyEventQuery
   * */
 export function evtQueryToAssetSearchOptions (eventParams: APIGatewayProxyEventQueryStringParameters) : AssetSearchOptions {
 	const queryObj:AssetSearchOptions = {};
+	eventParams = eventParams || {}
 
 	// Certain fields are comma delimited, which we override here
 	queryObj.tags = getEventQueryCSV(eventParams, 'tags')
 	queryObj.categories = <Category[]>getEventQueryCSV(eventParams, 'categories')
 	queryObj.creator_slugs = <string[]>getEventQueryCSV(eventParams, 'creator_slugs')
-	queryObj.text = (eventParams && eventParams.text) || ''
+	queryObj.text = (eventParams.text) || ''
 
 	const {from, size} = getEventQueryFromAndSize(eventParams)
 
 	queryObj.from = from
 	queryObj.size = size
+
+	if (eventParams.sort) {
+		if (eventParams.sort === 'date') {
+			queryObj.sort = 'published_date.raw'
+		} else if (eventParams.sort === 'name') {
+			queryObj.sort = 'name.raw'
+		} else if (eventParams.sort === 'uploaded') {
+			queryObj.sort = 'uploaded.raw'
+		}	else if (eventParams.sort === 'relevance') {
+			queryObj.sort = '_score'
+		} else {
+			queryObj.sort = <AssetSortField>eventParams.sort
+		}
+
+		if (eventParams.sort_direction) {
+			queryObj.sort_direction = <AssetSortType>eventParams.sort_direction
+		}
+	}
+
 
 	return queryObj
 }
@@ -206,6 +226,9 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 		})
 	}
 
+	let sortField = opts.sort || '_score'
+	let sortDirection = opts.sort_direction || 'desc'
+	const sort = [{[sortField]: sortDirection}]
 
 	// Query doesn't include ID
 	const params = {
@@ -213,14 +236,7 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 		body: {
 			from: from,
 			size: size,
-			sort: opts.sort ?
-				[{
-					[opts.sort] : opts.sort_type
-				}]
-				:
-				[{
-					"_score": "desc"
-				}],
+			sort: sort,
 			query: _query
 		}
 	}

@@ -17,7 +17,7 @@ import * as db from '../common/postgres';
 import {ErrAssetAlreadyUnlocked, ErrDownloadTypeMissing, ErrNotEnoughCoins} from "../../constants/errors"
 import {getEntityNumCoins} from "../../lib/coins"
 import {evtQueryToAssetSearchOptions, getEventQueryFromAndSize, searchAssets} from "../../lib/asset-search";
- 
+
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
  * @param asset

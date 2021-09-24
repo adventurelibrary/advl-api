@@ -16,13 +16,13 @@ INSERT INTO creators (id, name, slug, owner_id) VALUES
 ('224d9090-2c19-4d3c-b43d-b101d4879a3b', 'Gerrin Tramis', 'gerrin-tramis', '349b984e-8e2e-4a4b-993b-34df19189dbf'),
 ('7bffd388-aba7-4bd2-8472-b63fef449805', 'Carlos Cara Alvarez', 'carlos-cara-alvarez', null);
 
-INSERT INTO assets (id, slug, name, filetype, original_file_ext, creator_id, size_in_bytes, uploaded, visibility, upload_status, unlock_count, description, category, tags, unlock_price, revenue_share)
-VALUES ('7fa4da69-739d-4e32-a107-1f0bfd4a544b', 'asset-tester', 'Asset Tester', 'IMAGE', 'PNG', '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', 123, NOW(), 'PUBLIC', 'COMPLETE', 1, 'Description pending', 'map', '{}', 50, '{}'),
-('spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw', 'carlos-cara-alvarez-mutante', 'Mutante', 'IMAGE', 'UNKNOWN', '7bffd388-aba7-4bd2-8472-b63fef449805', 0, '2021-06-04 02:45:11', 'PUBLIC', 'COMPLETE', 0, '', 'character', '{"Barbarian"}', 0, '{}'),
-('caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj', 'house', 'House', 'IMAGE', 'jpg', '224d9090-2c19-4d3c-b43d-b101d4879a3b', 2875969, '2021-06-03 17:33:25', 'PUBLIC', 'COMPLETE', 0, '', 'map', '{"House", "Barbarian"}', 0, '{}'),
-('B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx','first-kill','First Kill', 'IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',3711875, '2021-06-03 12:42:06', 'PUBLIC', 'COMPLETE',0, '', 'map','{}',50,'{}'),
-('CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2','killion','Killion','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2939370,'2021-06-03 12:42:13','HIDDEN', 'COMPLETE',0,'','character','{}',50,'{}'),
-('DCjzmGvBbMYux64dhLbWeBMpgbDOgrbm','hope-keyshot','Hope Keyshot','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2491374,'2021-06-03 19:42:18','HIDDEN', 'COMPLETE',0,'','scene','{}',0,'{}');
+INSERT INTO assets (id, slug, name, filetype, original_file_ext, creator_id, size_in_bytes, uploaded, published_date, visibility, upload_status, unlock_count, description, category, tags, unlock_price, revenue_share)
+VALUES ('7fa4da69-739d-4e32-a107-1f0bfd4a544b', 'asset-tester', 'Asset Tester', 'IMAGE', 'PNG', '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', 123, NOW() - INTERVAL '5 MINUTES', NOW() - INTERVAL '3 MINUTES', 'PUBLIC', 'COMPLETE', 1, 'Description pending', 'map', '{}', 50, '{}'),
+('spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw', 'carlos-cara-alvarez-mutante', 'Mutante', 'IMAGE', 'UNKNOWN', '7bffd388-aba7-4bd2-8472-b63fef449805', 0, '2021-06-04 02:45:11', '2021-06-04 02:45:11', 'PUBLIC', 'COMPLETE', 0, '', 'character', '{"Barbarian"}', 0, '{}'),
+('caiQ4wQRlXFiOtMrCO2D86gX1odpqeuj', 'house', 'House', 'IMAGE', 'jpg', '224d9090-2c19-4d3c-b43d-b101d4879a3b', 2875969, '2021-06-03 17:33:25', '2021-06-03 17:33:25', 'PUBLIC', 'COMPLETE', 0, '', 'map', '{"House", "Barbarian"}', 0, '{}'),
+('B0k0MsxaS8nvTMbndBvvAEsBnyL0I6vx','first-kill','First Kill', 'IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',3711875, '2021-06-03 12:42:06', '2021-06-03 12:42:06', 'PUBLIC', 'COMPLETE',0, '', 'map','{}',50,'{}'),
+('CTgHDPNAjeRpdPYg89WeDYwqa5pXcEC2','killion','Killion','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2939370,'2021-06-03 12:42:13', null, 'HIDDEN', 'COMPLETE',0,'','character','{}',50,'{}'),
+('DCjzmGvBbMYux64dhLbWeBMpgbDOgrbm','hope-keyshot','Hope Keyshot','IMAGE','jpg','224d9090-2c19-4d3c-b43d-b101d4879a3b',2491374,'2021-06-03 19:42:18', null, 'HIDDEN', 'COMPLETE',0,'','scene','{}',0,'{}');
 
 INSERT INTO bundleinfo (id, name, description, entity_id, public) VALUES
 ('083e16ae-8f1d-4fd8-af48-e71bf757efd2', 'My Public Bundle', 'This is where I keep my bundles', 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', true),
