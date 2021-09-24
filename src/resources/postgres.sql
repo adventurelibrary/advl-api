@@ -62,6 +62,7 @@ create table assets (
     slug TEXT NOT NULL,
     size_in_bytes int NOT NULL,
     uploaded TIMESTAMP NOT NULL,
+    published_date TIMESTAMP,
     visibility visibility NOT NULL,
     upload_status upload_status NOT NULL DEFAULT 'PENDING',
     unlock_count int NOT NULL DEFAULT 0,

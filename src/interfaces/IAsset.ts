@@ -38,6 +38,7 @@ export interface Asset extends UserDefinedAssetInfo {
   unlock_count: number,
   unlocked?: boolean, // Set on an asset we get from the db for a logged in user
   uploaded: Date,
+  published_date?: Date
   upload_status: UploadStatus
 }
 
@@ -50,10 +51,13 @@ export interface REQ_Query_Assets{
   query?: string
 }
 
+export type AssetSortField = "uploaded.raw" | "published_date.raw" | "unlock_count" | "unlock_price" | "_score" | "name.raw"
+export type AssetSortType = "asc" | "desc"
+
 export interface AssetSearchOptions {
   assetIds?: string[]
-  sort?: "uploaded.raw" | "unlock_count" | "unlock_price" | "_score" | "name"
-  sort_type?: "asc" | "desc",
+  sort?: AssetSortField
+  sort_direction?: AssetSortType
   from?: number,
   size?: number
 

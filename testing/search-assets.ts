@@ -140,7 +140,7 @@ test('searchassets:my unlocked assets', async (t) => {
 	t.pass()
 })
 
-test.only('searchassets: get asset by text', async (t) => {
+test('searchassets: get asset by text', async (t) => {
 	const body = await getJSON('assets?text=house')
 	t.is(body.total, 1)
 	t.is(body.assets.length, 1)
@@ -148,6 +148,43 @@ test.only('searchassets: get asset by text', async (t) => {
 	t.pass()
 })
 
+test('searchassets:sort assets by date', async (t) => {
+	const firstPublished = 'House'
+	const lastPublished = 'Some Other One'
+	let body = await getJSON('assets?sort=date&sort_direction=asc')
+	t.is(body.total, 4)
+	t.is(body.assets.length, 4)
+	t.is(body.assets[0].name, firstPublished)
+	t.is(body.assets[3].name, lastPublished)
+
+	body = await getJSON('assets?sort=date&sort_direction=desc')
+	t.is(body.total, 4)
+	t.is(body.assets.length, 4)
+	t.is(body.assets[0].name, firstPublished)
+	t.is(body.assets[3].name, lastPublished)
+
+	t.pass()
+})
+
+
+test('searchassets:sort assets by name', async (t) => {
+	const firstName = 'Asset Tester'
+	const lastName = 'Mutante'
+	let body = await getJSON('assets?sort=name&sort_direction=asc')
+	t.is(body.total, 4)
+	t.is(body.assets.length, 4)
+	t.is(body.assets[0].name, firstName)
+	t.is(body.assets[3].name, lastName)
+
+	body = await getJSON('assets?sort=name&sort_direction=desc')
+	console.log('body', body)
+	t.is(body.total, 4)
+	t.is(body.assets.length, 4)
+	t.is(body.assets[0].name, lastName)
+	t.is(body.assets[3].name, firstName)
+
+	t.pass()
+})
 
 
 // TODO: Test for user with many assets unlocked. Pagination as well

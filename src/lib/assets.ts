@@ -70,6 +70,10 @@ export async function updateAsset (original:Asset, updates: any) {
 	//TODO Validate Collection ID
 	//TODO Validate unlock_price is positive
 
+	const changingToPublic = original.visibility !== 'PUBLIC' && updates.visibility === 'PUBLIC'
+	const changingToComplete = original.upload_status !== 'COMPLETE' && updates.upload_status === 'COMPLETE'
+	const isChangingVisibility = changingToComplete || changingToPublic
+
 	original.category = updates.hasOwnProperty('category') ? updates.category : original.category;
 	original.deleted = updates.hasOwnProperty('deleted') ? updates.deleted : original.deleted;
 	original.description = updates.hasOwnProperty('description') ? updates.description : original.description;
@@ -79,7 +83,13 @@ export async function updateAsset (original:Asset, updates: any) {
 	original.size_in_bytes = updates.hasOwnProperty('size_in_bytes') ? updates.size_in_bytes : original.size_in_bytes;
 	original.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
 	original.unlock_price = updates.hasOwnProperty('unlock_price') ? updates.unlock_price : original.unlock_price;
+	original.upload_status = updates.hasOwnProperty('upload_status') ? updates.upload_status : original.upload_status;
 	original.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
+
+	const isNowVisible = original.visibility === 'PUBLIC' && original.upload_status === 'COMPLETE'
+	if (isChangingVisibility && isNowVisible) {
+		original.published_date = new Date()
+	}
 
 	await db.updateObj(process.env.DB_ASSETS, original.id, original)
 }
