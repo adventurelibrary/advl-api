@@ -36,3 +36,9 @@ export const ErrAssetNotFound = new APIError({
 	key: 'asset_not_found',
 	message: 'Could not find that asset'
 })
+
+export const ErrCoinPurchaseNotFound = new APIError({
+	status: 404,
+	key: 'coin_purchase_not_found',
+	message: 'Could not find a Coin Purchase'
+})

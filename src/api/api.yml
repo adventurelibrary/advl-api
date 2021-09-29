@@ -36,17 +36,50 @@ debug_creator_create:
   environment:
     ${file(src/dynamic-environment.js):database}
 
-################## COINS  #########################
+################## STRIPE COINS  #########################
 
-coins_purchase:
-  handler: src/api/coins/coins.coins_purchase
+stripe_create_checkout:
+  handler: src/api/coins/stripe.stripe_create_checkout
   events:
     - http:
         method: post
-        path: /coins/purchase
+        path: /coins/purchase/stripe-checkout
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
+
+stripe_create_intent:
+  handler: src/api/coins/stripe.stripe_create_intent
+  events:
+    - http:
+        method: post
+        path: /coins/purchase/stripe-intent
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+
+stripe_confirm_intent:
+  handler: src/api/coins/stripe.stripe_confirm_intent
+  events:
+    - http:
+        method: post
+        path: /coins/purchase/stripe-intent-confirm
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+stripe_events:
+  handler: src/api/coins/stripe.event_listener
+  events:
+    - http:
+        method: post
+        path: /stripe
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
+#################### COINS ##################
+
 coins_purchase_options:
   handler: src/api/coins/coins.coins_options_get
   events:
@@ -56,14 +89,7 @@ coins_purchase_options:
         cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
   environment:
     ${file(src/dynamic-environment.js):database}
-stripe_events:
-  handler: src/api/coins/stripe.event_listener
-  events:
-    - http:
-        method: post
-        path: /stripe
-  environment:
-    ${file(src/dynamic-environment.js):database}
+
 
 ################## USERS  #########################
 user_get:

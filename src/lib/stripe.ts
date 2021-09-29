@@ -1,6 +1,10 @@
 import {CoinPurchase} from "./purchases";
+import {addEntityCoins} from "./coins";
+import {updateObj} from "../api/common/postgres";
 
 export const stripe = require('stripe')(process.env.STRIPE_API_KEY)
+
+const CURRENCY = 'usd'
 
 export type StripeSession = {
 	url: string
@@ -25,7 +29,7 @@ export async function createPaymentSession (cp: CoinPurchase) : Promise<StripeSe
 		line_items: [
 			{
 				price_data: {
-					currency: 'usd',
+					currency: CURRENCY,
 					product_data: {
 						name: `${cp.coins} Coins`,
 					},
@@ -40,4 +44,43 @@ export async function createPaymentSession (cp: CoinPurchase) : Promise<StripeSe
 	});
 
 	return session
+}
+
+export async function createPaymentIntent (amount: number) : Promise<{id: string, client_secret: string}> {
+	const intent = await stripe.paymentIntents.create({
+		amount,
+		currency: CURRENCY
+	})
+	return intent
+}
+
+type CheckPaymentIntentResult = 'skipped' | 'complete' | 'error'
+export async function checkPendingPaymentIntent (coinPurchase: CoinPurchase) : Promise<CheckPaymentIntentResult> {
+	if (coinPurchase.status === 'complete') {
+		return 'skipped'
+	}
+
+	const stripePaymentIntentId = coinPurchase.key
+	let result : CheckPaymentIntentResult
+	const pi = await stripe.paymentIntents.retrieve(stripePaymentIntentId)
+
+	// If the numbers don't match then something went wrong
+	if (coinPurchase.cents !== pi.amount) {
+		coinPurchase.status = 'error'
+		coinPurchase.note = `Purchase amount ${coinPurchase.cents} did not match Stripe event amount ${pi.amount}`
+		result = 'error'
+	} else {
+		coinPurchase.status = 'complete'
+
+		// Add a record to this user's account of the coins
+		await addEntityCoins(coinPurchase.user_id, coinPurchase.coins, {
+			purchase_id: coinPurchase.id
+		})
+		result = 'complete'
+	}
+
+	// Save the the coin purchase
+	await updateObj(process.env.DB_COIN_PURCHASES, coinPurchase.id, coinPurchase)
+
+	return result
 }
