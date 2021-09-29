@@ -19,8 +19,11 @@ export type CoinPurchase = {
 
 // Inserts a new coin purchase into our database that signifies someone's intent to buy coins from us
 // It creates a record that we will use in the future to give them coins, IF they finish the checkout process
-export async function createNewCoinPurchase(provider: PurchaseProvider, user: User, po: CoinPurchaseOption) : Promise<CoinPurchase> {
-	const key = idgen()
+// The key is a reference that we use to match data from Stripe payments to rows in our database
+export async function createNewCoinPurchase(provider: PurchaseProvider, user: User, po: CoinPurchaseOption, key = '') : Promise<CoinPurchase> {
+	if (!key) {
+		key = idgen()
+	}
 	const purchase : CoinPurchase = {
 		user_id: user.id,
 		note: '',
