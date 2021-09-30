@@ -66,7 +66,8 @@ INSERT INTO coin_purchases (id, user_id, cents, coins, key, provider, status, cr
 (23, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, 500, 'fdafds0', 'stripe', 'complete', NOW() - INTERVAL '600 MINUTES', NOW() - INTERVAL '500 MINUTES'),
 (24, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, 500, 'fdafds0a', 'stripe', 'complete', NOW() - INTERVAL '600 MINUTES', NOW() - INTERVAL '500 MINUTES'),
 (25, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', 2500, 2500, 'fdafds0c', 'stripe', 'complete', NOW() - INTERVAL '50 MINUTES', NOW() - INTERVAL '45 MINUTES'),
-(26, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, 500, 'fahewuagew', 'stripe', 'pending', NOW() - INTERVAL '7 DAYS', null);
+(26, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, 500, 'fahewuagew', 'stripe', 'pending', NOW() - INTERVAL '7 DAYS', null),
+(27, 'cd240b82-6e33-48e7-a561-eac54bfb1a6b', 500, 500, 'pi_3JetbEBmiuJDOPG52a7nMT74', 'stripe', 'pending', NOW() - INTERVAL '50 MINUTES', null);
 
 SELECT setval('coin_purchases_id_seq', 26, true);
 
