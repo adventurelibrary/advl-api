@@ -3,7 +3,7 @@ import { Entity, User } from '../../interfaces/IEntity';
 import * as db from '../common/postgres';
 import {newHandler, HandlerContext, HandlerResult} from "../common/handlers";
 import {getEntityNumCoins} from "../../lib/coins";
-import {getUserEmailExists, getUsernameExists} from '../../lib/user'
+import {getUserEmailExists, getUsernameExists, getRegisterValidate} from '../../lib/user'
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -98,3 +98,17 @@ export const name_exists = newHandler({
   }
 })
 
+/*
+  returns integer counts of instances of the passed email and username already existsing in the db for registered users
+  returns: stringified JSON{emailcount, usernamecount}
+*/
+export const register_validate = newHandler({
+}, async (ctx : HandlerContext) : Promise<HandlerResult> => {
+    let passedEmail = ctx['event']['pathParameters']['email']
+    let passedUsername = ctx['event']['pathParameters']['username']
+    let resCount = await getRegisterValidate(passedEmail, passedUsername)    
+  return {
+    status: 200,
+    body: JSON.stringify(resCount)
+  }
+})

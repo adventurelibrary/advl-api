@@ -51,3 +51,12 @@ test('user:get session of admin', async (t) => {
   t.is(data.num_coins, 0)
   t.pass()
 })
+
+test('user:count existing instances of email and username in db', async (t) => {
+  const data = await getJSON('/users/registervalidate/', {
+    userKey: 'ADMIN1'
+  })
+  t.is(data.email, 'vindexus+admin@gmail.com')
+  t.is(data.username, 'test-user-01')
+  t.pass()
+})

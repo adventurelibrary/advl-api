@@ -105,6 +105,16 @@ user_name_exist:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+register_validate:
+  handler: src/api/users/user.register_validate
+  events:
+    - http: # GET if returns boolean true, then email is already in use
+        method: get
+        path: /users/registervalidate/{email}/{username}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}    
+
 ################## CREATORS #########################
 
 creators_get_mine:
