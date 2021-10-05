@@ -1,8 +1,8 @@
 import './load-yaml-env'
-import fs from 'fs';
-import {query} from "./src/api/common/postgres";
 import {resetBundles} from "./src/lib/bundle";
 import {resetAssets} from "./src/lib/assets";
+import fs from 'fs'
+import {query} from './src/api/common/postgres'
 
 if (!process.env.IS_OFFLINE) {
 	console.log('Must run in offline mode so you dont connect to live ElasticSearch')

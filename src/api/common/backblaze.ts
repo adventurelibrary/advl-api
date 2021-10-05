@@ -14,7 +14,10 @@ export interface AssetImage {
   original_file_ext: string
 }
 
-export function GetURL(type:image_file_resolutions, asset:AssetImage){
+export function GetURL (type:image_file_resolutions, asset:AssetImage) {
+  if (!asset) {
+    throw new Error(`falsy asset passed into GetURL`)
+  }
   let ext = type == 'original' ? asset.original_file_ext : 'webp'
   let bucket = '';
   switch(type){

@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS bundleinfo CASCADE;
 DROP TABLE IF EXISTS bundleassets CASCADE;
 DROP TABLE IF EXISTS entities CASCADE;
 
+DROP TYPE IF EXISTS upload_status;
 DROP TYPE IF EXISTS visibility;
 DROP TYPE IF EXISTS filetype;
 DROP TYPE IF EXISTS category;
@@ -20,7 +21,8 @@ DROP TYPE IF EXISTS category CASCADE;
 DROP TYPE IF EXISTS purchase_status CASCADE;
 DROP TYPE IF EXISTS payment_provider CASCADE;
 
-create type visibility as ENUM ('PENDING', 'HIDDEN', 'PUBLIC', 'ALL');
+create type visibility as ENUM ('PUBLIC', 'HIDDEN');
+create type upload_status as ENUM ('PENDING', 'COMPLETE', 'FAILED');
 create type filetype as ENUM ('IMAGE', 'PDF', 'ZIP');
 create type category as ENUM ('map', 'token', 'character', 'scene', 'item', 'panel');
 create type entity_type as ENUM ('CREATOR', 'USER', 'ADMIN');
@@ -60,7 +62,9 @@ create table assets (
     slug TEXT NOT NULL,
     size_in_bytes int NOT NULL,
     uploaded TIMESTAMP NOT NULL,
+    published_date TIMESTAMP,
     visibility visibility NOT NULL,
+    upload_status upload_status NOT NULL DEFAULT 'PENDING',
     unlock_count int NOT NULL DEFAULT 0,
     filetype filetype NOT NULL,
     original_file_ext TEXT NOT NULL,
@@ -116,8 +120,8 @@ CREATE TABLE coin_purchases (
     key TEXT NOT NULL UNIQUE, -- Passed along to Stripe to identify the purchase in the webhook
     note TEXT NOT NULL DEFAULT '',
     provider payment_provider NOT NULL,
-    status purchase_status,
-    succeeded_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    status purchase_status NOT NULL,
+    succeeded_date TIMESTAMP,
     user_id TEXT NOT NULL REFERENCES users (id),
 
     created_date TIMESTAMP NOT NULL DEFAULT NOW()
