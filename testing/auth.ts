@@ -52,11 +52,42 @@ test('user:get session of admin', async (t) => {
   t.pass()
 })
 
-test('user:count existing instances of email and username in db', async (t) => {
+test('user-register-validate:pass existing email and username', async (t) => {
   const data = await getJSON('/users/registervalidate/', {
-    userKey: 'ADMIN1'
+    email: 'vindexus+admin@gmail.com', 
+    username: 'test-user-01'
   })
-  t.is(data.email, 'vindexus+admin@gmail.com')
-  t.is(data.username, 'test-user-01')
+  t.is(data.email, 1)
+  t.is(data.username, 1)
+  t.pass()
+})
+
+test('user-register-validate:pass existing email no username', async (t) => {
+  const data = await getJSON('/users/registervalidate/', {
+    email: 'vindexus+admin@gmail.com', 
+    username: ''
+  })
+  t.is(data.email, 1)
+  t.is(data.username, 0)
+  t.pass()
+})
+
+test('user-register-validate:pass existing username no email', async (t) => {
+  const data = await getJSON('/users/registervalidate/', {
+    email: '', 
+    username: 'test-user-01'
+  })
+  t.is(data.email, 0)
+  t.is(data.username, 1)
+  t.pass()
+})
+
+test('user-register-validate:pass available email and username', async (t) => {
+  const data = await getJSON('/users/registervalidate/', {
+    email: 'vindexus+admin@gmail.com2', 
+    username: 'test-user-01-2'
+  })
+  t.is(data.email, 0)
+  t.is(data.username, 0)
   t.pass()
 })
