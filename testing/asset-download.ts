@@ -3,7 +3,7 @@ import {request, testResError, testResStatus} from "./lib/lib";
 import {ASSET_1, ASSET_4, ASSET_HIDDEN} from "./lib/fixtures";
 import {ErrAssetNotFound, ErrAssetNotUnlocked, ErrDownloadTypeMissing} from "../src/constants/errors";
 
-test.only('asset:download:unlocked', async (t) => {
+test('asset:download:unlocked', async (t) => {
 	const res = await request(`assets/${ASSET_4}/download?type=original`, {
 		userKey: 'TEST1'
 	})
@@ -29,7 +29,7 @@ test('asset:download:HIDDEN', async (t) => {
 
 
 test('asset:download:missing type', async (t) => {
-	const res = await request(`assets/${ASSET_HIDDEN}/download`, {
+	const res = await request(`assets/${ASSET_1}/download`, {
 		userKey: 'TEST1'
 	})
 	const err = await testResError(res, ErrDownloadTypeMissing)
@@ -52,7 +52,9 @@ test('asset:download:locked', async (t) => {
 })
 
 test('asset:download:wrong id', async (t) => {
-	const res = await request(`assets/43263264363/download?type=original`)
+	const res = await request(`assets/43263264363/download?type=original`, {
+		userKey: 'TEST1'
+	})
 	const err = await testResError(res, ErrAssetNotFound)
 	if (err) {
 		t.fail(err)

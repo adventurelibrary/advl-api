@@ -7,6 +7,7 @@ export interface RES_Get_Signature{
 
 export type Category = 'map' | 'character' | 'scene' | 'token'
 
+
 interface UserDefinedAssetInfo {
   name: string,
   description: string,
@@ -14,16 +15,19 @@ interface UserDefinedAssetInfo {
   creator_id: string,
   tags: string[],
   unlock_price: number,
-  revenue_share: RevenueShare
+  revenue_share: RevenueShare,
+  visibility: AssetVisibility,
 }
 
-export type visibility_types = "PENDING" | "HIDDEN" | "PUBLIC"
+export type AssetVisibility = "HIDDEN" | "PUBLIC"
+export type UploadStatus = "PENDING" | "COMPLETE" | "FAILED"
 
-export interface Asset extends UserDefinedAssetInfo{
+export interface Asset extends UserDefinedAssetInfo {
   id: string,
 
   creator_id: string,
   creator_name?: string, //Used when returning it to Front End
+  creator_slug?: string // From a left join. Sent to EC for searching
   deleted?: boolean
   filetype: "IMAGE" | "PDF" | "ZIP",
   original_file_ext: string,
@@ -34,7 +38,8 @@ export interface Asset extends UserDefinedAssetInfo{
   unlock_count: number,
   unlocked?: boolean, // Set on an asset we get from the db for a logged in user
   uploaded: Date,
-  visibility: visibility_types,
+  published_date?: Date
+  upload_status: UploadStatus
 }
 
 interface RevenueShare {
@@ -46,21 +51,24 @@ export interface REQ_Query_Assets{
   query?: string
 }
 
-export interface REQ_Query {
-  id? :string,
-  ids? : string[],
-  sort?: "uploaded.raw" | "unlock_count" | "unlock_price" | "_score" | "name"
-  sort_type?: "asc" | "desc",
+export type AssetSortField = "uploaded.raw" | "published_date.raw" | "unlock_count" | "unlock_price" | "_score" | "name.raw"
+export type AssetSortType = "asc" | "desc"
+
+export interface AssetSearchOptions {
+  assetIds?: string[]
+  sort?: AssetSortField
+  sort_direction?: AssetSortType
   from?: number,
   size?: number
 
   text?: string, // will search name & description
-  visibility?: visibility_types[] | 'all'
-  original_file_ext?: string,
-  creator_name?: string, // Can come from join queries
-  collectionID?: string,
+  refresh?: boolean
+  visibility?: AssetVisibility[] | 'all'
+  upload_status?: 'all' | 'completed'
   tags?: string[],
   categories?: Category[],
+  creator_ids?: string[]
+  creator_slugs?: string[]
 }
 
 export interface REQ_DownloadLink {
@@ -71,7 +79,7 @@ export type image_file_resolutions = "original" | "optimized" | "watermarked" | 
 
 export interface REQ_Update {
   id: string,
-  visibility?: visibility_types,
+  visibility?: AssetVisibility,
   name: string,
   description: string,
   collectionID: string,

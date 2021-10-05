@@ -1,5 +1,5 @@
 import {bulkIndex, clearIndex, search} from "../api/common/elastic";
-import {Asset, AssetUnlock, REQ_Get_Signature, REQ_Query} from "../interfaces/IAsset";
+import {Asset, AssetUnlock, REQ_Get_Signature, AssetSearchOptions} from "../interfaces/IAsset";
 import {GetTag} from "../constants/categorization";
 import * as db from '../api/common/postgres';
 import {deleteObj, getObjects, getWritePool, query} from "../api/common/postgres";
@@ -24,7 +24,7 @@ export function validateTags(tags : string[]) {
 }
 
 //@ts-ignore
-export function validateAssetQuery(req : REQ_Query) {
+export function validateAssetQuery(req : AssetSearchOptions) {
 	// TODO: Maybe reimplement the tags validation
 	//validateTags(req.tags)
 }
@@ -47,7 +47,7 @@ export async function searchAsset (id: string) : Promise<Asset> {
 
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
-	const _sql = `SELECT a.*, c.name as creator_name
+	const _sql = `SELECT a.*, c.name as creator_name, c.slug as creator_slug
 	FROM ${process.env.DB_ASSETS} a, ${process.env.DB_CREATORS} c
 	WHERE a.creator_id = c.id
 	AND a.id = $1
@@ -70,6 +70,10 @@ export async function updateAsset (original:Asset, updates: any) {
 	//TODO Validate Collection ID
 	//TODO Validate unlock_price is positive
 
+	const changingToPublic = original.visibility !== 'PUBLIC' && updates.visibility === 'PUBLIC'
+	const changingToComplete = original.upload_status !== 'COMPLETE' && updates.upload_status === 'COMPLETE'
+	const isChangingVisibility = changingToComplete || changingToPublic
+
 	original.category = updates.hasOwnProperty('category') ? updates.category : original.category;
 	original.deleted = updates.hasOwnProperty('deleted') ? updates.deleted : original.deleted;
 	original.description = updates.hasOwnProperty('description') ? updates.description : original.description;
@@ -79,7 +83,13 @@ export async function updateAsset (original:Asset, updates: any) {
 	original.size_in_bytes = updates.hasOwnProperty('size_in_bytes') ? updates.size_in_bytes : original.size_in_bytes;
 	original.tags = updates.hasOwnProperty('tags') ? updates.tags : original.tags;
 	original.unlock_price = updates.hasOwnProperty('unlock_price') ? updates.unlock_price : original.unlock_price;
+	original.upload_status = updates.hasOwnProperty('upload_status') ? updates.upload_status : original.upload_status;
 	original.visibility = updates.hasOwnProperty('visibility') ? updates.visibility : original.visibility;
+
+	const isNowVisible = original.visibility === 'PUBLIC' && original.upload_status === 'COMPLETE'
+	if (isChangingVisibility && isNowVisible) {
+		original.published_date = new Date()
+	}
 
 	await db.updateObj(process.env.DB_ASSETS, original.id, original)
 }
@@ -106,7 +116,8 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 		unlock_count: 0,
 		unlock_price: req.unlock_price,
 		uploaded: new Date(),
-		visibility: "PENDING",
+		visibility: req.visibility || 'HIDDEN',
+		upload_status: 'PENDING',
 	}
 
 	await db.insertObj(process.env.DB_ASSETS, newAsset);
@@ -114,12 +125,13 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 	return newAsset;
 }
 
-export async function indexAssetSearch (asset: Asset) {
+export async function indexAssetSearch (asset: Asset, refresh?: boolean | 'wait_for') {
 	// Update ES. This will insert it to ES if it's not on elasticsearch
 	await search.index({
 		index: process.env.INDEX_ASSETDB,
 		id: asset.id,
-		body: getAssetSearchBody(asset)
+		body: getAssetSearchBody(asset),
+		refresh: refresh
 	});
 }
 
@@ -130,9 +142,9 @@ function getAssetSearchBody (asset: Asset) : any {
 	return data
 }
 
-export async function updateAssetSearchById (id: string) {
+export async function updateAssetSearchById (id: string, refresh? : boolean | 'wait_for') {
 	const asset = await getAsset(id)
-	return await indexAssetSearch(asset)
+	return await indexAssetSearch(asset, refresh)
 }
 /*
 export async function indexAssetSearch (asset: Asset) {
@@ -156,7 +168,7 @@ export async function reindexAssetsSearch (assets: Asset[]) {
 }
 
 export async function resetAssets () {
-	const sql = `SELECT a.*, c.name as creator_name
+	const sql = `SELECT a.*, c.name as creator_name, c.slug as creator_slug
 		FROM ${process.env.DB_ASSETS} a
 		JOIN ${process.env.DB_CREATORS} c 
 		ON c.id = a.creator_id
@@ -310,12 +322,12 @@ export async function setAssetUnlockedForUser(asset: Asset, user: User | undefin
 }
 
 export async function getUserUnlocksForAssetIds (userId: string, assetIds: string[]) : Promise<AssetUnlock[]> {
-	const res = <AssetUnlock[]>await query(`SELECT * FROM asset_unlocks WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
+	const res = <AssetUnlock[]>await query(`SELECT * FROM ${process.env.DB_ASSET_UNLOCKS} WHERE user_id = $1 AND asset_id = ANY($2)`, [userId, assetIds])
 	return res
 }
 
 export async function getUserAssetUnlocks (userId: string, skip: number, limit: number) : Promise<AssetUnlock[]> {
-	const res = <AssetUnlock[]>await getObjects(`SELECT * FROM asset_unlocks WHERE user_id = $1`, [userId], skip, limit, 'created_date DESC')
+	const res = <AssetUnlock[]>await getObjects(`SELECT * FROM ${process.env.DB_ASSET_UNLOCKS} WHERE user_id = $1`, [userId], skip, limit, 'created_date DESC')
 	return res
 }
 
@@ -333,11 +345,11 @@ export async function userPurchaseAssetUnlock (userId, asset: Asset) {
 
 	try {
 		await client.query('BEGIN')
-		const res = await client.query(`INSERT INTO asset_unlocks (user_id, asset_id, coins_spent) 
+		const res = await client.query(`INSERT INTO ${process.env.DB_ASSET_UNLOCKS} (user_id, asset_id, coins_spent) 
 			VALUES ($1, $2, $3) RETURNING id;`, [userId, asset.id, asset.unlock_price])
 		const unlockId = res.rows[0].id
 
-		const insertCoinSQL = `INSERT INTO entity_coins (entity_id, num_coins, unlock_id)
+		const insertCoinSQL = `INSERT INTO ${process.env.DB_ENTITY_COINS} (entity_id, num_coins, unlock_id)
 			VALUES ($1, $2, $3)`
 		await client.query(insertCoinSQL, [userId, asset.unlock_price * -1, unlockId])
 

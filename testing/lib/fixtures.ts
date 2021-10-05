@@ -15,6 +15,8 @@ export const CREATOR_2 = '224d9090-2c19-4d3c-b43d-b101d4879a3b'
 
 export const USER1 = 'cd240b82-6e33-48e7-a561-eac54bfb1a6b'
 
+export const PAYMENT_INTENT_COMPLETE_PID = 'pi_3JetbEBmiuJDOPG52a7nMT74'
+export const COIN_PURCHASE_PENDING = 27
 
 export const users = {
   TEST1: {

@@ -1,51 +1,44 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
-import { RES_Get_Signature, Asset } from '../../interfaces/IAsset';
+import {APIGatewayProxyHandler} from 'aws-lambda';
+import {Asset, RES_Get_Signature} from '../../interfaces/IAsset';
 import * as crypto from 'crypto';
 import * as qs from 'querystring';
-import {errorResponse, newResponse} from "../common/response";
-import {getEventUser} from "../common/events";
-import {
-  createNewAsset,
-  updateAssetAndIndex,
-  validateAsset
-} from "../../lib/assets";
+import {errorResponse} from "../common/response";
+import {createNewAsset, updateAssetAndIndex, updateAssetSearchById, validateAsset} from "../../lib/assets";
 import * as db from '../common/postgres';
+import {newHandler} from "../common/handlers";
 
-export const get_signature: APIGatewayProxyHandler = async (_evt, _ctx) => {
-  let response = newResponse()
 
-  try{
-    const user = await getEventUser(_evt)
-    if(!user){
-      throw new Error("You must be logged in to upload a new asset");
-    }
-    const newAsset = <Asset>JSON.parse(_evt.body);
-    validateAsset(newAsset)
+export const get_upload_signature = newHandler({
+  takesJSON: true,
+  requireCreatorPermission: true,
+}, async ({json, creator}) => {
+  const newAsset = <Asset>json;
+  newAsset.creator_id = creator.id
+  validateAsset(newAsset)
 
-    const created = await createNewAsset(newAsset);
+  const created = await createNewAsset(newAsset);
 
-    if (!created.id) {
-      throw new Error('Created asset is missing id')
-    }
-
-    let params = await getParams(created);
-    let signature = await calcSignature(params);
-
-    let _res:RES_Get_Signature = {
-      params: params,
-      signature: signature,
-      assetID: created.id
-    }
-
-    response.statusCode = 200
-    response.body = JSON.stringify(_res)
-    db.clientRelease();
-    return response;
-  }catch (E){
-    db.clientRelease();
-    return errorResponse(_evt, E)
+  if (!created.id) {
+    throw new Error('Created asset is missing id')
   }
-}
+
+  let params = await getParams(created);
+  let signature = await calcSignature(params);
+
+  let _res:RES_Get_Signature = {
+    params: params,
+    signature: signature,
+    assetID: created.id
+  }
+
+  // Index this asset so it will appear for this creator
+  await updateAssetSearchById(created.id, true)
+
+  return {
+    body: _res,
+    status: 200
+  }
+})
 
 async function getParams(asset: Asset): Promise<string> {
   const utcDateString = (ms) =>{
@@ -127,10 +120,10 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
         throw new Error('Missing assetID from params')
       }
       let asset = await db.getObj(process.env.DB_ASSETS, params.fields.assetID);
-      if(asset && asset.visibility == "PENDING"){
+      if(asset && asset.upload_status === "PENDING"){
         const update = {
           size_in_bytes: notification.bytes_received,
-          visibility: 'HIDDEN',
+          upload_status: 'COMPLETE',
           original_file_ext: notification.uploads[0].ext
         }
 
@@ -138,7 +131,7 @@ export const transloadit_notify: APIGatewayProxyHandler = async (_evt, _ctx) => 
         console.log("ASSET_UPDATES: ", update);
         await updateAssetAndIndex(asset,  update)
 
-        console.log(`${asset.id} moved from PENDING to HIDDEN.`);
+        console.log(`${asset.id} moved upload status from PENDING to COMPLETED.`);
       }
     }
     response.statusCode = 200;

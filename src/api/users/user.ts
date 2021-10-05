@@ -4,6 +4,10 @@ import * as db from '../common/postgres';
 import {newHandler, HandlerContext, HandlerResult} from "../common/handlers";
 import {getEntityNumCoins} from "../../lib/coins";
 import {getUserEmailExists, getUsernameExists, getRegisterValidate} from '../../lib/user'
+import {getEventQueryFromAndSize} from "../../lib/asset-search";
+import {CoinPurchase, getUserCompletePurchases, getUserTotalCompletePurchases} from "../../lib/purchases";
+import {LIMIT_MD} from "../../constants/constants";
+import {getUserCreators} from "../../lib/creator";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -49,9 +53,15 @@ export const user_get = newHandler({
     }
   } else if (user) {
     await db.updateObj(process.env.DB_USERS, user.id, {last_seen: new Date()});
-
     const numCoins = await getEntityNumCoins(user.id)
     user.num_coins = numCoins
+
+    if (user.is_creator) {
+      user.creators = await getUserCreators(user)
+    } else {
+      user.creators = []
+    }
+
   }
 
   return {
@@ -110,5 +120,23 @@ export const register_validate = newHandler({
   return {
     status: 200,
     body: JSON.stringify(resCount)
+  }
+})
+
+export const user_my_purchases = newHandler({
+  requireUser: true,
+}, async ({user, event}) => {
+  const {from, size} = getEventQueryFromAndSize(event.queryStringParameters, LIMIT_MD)
+  const total = await getUserTotalCompletePurchases(user.id)
+  let results : CoinPurchase[] = []
+  if (total >= from) {
+    results = await getUserCompletePurchases(user.id, from, size)
+  }
+  return {
+    status: 200,
+    body: {
+      total: total,
+      results: results
+    }
   }
 })

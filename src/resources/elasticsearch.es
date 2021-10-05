@@ -11,7 +11,12 @@ PUT /assets
     "properties": {
       "name": {
         "type": "text",
-        "fielddata": true
+        "fielddata": true,
+        "fields": {
+          "raw": {
+            "type": "keyword"
+          }
+        }
       },
       "description": {
         "type": "text",
@@ -21,6 +26,15 @@ PUT /assets
         "type": "text",
         "fielddata": true,
         "fields": {
+          "raw": {
+            "type":  "keyword"
+          }
+        }
+      },
+      "published_date": {
+        "type": "text",
+        "fielddata": true,
+          "fields": {
           "raw": {
             "type":  "keyword"
           }

@@ -6,11 +6,13 @@ export interface Entity {
 export interface User {
   id: string, //FK to Entity
   is_admin: boolean
+  is_creator?: boolean
   username: string,
   email: string,
   notification_preferences: NotificationPreferences,
   last_seen: Date,
   join_date: Date,
+  creators?: Creator[] // Added by our GET session route for the frontend to see
   num_coins?: number // Added by our GET session route for the frontend to see
 }
 

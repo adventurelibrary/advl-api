@@ -1,8 +1,8 @@
 import '../load-yaml-env'
 import test from 'ava';
-import {request, testResError, testResStatus} from "./lib/lib";
-import {ASSET_HIDDEN, ASSET_1, ASSET_4, USER1} from "./lib/fixtures"
-import {ErrNotEnoughCoins, ErrAssetAlreadyUnlocked, ErrAssetNotFound} from "../src/constants/errors"
+import {request, testResError} from "./lib/lib";
+import {ASSET_1, ASSET_4, ASSET_HIDDEN, USER1} from "./lib/fixtures"
+import {ErrAssetAlreadyUnlocked, ErrAssetNotFound, ErrNotEnoughCoins} from "../src/constants/errors"
 import {query} from "../src/api/common/postgres"
 
 test('asset:unlock:does not exist', async (t) => {
@@ -68,14 +68,11 @@ test('asset:unlock', async (t) => {
 		method: 'POST',
 		userKey: 'TEST1',
 	})
-	let err = await testResStatus(res, 200)
-	if (err) {
-		t.fail(err)
-	}
-	const json = await res.json()
-	t.is(json.numCoins, 1400)
+	body = await res.json()
+	t.is(body.numCoins, 1400) // New coin count should be returned
+
 	// Confirm getting the asset shows it unlocked
-	res = await request(`/assets?id=${ASSET_1}`, {
+	res = await request(`/assets/${ASSET_1}`, {
 		userKey: 'TEST1'
 	})
 	body = await res.json()

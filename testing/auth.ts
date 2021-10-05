@@ -28,6 +28,8 @@ test('user:get session of creator', async (t) => {
   t.is(data.username, 'test-creator-1')
   t.is(data.is_creator, true)
   t.is(data.is_admin, false)
+  t.is(data.creators.length, 1)
+  t.is(data.creators[0].name, 'Gerrin Tramis')
   t.pass()
 })
 
@@ -38,6 +40,7 @@ test('user:get session of regular user', async (t) => {
   t.is(data.username, 'test-user-01')
   t.is(data.is_creator, false)
   t.is(data.is_admin, false)
+  t.is(data.creators.length, 0)
   t.pass()
 })
 
