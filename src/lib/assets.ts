@@ -47,18 +47,46 @@ export async function searchAsset (id: string) : Promise<Asset> {
 
 
 export async function getAsset (id: string) : Promise<Asset | undefined> {
-	const _sql = `SELECT a.*, c.name as creator_name, c.slug as creator_slug
+	return getAssetWhere({
+		'a.id': id
+	})
+}
+
+export async function getAssetBySlugs (creatorSlug: string, assetSlug: string) : Promise<Asset | undefined> {
+	return getAssetWhere({
+		'a.slug': assetSlug,
+		'c.slug': creatorSlug
+	})
+}
+
+export async function getAssetWhere (wheres: Record<string, any>) : Promise<Asset | undefined> {
+	let _sql = `SELECT a.*, c.name as creator_name, c.slug as creator_slug
 	FROM ${process.env.DB_ASSETS} a, ${process.env.DB_CREATORS} c
 	WHERE a.creator_id = c.id
-	AND a.id = $1
 	AND a.deleted = false
 	`
 
-	const rows:Asset[] = await query(_sql, [id])
+	const ands = []
+	const params = []
+	for (let field in wheres) {
+		params.push(wheres[field])
+		ands.push(`${field} = $${params.length}`)
+	}
+
+	if (ands.length) {
+		_sql += ` AND ${ands.join(' AND ')}`
+	}
+
+	const rows:Asset[] = await query(_sql, params)
 	if (!rows || !rows[0]) {
 		return undefined
 	}
 	return rows[0];
+}
+
+export async function updateAssetById (id: string, updates: any) {
+	const asset = await getAsset(id)
+	return updateAsset(asset, updates)
 }
 
 export async function updateAsset (original:Asset, updates: any) {
@@ -91,7 +119,19 @@ export async function updateAsset (original:Asset, updates: any) {
 		original.published_date = new Date()
 	}
 
-	await db.updateObj(process.env.DB_ASSETS, original.id, original)
+	const copy = {
+		...original
+	}
+	// These don't actually exist on the table, so we remove them
+	delete copy.creator_name
+	delete copy.creator_slug
+	delete copy.creator_id
+	await db.updateObj(process.env.DB_ASSETS, original.id, copy)
+}
+
+// Visible to the general public
+export function assetIsVisible (asset: Asset) : boolean {
+	return asset.visibility === 'PUBLIC' && asset.upload_status === 'COMPLETE'
 }
 
 export async function updateAssetAndIndex (original: Asset, updates: any) {
@@ -99,7 +139,50 @@ export async function updateAssetAndIndex (original: Asset, updates: any) {
 	await updateAssetSearchById(original.id)
 }
 
+/**
+ * Creates the slug for an asset based on its name
+ * If that creator already has an asset with that slug
+ * then we append some random(ish) numbers to it
+ * @param creatorId
+ * @param name
+ */
+export async function generateAssetSlug (creatorId: string, name: string) : Promise<string> {
+	let appendNumbers = false
+	let attempts = 0
+	const baseSlug = slugify(name.trim().toLowerCase())
+	do {
+		let slug = baseSlug
+
+		// We append some random numbers if we encounter a slug
+		if (appendNumbers) {
+			let num : string
+			let increase = 0
+			// I'm just doing some checks here to not allow naughty numbers
+			// Probably overkill but it was fun to code
+			do {
+				num = (new Date().getTime()+increase).toString().substr(-3)
+				increase++
+			} while (['420', '666', '069'].includes(num))
+			slug += '-' + num
+		}
+		const asset = await getAssetWhere({
+			'a.creator_id': creatorId,
+			'a.slug': slug
+		})
+		if (!asset) {
+			return slug
+		}
+		appendNumbers = true
+		attempts++
+	} while (attempts < 1000)
+	throw new Error(`Could not find a new slug after 1000 attempts`)
+}
+
 export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
+
+	// Let's get a slug for this asset
+	const slug = await generateAssetSlug(req.creator_id, req.name)
+
 	let newAsset: Asset = {
 		id: idgen(),
 		category: req.category,
@@ -111,7 +194,7 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 		original_file_ext: 'UNKNOWN',
 		revenue_share: req.revenue_share,
 		size_in_bytes: 0,
-		slug: slugify(req.name).toLowerCase(),
+		slug: slug,
 		tags: req.tags,
 		unlock_count: 0,
 		unlock_price: req.unlock_price,
@@ -119,6 +202,7 @@ export async function createNewAsset(req:REQ_Get_Signature): Promise<Asset> {
 		visibility: req.visibility || 'HIDDEN',
 		upload_status: 'PENDING',
 	}
+
 
 	await db.insertObj(process.env.DB_ASSETS, newAsset);
 	console.log(`PENDING ASSET CREATED\n`, newAsset);

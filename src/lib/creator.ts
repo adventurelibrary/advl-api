@@ -2,10 +2,19 @@ import {Entity, User, Creator} from "../interfaces/IEntity";
 import * as db from "../api/common/postgres";
 import {Validation} from "./errors";
 
-export async function getCreatorByID(creatorID: string){
+export async function getCreatorByID(creatorID: string) : Promise<Creator> {
 	try {
 		const creator = <Creator> await db.getObj(process.env.DB_CREATORS, creatorID);
 		return creator;
+	} catch(e){
+		return undefined;
+	}
+}
+
+export async function getCreatorBySlug(slug: string) : Promise<Creator> {
+	try {
+		const rows = await db.query(`SELECT * FROM ${process.env.DB_CREATORS} WHERE slug = $1`, [slug]);
+		return rows[0];
 	} catch(e){
 		return undefined;
 	}

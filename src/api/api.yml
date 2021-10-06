@@ -250,6 +250,16 @@ get_asset:
   environment:
     ${file(src/dynamic-environment.js):database}
 
+get_creator_asset:
+  handler: src/api/assets/asset.creator_asset_get
+  events:
+    - http:
+        method: get
+        path: /creators/{creatorSlug}/asset/{assetSlug}
+        cors: ${self:custom.cors.${opt:stage, self:provider.stage}}
+  environment:
+    ${file(src/dynamic-environment.js):database}
+
 
 ################## ASSETS MANAGE ###################
 

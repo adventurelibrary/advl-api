@@ -1,10 +1,16 @@
 import {APIGatewayProxyHandler} from 'aws-lambda';
 import {Asset, image_file_resolutions} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
+import {AssetImage} from '../common/backblaze';
 import {
-  deleteAsset, getAssetFileBasename,
-  getUserAssetUnlock, getUserAssetUnlocks,
-  setAssetsUnlockedForUser, setAssetUnlockedForUser,
+  assetIsVisible,
+  deleteAsset,
+  getAssetBySlugs,
+  getAssetFileBasename,
+  getUserAssetUnlock,
+  getUserAssetUnlocks,
+  setAssetsUnlockedForUser,
+  setAssetUnlockedForUser,
   updateAssetAndIndex,
   userPurchaseAssetUnlock,
   validateAssetQuery,
@@ -14,10 +20,16 @@ import {
 import {HandlerContext, HandlerResult, newHandler} from "../common/handlers";
 import {APIError} from "../../lib/errors";
 import * as db from '../common/postgres';
-import {ErrAssetAlreadyUnlocked, ErrDownloadTypeMissing, ErrNotEnoughCoins} from "../../constants/errors"
+import {
+  ErrAssetAlreadyUnlocked,
+  ErrAssetNotFound,
+  ErrDownloadTypeMissing,
+  ErrNotEnoughCoins
+} from "../../constants/errors"
 import {getEntityNumCoins} from "../../lib/coins"
 import {evtQueryToAssetSearchOptions, getEventQueryFromAndSize, searchAssets} from "../../lib/asset-search";
-import {AssetImage} from "../common/backblaze";
+import {getCreatorBySlug} from "../../lib/creator";
+import {Creator} from "../../interfaces/IEntity";
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -33,9 +45,7 @@ export function transformAsset (asset : Asset) : Asset {
 }
 
 /**
- * Public route to get a specific asset
- * TODO: Use creator slug and asset slug instead of slug ID for this route
- *  This is so our routes can be adventurelibrary.art/john/mountain-pass
+ * Public route to get a specific asset by its id
  */
 export const asset_get : APIGatewayProxyHandler = newHandler({
   includeUser: true,
@@ -56,6 +66,43 @@ export const asset_get : APIGatewayProxyHandler = newHandler({
   return {
     status: 200,
     body: asset,
+  }
+})
+
+export const creator_asset_get : APIGatewayProxyHandler = newHandler({
+}, async ({user, event}) => {
+  let asset : Asset
+  let creator : Creator
+  console.log('path params', event.pathParameters)
+  try {
+    creator = await getCreatorBySlug(event.pathParameters.creatorSlug)
+    console.log('creator', creator)
+    asset = await getAssetBySlugs(event.pathParameters.creatorSlug, event.pathParameters.assetSlug)
+    console.log('asset', asset)
+  } catch (ex) {
+    throw ErrAssetNotFound
+  }
+
+  if (!asset) {
+    throw ErrAssetNotFound
+  }
+
+  if (!assetIsVisible(asset)) {
+    throw ErrAssetNotFound
+  }
+
+  // This properly builds the thumbnail and preview links
+  asset = transformAsset(asset)
+
+  // This sets the `unlocked` bool value for logged in user
+  asset = await setAssetUnlockedForUser(asset, user)
+
+  return {
+    status: 200,
+    body: {
+      creator,
+      asset,
+    }
   }
 })
 
