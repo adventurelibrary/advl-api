@@ -81,6 +81,10 @@ create table assets (
 );
 CREATE INDEX assets_deleted ON assets(deleted);
 
+-- Include 'deleted' in the index, otherwise a soft-deleted asset would prevent that creator
+-- from reusing that slug
+CREATE UNIQUE INDEX assets_creator_slug ON assets(creator_id, slug, deleted);
+
 create table creatormembers (
   creator_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
