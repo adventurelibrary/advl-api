@@ -364,3 +364,9 @@ export async function userPurchaseAssetUnlock (userId, asset: Asset) {
 		client.release()
 	}
 }
+
+// For when a user clicks the Download button and we force the file to be downloaded
+// this is the name the file will have on their computer
+export function getAssetFileBasename(asset: Asset) : string {
+	return `${asset.name} - ${asset.creator_name}`
+}
