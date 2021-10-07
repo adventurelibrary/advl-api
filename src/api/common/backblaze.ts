@@ -1,5 +1,5 @@
-import {Credentials, S3, Endpoint} from 'aws-sdk';
-import { image_file_resolutions } from '../../interfaces/IAsset';
+import {Credentials, Endpoint, S3} from 'aws-sdk';
+import {image_file_resolutions} from '../../interfaces/IAsset';
 
 const linkExpiryInSeconds = 60*60 //1 hr
 const b2 = new S3({
@@ -12,6 +12,8 @@ export interface AssetImage {
   id: string
   creator_id: string
   original_file_ext: string
+  fileBaseName?: string
+  forceDownload?: boolean
 }
 
 export function GetURL (type:image_file_resolutions, asset:AssetImage) {
@@ -35,11 +37,19 @@ export function GetURL (type:image_file_resolutions, asset:AssetImage) {
       break;
   }
 
-  let signedUrl = b2.getSignedUrl('getObject', {
+  const opts : any = {
     Bucket: bucket,
     Key: `${asset.creator_id}/${asset.id}.${ext}`,
-    Expires: linkExpiryInSeconds
-  })
+    Expires: linkExpiryInSeconds,
+  }
+
+  if (asset.forceDownload) {
+    const basename = asset.fileBaseName
+    const escapedName = basename.replace('"', '\"')
+    opts.ResponseContentDisposition = 'attachment; filename="' + escapedName + '.' + ext + '"'
+  }
+
+  let signedUrl = b2.getSignedUrl('getObject', opts)
 
   //Reset AWS Credentials back to AWS for use with Dynamo/others
   return signedUrl;

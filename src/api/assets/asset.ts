@@ -2,7 +2,7 @@ import {APIGatewayProxyHandler} from 'aws-lambda';
 import {Asset, image_file_resolutions} from '../../interfaces/IAsset';
 import * as b2 from '../common/backblaze';
 import {
-  deleteAsset,
+  deleteAsset, getAssetFileBasename,
   getUserAssetUnlock, getUserAssetUnlocks,
   setAssetsUnlockedForUser, setAssetUnlockedForUser,
   updateAssetAndIndex,
@@ -17,6 +17,7 @@ import * as db from '../common/postgres';
 import {ErrAssetAlreadyUnlocked, ErrDownloadTypeMissing, ErrNotEnoughCoins} from "../../constants/errors"
 import {getEntityNumCoins} from "../../lib/coins"
 import {evtQueryToAssetSearchOptions, getEventQueryFromAndSize, searchAssets} from "../../lib/asset-search";
+import {AssetImage} from "../common/backblaze";
 
 /**
  * Takes a DB asset and converts it to be more friendly for Front End
@@ -144,8 +145,16 @@ export const asset_download_link = newHandler({
   await verifyUserHasUnlockedAsset(user.id, asset.id)
 
   let link = 'ERROR_FETCHING_LINK';
-  if(asset.filetype == "IMAGE"){
-    link = b2.GetURL(<image_file_resolutions>event.queryStringParameters.type, asset);
+  if(asset.filetype == "IMAGE") {
+    const basename = getAssetFileBasename(asset)
+    const opts : AssetImage = {
+      id: asset.id,
+      creator_id: asset.creator_id,
+      original_file_ext: asset.original_file_ext,
+      forceDownload: true,
+      fileBaseName: basename,
+    }
+    link = b2.GetURL(<image_file_resolutions>event.queryStringParameters.type, opts);
   } else {
     throw new Error(`ERROR_FETCHING_LINK`)
   }
