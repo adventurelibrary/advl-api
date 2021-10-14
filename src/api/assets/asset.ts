@@ -73,12 +73,9 @@ export const creator_asset_get : APIGatewayProxyHandler = newHandler({
 }, async ({user, event}) => {
   let asset : Asset
   let creator : Creator
-  console.log('path params', event.pathParameters)
   try {
     creator = await getCreatorBySlug(event.pathParameters.creatorSlug)
-    console.log('creator', creator)
     asset = await getAssetBySlugs(event.pathParameters.creatorSlug, event.pathParameters.assetSlug)
-    console.log('asset', asset)
   } catch (ex) {
     throw ErrAssetNotFound
   }
