@@ -21,7 +21,7 @@ export const CREATOR_3_SLUG = 'carlos-cara-alvarez'
 
 export const USER1 = 'cd240b82-6e33-48e7-a561-eac54bfb1a6b'
 
-export const PAYMENT_INTENT_COMPLETE_PID = 'pi_3JetbEBmiuJDOPG52a7nMT74'
+export const PAYMENT_INTENT_COMPLETE_PID = 'pi_3JfVOOBmiuJDOPG53lXVLHQL'
 export const COIN_PURCHASE_PENDING = 27
 
 export const users = {
