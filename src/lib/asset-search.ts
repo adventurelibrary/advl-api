@@ -231,15 +231,29 @@ export async function searchAssets (opts: AssetSearchOptions) : Promise<AssetSea
 	const sort = [{[sortField]: sortDirection}]
 
 	// Query doesn't include ID
-	const params = {
+	const params : any = {
 		index: process.env.INDEX_ASSETDB,
 		body: {
 			from: from,
 			size: size,
 			sort: sort,
 			query: _query
-		}
+		},
 	}
+
+	/**
+	 * This option makes the results more consistent, but adds more time to the request
+	 * We only enable this feature when we're in development mode. We do this so our tests
+	 * can pass. Without it, the order of results can be inconsistent.
+	 * SO Explanation: https://stackoverflow.com/a/47768779/6131159
+	 * Documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html#search-type
+	 */
+	if (process.env.SLS_STAGE === 'dev') {
+		params.search_type = 'dfs_query_then_fetch'
+	}
+
+	console.log('params', JSON.stringify(params, null, 2))
+
 	//console.log('params', JSON.stringify(params, null, 2))
 	let ecResult = await search.search(params)
 

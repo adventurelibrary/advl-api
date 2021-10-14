@@ -12,7 +12,7 @@ import {getEntityNumCoins} from "../src/lib/coins";
 ava.serial('coins: buy a coinpack for a user', async (t) => {
   let idsToDelete = []
   for (let i = 1; i <= 2; i++) {
-    let res = await request('coins/purchase', {
+    let res = await request('coins/purchase/stripe-checkout', {
       userKey: 'CREATOR1',
       method: 'POST',
       body: {

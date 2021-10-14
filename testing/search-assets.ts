@@ -149,8 +149,8 @@ test('searchassets: get asset by text', async (t) => {
 })
 
 test('searchassets:sort assets by date', async (t) => {
-	const firstPublished = 'House'
-	const lastPublished = 'Some Other One'
+	const firstPublished = 'First Kill' // Jun 6th 2021 in our seed data
+	const lastPublished = 'Asset Tester' // NOW - 5 minutes in our seed data
 	let body = await getJSON('assets?sort=date&sort_direction=asc')
 	t.is(body.total, 4)
 	t.is(body.assets.length, 4)
@@ -160,8 +160,8 @@ test('searchassets:sort assets by date', async (t) => {
 	body = await getJSON('assets?sort=date&sort_direction=desc')
 	t.is(body.total, 4)
 	t.is(body.assets.length, 4)
-	t.is(body.assets[0].name, firstPublished)
-	t.is(body.assets[3].name, lastPublished)
+	t.is(body.assets[0].name, lastPublished)
+	t.is(body.assets[3].name, firstPublished)
 
 	t.pass()
 })
