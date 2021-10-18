@@ -47,6 +47,12 @@ export class Validation {
 		}
 	}
 
+	returnIfErrors () : APIError {
+		if (!this.isValid()) {
+			return this.getError()
+		}
+	}
+
 	getError () {
 		const err = new APIError({
 			key: 'validation',

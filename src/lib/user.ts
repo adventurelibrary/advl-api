@@ -101,7 +101,7 @@ export async function getUsernameExists (username: string) : Promise<boolean> {
 
 // returns integer counts of instances of the passed email and username already existsing in the db for registered users
 // returns: JSON{emailcount, usernamecount}
-export async function getRegisterValidate (email: string, username: string) : Promise<JSON> {  
+export async function getRegisterValidate (email: string, username: string) : Promise<JSON> {
   // clean params
   email.trim()
   username.trim()
@@ -110,13 +110,13 @@ export async function getRegisterValidate (email: string, username: string) : Pr
     SELECT
     (SELECT count(*) AS emailcount FROM users AS u WHERE email ILIKE 'vindexus+admin@gmail.com'),
     (SELECT count(*) AS usernamecount FROM users AS u WHERE username ILIKE 'test-user-01')
-  */  
+  */
   let q1 = `SELECT count(*) AS emailcount FROM users AS u WHERE email ILIKE '${email}'`
   let q2 = `SELECT count(*) AS usernamecount FROM users AS u WHERE username ILIKE '${username}'`
   let query = `SELECT (${q1}),(${q2})`
 
   const res = await db.query(query)
-  let JSONreturn : JSON 
+  let JSONreturn : JSON
   try {
     JSONreturn = res[0]
   }

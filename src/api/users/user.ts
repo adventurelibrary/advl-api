@@ -8,6 +8,7 @@ import {getEventQueryFromAndSize} from "../../lib/asset-search";
 import {CoinPurchase, getUserCompletePurchases, getUserTotalCompletePurchases} from "../../lib/purchases";
 import {LIMIT_MD} from "../../constants/constants";
 import {getUserCreators} from "../../lib/creator";
+import {Validation} from "../../lib/errors";
 
 /**
  * Creates a new user if it doesn't exist, returns the user if it does.
@@ -99,6 +100,7 @@ export const email_exists = newHandler({
   Returns "true": string, in return data, if email already registered to user in db.
 */
 export const name_exists = newHandler({
+  takesJSON: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
     let passedUsername = ctx['event']['pathParameters']['username']
     let userameExists = await getUsernameExists(passedUsername)
@@ -109,17 +111,25 @@ export const name_exists = newHandler({
 })
 
 /*
-  returns integer counts of instances of the passed email and username already existsing in the db for registered users
-  returns: stringified JSON{emailcount, usernamecount}
+  returns custom APIError error object if validation errors occured, otherwise returns undefined
 */
 export const register_validate = newHandler({
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
     let passedEmail = ctx['event']['pathParameters']['email']
     let passedUsername = ctx['event']['pathParameters']['username']
-    let resCount = await getRegisterValidate(passedEmail, passedUsername)    
+    //let test = ctx.route.param.email;
+
+    let resCount = await getRegisterValidate(passedEmail, passedUsername)
+
+    let val = new Validation();
+    if (resCount.emailcount > 0) val.addError({field: "email", message: "Email already in use. "});
+    if (resCount.usernamecount > 0) val.addError({field: "username", message: "Username already in use. "});
+
+    let errorObj = val.returnIfErrors()
+
   return {
     status: 200,
-    body: JSON.stringify(resCount)
+    body: errorObj
   }
 })
 
