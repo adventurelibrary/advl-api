@@ -114,10 +114,10 @@ export const name_exists = newHandler({
   returns custom APIError error object if validation errors occured, otherwise returns undefined
 */
 export const register_validate = newHandler({
+  takesJSON: true
 }, async (ctx : HandlerContext) : Promise<HandlerResult> => {
-    let passedEmail = ctx['event']['pathParameters']['email']
-    let passedUsername = ctx['event']['pathParameters']['username']
-    //let test = ctx.route.param.email;
+    let passedEmail = ctx.event.pathParameters.email
+    let passedUsername = ctx.event.pathParameters.username
 
     let resCount = await getRegisterValidate(passedEmail, passedUsername)
 
