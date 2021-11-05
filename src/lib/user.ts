@@ -65,3 +65,64 @@ export function validateUserToken(userToken:string){
 export function isAdmin(user: User) : boolean {
   return user.is_admin
 }
+
+// returns true if passed email already exists in the db for a registered user
+export async function getUserEmailExists (email: string) : Promise<boolean> {
+  let emailExists = false
+
+  const res = await db.query(`SELECT u.email FROM users AS u WHERE email = $1`, [email])
+  try {
+    if (res[0].email)
+      emailExists = true
+  }
+  catch(e) {
+    // if no result found do nothing
+  }
+
+	return emailExists
+}
+
+
+// returns true if passed username already exists in the db for a registered user
+export async function getUsernameExists (username: string) : Promise<boolean> {
+  let usernameExists = false
+
+  const res = await db.query(`SELECT u.username FROM users AS u WHERE username = $1`, [username])
+  try {
+    if (res[0].username)
+    usernameExists = true
+  }
+  catch(e) {
+    // if no result found do nothing
+  }
+
+	return usernameExists
+}
+
+// returns integer counts of instances of the passed email and username already existsing in the db for registered users
+// returns: JSON{emailcount, usernamecount}
+export async function getRegisterValidate (email: string, username: string) : Promise<JSON> {
+  // clean params
+  email.trim()
+  username.trim()
+
+  /* query structure:
+    SELECT
+    (SELECT count(*) AS emailcount FROM users AS u WHERE email ILIKE 'vindexus+admin@gmail.com'),
+    (SELECT count(*) AS usernamecount FROM users AS u WHERE username ILIKE 'test-user-01')
+  */
+  let q1 = `SELECT count(*) AS emailcount FROM users AS u WHERE email ILIKE '${email}'`
+  let q2 = `SELECT count(*) AS usernamecount FROM users AS u WHERE username ILIKE '${username}'`
+  let query = `SELECT (${q1}),(${q2})`
+
+  const res = await db.query(query)
+  let JSONreturn : JSON
+  try {
+    JSONreturn = res[0]
+  }
+  catch (e) {
+    console.log('Error occured while verifying account detail availability.')
+  }
+
+	return JSONreturn
+}

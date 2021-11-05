@@ -24,7 +24,7 @@
     "node-fetch": "^2.6.1",
     "pg": "^8.6.0",
     "serverless-dynamodb-local": "^0.2.39",
-    "serverless-offline": "^6.8.0",
+    "serverless-offline": "^6.9.0",
     "slugify": "^1.4.7",
     "source-map-support": "^0.5.10",
     "stripe": "^8.167.0",

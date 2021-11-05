@@ -16,6 +16,7 @@ INSERT INTO creators (id, name, slug, owner_id) VALUES
 ('224d9090-2c19-4d3c-b43d-b101d4879a3b', 'Gerrin Tramis', 'gerrin-tramis', '349b984e-8e2e-4a4b-993b-34df19189dbf'),
 ('7bffd388-aba7-4bd2-8472-b63fef449805', 'Carlos Cara Alvarez', 'carlos-cara-alvarez', null);
 
+
 INSERT INTO assets (id, slug, name, filetype, original_file_ext, creator_id, size_in_bytes, uploaded, published_date, visibility, upload_status, unlock_count, description, category, tags, unlock_price, revenue_share)
 VALUES ('7fa4da69-739d-4e32-a107-1f0bfd4a544b', 'asset-tester', 'Asset Tester', 'IMAGE', 'PNG', '9dd2096c-54e6-4eca-a08b-cb6e6fa5a2a1', 123, NOW() - INTERVAL '5 MINUTES', NOW() - INTERVAL '3 MINUTES', 'PUBLIC', 'COMPLETE', 1, 'Description pending', 'map', '{}', 50, '{}'),
 ('spxlFPL8WNSAmwL07b0e4su2Wa1EEZzw', 'mutante', 'Mutante', 'IMAGE', 'UNKNOWN', '7bffd388-aba7-4bd2-8472-b63fef449805', 0, '2021-06-04 02:45:11', '2021-06-04 02:45:11', 'PUBLIC', 'COMPLETE', 0, '', 'character', '{"Barbarian"}', 0, '{}'),
